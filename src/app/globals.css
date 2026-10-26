@@ -1,26 +1,256 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-main: #f8f9fb;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f3f5f8;
+    --bg-surface-hover: #e8ecf1;
+    --border-subtle: #e5e8ee;
+    --border-strong: #cbd0d8;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #7c8699;
+    --bullish: #059669;
+    --bullish-bg: rgba(5, 150, 105, 0.08);
+    --bullish-border: rgba(5, 150, 105, 0.25);
+    --bearish: #e11d48;
+    --bearish-bg: rgba(225, 29, 72, 0.08);
+    --bearish-border: rgba(225, 29, 72, 0.25);
+    --neutral-caution: #d97706;
+    --neutral-bg: rgba(217, 119, 6, 0.08);
+    --accent-gold: #b47a28;
+    --accent-gold-bg: rgba(180, 122, 40, 0.1);
+    --accent-blue: #1d4ed8;
+    --accent-blue-bg: rgba(29, 78, 216, 0.08);
+    --surface-primary: #ffffff;
+    --surface-secondary: #f3f5f8;
+    --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+    --card-shadow-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  }
+
+  .dark {
+    --bg-main: #09090b;
+    --bg-surface: #0f1115;
+    --bg-surface-elevated: #18191e;
+    --bg-surface-hover: #22242a;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --bullish: #10b981;
+    --bullish-bg: rgba(16, 185, 129, 0.08);
+    --bullish-border: rgba(16, 185, 129, 0.22);
+    --bearish: #f43f5e;
+    --bearish-bg: rgba(244, 63, 94, 0.08);
+    --bearish-border: rgba(244, 63, 94, 0.22);
+    --neutral-caution: #f59e0b;
+    --neutral-bg: rgba(245, 158, 11, 0.08);
+    --accent-gold: #dfa759;
+    --accent-gold-bg: rgba(223, 167, 89, 0.1);
+    --accent-blue: #38bdf8;
+    --accent-blue-bg: rgba(56, 189, 248, 0.08);
+    --surface-primary: #0f1115;
+    --surface-secondary: #18191e;
+    --card-shadow: none;
+    --card-shadow-hover: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Card Styles */
+.card-terminal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-terminal:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.card-luxury-gold {
+  background: linear-gradient(145deg, #ffffff, #fffdf5);
+  border: 1px solid rgba(180, 122, 40, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px -2px rgba(180, 122, 40, 0.06);
+}
+
+.dark .card-luxury-gold {
+  background: linear-gradient(145deg, rgba(20, 24, 32, 0.9), rgba(12, 16, 24, 0.95));
+  border: 1px solid rgba(223, 167, 89, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+}
+
+/* Range Bar Slider */
+.range-track {
+  position: relative;
+  height: 6px;
+  background: var(--bg-surface-elevated);
+  border-radius: 9999px;
+}
+
+.range-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--text-primary);
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Glow Utilities */
+.glow-bullish {
+  box-shadow: 0 0 20px -4px rgba(16, 185, 129, 0.2);
+}
+
+.glow-bearish {
+  box-shadow: 0 0 20px -4px rgba(244, 63, 94, 0.2);
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px -4px rgba(223, 167, 89, 0.2);
+}
+
+/* ============================================================
+   LIGHT MODE OVERRIDES FOR HARDCODED DARK BACKGROUNDS
+   Converts dark hex backgrounds to light-mode equivalents
+   ============================================================ */
+
+html.light .bg-\[\#07090e\],
+html.light .bg-\[\#07090e\]\/90,
+html.light .bg-\[\#07090e\]\/95,
+html.light .bg-\[\#0b0e14\],
+html.light .bg-\[\#0c1017\],
+html.light .bg-\[\#0c1017\]\/70,
+html.light .bg-\[\#0c1017\]\/80,
+html.light .bg-\[\#0c1017\]\/90,
+html.light .bg-\[\#0c1017\]\/95,
+html.light .bg-\[\#111722\],
+html.light .bg-\[\#121824\],
+html.light .bg-\[\#141820\] {
+  background-color: var(--bg-surface) !important;
+}
+
+html.light .border-white\/\[0\.06\],
+html.light .border-white\/\[0\.07\],
+html.light .border-white\/\[0\.08\],
+html.light .border-white\/\[0\.1\],
+html.light .border-white\/\[0\.12\],
+html.light .border-white\/\[0\.15\] {
+  border-color: var(--border-subtle) !important;
+}
+
+html.light .bg-white\/\[0\.02\],
+html.light .bg-white\/\[0\.03\],
+html.light .bg-white\/\[0\.04\],
+html.light .bg-white\/\[0\.05\],
+html.light .bg-white\/\[0\.06\] {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+html.light .bg-white\/\[0\.08\],
+html.light .bg-white\/\[0\.1\] {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Dark-hardcoded text → light-mode conversions */
+html.light .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Dark-hardcoded bg-slate → light equivalents */
+html.light .bg-slate-800,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-900,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/80 {
+  background-color: var(--bg-surface-elevated) !important;
+}
+
+html.light .border-slate-700,
+html.light .border-slate-700\/60,
+html.light .border-slate-800,
+html.light .border-slate-800\/80 {
+  border-color: var(--border-subtle) !important;
+}
+
+html.light .hover\:bg-white\/\[0\.03\]:hover,
+html.light .hover\:bg-white\/\[0\.04\]:hover,
+html.light .hover\:bg-white\/\[0\.06\]:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .hover\:text-white:hover,
+html.light .hover\:text-slate-200:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Ensure from-slate gradients in light mode */
+html.light [class*="from-slate-900"],
+html.light [class*="via-slate-900"] {
+  --tw-gradient-from: var(--bg-surface-elevated) !important;
+  --tw-gradient-via: var(--bg-surface-elevated) !important;
 }
