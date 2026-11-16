@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.logging import logger
 from app.data.market_calendar import MarketCalendar
+from app.db.database import commit_critical_ledger
 from app.models.db_models import (
     SignalRecord,
     SignalSnapshotRecord,
@@ -169,7 +170,7 @@ class OutcomeTrackerService:
         )
         session.add(history)
 
-        await session.commit()
+        await commit_critical_ledger(session)
         await session.refresh(signal)
 
         # Subscribe token for live tracking
@@ -551,7 +552,10 @@ class OutcomeTrackerService:
                         session.add(history)
                         generated_events.append({"signal_id": sig.id, "event": "T3_HIT", "price": exit_price})
 
-        await session.commit()
+        if generated_events:
+            await commit_critical_ledger(session)
+        else:
+            await session.commit()
         return generated_events
 
     async def process_candle_bar(
@@ -618,7 +622,7 @@ class OutcomeTrackerService:
                     timestamp=now_dt,
                 )
                 session.add(history)
-                await session.commit()
+                await commit_critical_ledger(session)
                 return {"signal_id": signal.id, "event": "AMBIGUOUS", "price": close}
         return None
 
@@ -675,7 +679,7 @@ class OutcomeTrackerService:
                 gap_signals.append(sig.id)
 
         if gap_signals:
-            await session.commit()
+            await commit_critical_ledger(session)
         return gap_signals
 
     def get_active_tokens(self) -> List[str]:
@@ -781,7 +785,7 @@ class OutcomeTrackerService:
                 )
                 session.add(event)
 
-        await session.commit()
+        await commit_critical_ledger(session)
 
         # 3. Compute and store Performance Snapshot
         perf_data = await self.calculate_performance_metrics(session, scope="ALL")
@@ -859,7 +863,7 @@ class OutcomeTrackerService:
             created_at=now_dt,
         )
         session.add(snap_daily)
-        await session.commit()
+        await commit_critical_ledger(session)
 
         logger.info(f"✅ Daily Reconciliation completed for {today_date_str}. Total signals evaluated: {perf_data['totalSignals']}")
         return perf_data

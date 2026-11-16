@@ -19,11 +19,18 @@ def detect_candlestick_and_chart_patterns(
     - Confirmation and invalidation rules
     - Confidence rating
     """
+    from app.options.multi_timeframe_engine import filter_completed_candles
     if candles_df is None or len(candles_df) < 2:
+        return []
+    if candles_df.attrs.get("is_mock") or candles_df.attrs.get("is_synthetic"):
+        return []
+
+    filtered_df = filter_completed_candles(candles_df, timeframe=timeframe)
+    if filtered_df is None or len(filtered_df) < 2:
         return []
 
     patterns: List[Dict[str, Any]] = []
-    df = candles_df.copy().reset_index(drop=True)
+    df = filtered_df.copy().reset_index(drop=True)
 
     # Latest candles
     curr = df.iloc[-1]
@@ -213,5 +220,70 @@ def detect_candlestick_and_chart_patterns(
                     "confidence": "Medium",
                     "description": "Volatility compression in play. Tight range usually precedes an aggressive expansion move."
                 })
+
+    # 7. Smart Money Concepts (SMC) Patterns Integration
+    try:
+        from app.options.smc_engine import SmartMoneyEngine
+        d_high = float(df["high"].max())
+        d_low = float(df["low"].min())
+        smc = SmartMoneyEngine.analyze(df, c_close, d_high, d_low, timeframe=timeframe)
+
+        # A. Liquidity Sweeps
+        for sweep in smc.get("recentSweeps", []):
+            patterns.append({
+                "patternName": f"SMC: {sweep['title']}",
+                "timeframe": timeframe,
+                "detectionTimestamp": sweep.get("timestamp", "Recent"),
+                "interpretation": sweep["bias"],
+                "confirmed": True,
+                "relevantPriceLevels": {
+                    "sweptLevel": sweep["sweptLevel"],
+                    "invalidationLevel": sweep["invalidationLevel"],
+                },
+                "confirmationCondition": f"Requires structure shift confirmation past swept level {sweep['sweptLevel']}.",
+                "invalidationCondition": f"Breach beyond sweep extreme {sweep['invalidationLevel']}.",
+                "confidence": "High",
+                "description": sweep["description"],
+            })
+
+        # B. Fair Value Gaps (FVG)
+        for fvg in smc.get("fairValueGaps", [])[-2:]:
+            patterns.append({
+                "patternName": f"SMC: {fvg['type'].replace('_', ' ')} (50% CE: ₹{fvg['ce50']:.1f})",
+                "timeframe": timeframe,
+                "detectionTimestamp": str(curr.get("timestamp", curr.get("time", "Current"))),
+                "interpretation": fvg["bias"],
+                "confirmed": not fvg["mitigated"],
+                "relevantPriceLevels": {
+                    "gapTop": fvg["top"],
+                    "gapBottom": fvg["bottom"],
+                    "consequentEncroachment": fvg["ce50"],
+                },
+                "confirmationCondition": f"Respects 50% CE level at ₹{fvg['ce50']:.1f}.",
+                "invalidationCondition": f"Decisive close beyond gap boundary ₹{fvg['bottom'] if fvg['bias'] == 'BULLISH' else fvg['top']:.1f}.",
+                "confidence": "High",
+                "description": fvg["description"],
+            })
+
+        # C. Order Blocks (OB)
+        for ob in smc.get("orderBlocks", [])[-2:]:
+            patterns.append({
+                "patternName": f"SMC: {ob['type'].replace('_', ' ')} Zone [₹{ob['bottom']:.1f} - ₹{ob['top']:.1f}]",
+                "timeframe": timeframe,
+                "detectionTimestamp": str(curr.get("timestamp", curr.get("time", "Current"))),
+                "interpretation": ob["bias"],
+                "confirmed": True,
+                "relevantPriceLevels": {
+                    "obTop": ob["top"],
+                    "obBottom": ob["bottom"],
+                    "midpoint": ob["midpoint"],
+                },
+                "confirmationCondition": f"Institutional price defense inside zone [₹{ob['bottom']:.1f} - ₹{ob['top']:.1f}].",
+                "invalidationCondition": f"Clean breach past {'bottom' if ob['bias'] == 'BULLISH' else 'top'} ₹{ob['bottom'] if ob['bias'] == 'BULLISH' else ob['top']:.1f}.",
+                "confidence": "High",
+                "description": ob["description"],
+            })
+    except Exception as e:
+        pass
 
     return patterns

@@ -20,6 +20,7 @@ import {
   Moon,
   Radio,
   SlidersHorizontal,
+  Eye,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -80,6 +81,7 @@ const navItems: NavItem[] = [
     label: 'Market Sentiment',
     href: '/sentiment',
     icon: Gauge,
+    badge: 'Live',
     category: 'core',
   },
   {

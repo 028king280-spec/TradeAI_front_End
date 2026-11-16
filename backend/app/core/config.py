@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,17 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     APP_NAME: str = "AIVOLVE Trading AI"
     DEBUG: bool = True
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug(cls, v):
+        if isinstance(v, str):
+            if v.strip().lower() in ("release", "prod", "production", "false", "0", "no"):
+                return False
+            if v.strip().lower() in ("debug", "dev", "development", "true", "1", "yes"):
+                return True
+        return bool(v)
+
     PORT: int = 8000
     HOST: str = "0.0.0.0"
 

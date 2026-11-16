@@ -27,6 +27,8 @@ class InstrumentMaster:
         self._by_token: Dict[str, Dict[str, Any]] = {}
         # (underlying, expiry_str, strike_float, option_type) -> instrument dict
         self._options_by_spec: Dict[Tuple[str, str, float, str], Dict[str, Any]] = {}
+        # option symbol -> instrument dict
+        self._options_by_symbol: Dict[str, Dict[str, Any]] = {}
         # underlying -> list of unique sorted expiry date strings
         self._expiries_by_underlying: Dict[str, List[str]] = {}
 
@@ -66,7 +68,8 @@ class InstrumentMaster:
                 if not token:
                     continue
 
-                self._by_token[token] = item
+                if token not in self._by_token or exch_seg in ("NSE", "NFO"):
+                    self._by_token[token] = item
 
                 # 1. NSE Equities & Benchmark Indices
                 if exch_seg in ("NSE", "BSE") and instrument_type in ("", "AMXIDX", "INDEX"):
@@ -105,6 +108,7 @@ class InstrumentMaster:
 
                     key = (name, expiry_raw, strike_val, opt_type)
                     self._options_by_spec[key] = item
+                    self._options_by_symbol[symbol] = item
 
                     if name not in expiries_set:
                         expiries_set[name] = set()
@@ -148,6 +152,11 @@ class InstrumentMaster:
         else:
             key = clean
         return self._expiries_by_underlying.get(key, [])
+
+    def get_option_by_symbol(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """Returns option contract dict for given symbol if indexed, else None."""
+        clean = symbol.upper().strip()
+        return self._options_by_symbol.get(clean)
 
     def resolve_option_contract(
         self,
@@ -245,6 +254,43 @@ class InstrumentMaster:
 
     def resolve_token(self, token: str) -> Optional[Dict[str, Any]]:
         return self._by_token.get(token)
+
+    def get_equity(self, symbol: str, preferred_exch: str = "NSE") -> Optional[Dict[str, Any]]:
+        """
+        Dynamically finds official equity scrip across 30,000+ NSE/BSE listed instruments.
+        """
+        clean = symbol.upper().replace("-EQ", "").replace(" ", "").strip()
+        # 1. Try preferred exchange
+        eq = self._equity_by_symbol.get((clean, preferred_exch))
+        if eq:
+            return eq
+        # 2. Try NSE then BSE
+        for ex in ("NSE", "BSE"):
+            eq = self._equity_by_symbol.get((clean, ex))
+            if eq:
+                return eq
+        return None
+
+    def get_strikes_for_underlying(self, underlying: str, expiry: Optional[str] = None) -> List[float]:
+        """
+        Returns sorted list of distinct available option strikes for an underlying.
+        """
+        clean = underlying.upper().replace(" 50", "").replace(" ", "").strip()
+        if clean in ("NIFTY50", "NIFTY"):
+            key_und = "NIFTY"
+        elif clean in ("BANKNIFTY", "NIFTYBANK"):
+            key_und = "BANKNIFTY"
+        elif clean in ("FINNIFTY", "NIFTYFIN"):
+            key_und = "FINNIFTY"
+        else:
+            key_und = clean
+
+        strikes = set()
+        for (u, exp, strike, _opt) in self._options_by_spec.keys():
+            if u == key_und:
+                if expiry is None or exp == expiry:
+                    strikes.add(strike)
+        return sorted(strikes)
 
 
 # Global singleton helper

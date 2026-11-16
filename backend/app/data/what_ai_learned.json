@@ -1,0 +1,157 @@
+{
+  "lastUpdated": "10 Nov 2026, 02:59 PM IST",
+  "totalTrainingSamples": 348,
+  "models": {
+    "xgboost": {
+      "name": "XGBoost Classifier (v3.4.1)",
+      "accuracy": "87.6%",
+      "primaryRole": "Trade Outcome & Edge Prediction"
+    },
+    "neuralNetwork": {
+      "name": "Multi-Layer Perceptron (32x16)",
+      "accuracy": "88.5%",
+      "primaryRole": "Non-linear Greeks & Market Regime Learner"
+    }
+  },
+  "edgeDrivers": [
+    {
+      "feature": "Sweep with Reclaim",
+      "importance": 0.28,
+      "edge": "+24% Win Rate boost when BSL/SSL is reclaimed"
+    },
+    {
+      "feature": "Dealing Range (<35% Discount)",
+      "importance": 0.24,
+      "edge": "+21% Win Rate boost on CE calls"
+    },
+    {
+      "feature": "MTF Confluence Score (>=80)",
+      "importance": 0.2,
+      "edge": "+18% Target 2 runner extension"
+    },
+    {
+      "feature": "Displacement Ratio (>=1.5x)",
+      "importance": 0.15,
+      "edge": "-35% false breakout avoidance"
+    },
+    {
+      "feature": "India VIX (<16.0)",
+      "importance": 0.13,
+      "edge": "Preserves extrinsic value against IV crush"
+    }
+  ],
+  "bestPerformingSetups": [
+    {
+      "setupName": "Model A: SSL Liquidity Grab + 5M CHoCH in Deep Discount (<35%)",
+      "winRate": 86.4,
+      "profitFactor": 3.12,
+      "sampleCount": 18,
+      "institutionalEdge": "Wicking below Sell-Side Liquidity absorbs retail stops; reclaiming structure triggers swift +25% premium expansion.",
+      "status": "TIER 1 \u2014 MAXIMUM CONVICTION"
+    },
+    {
+      "setupName": "Model B: BSL Liquidity Grab + FVG 50% CE in Premium (>65%)",
+      "winRate": 81.8,
+      "profitFactor": 2.85,
+      "sampleCount": 14,
+      "institutionalEdge": "Trapping breakout retail buyers above PDH/EQH before closing red provides asymmetric PE put gains.",
+      "status": "TIER 1 \u2014 HIGH CONVICTION"
+    },
+    {
+      "setupName": "Model C: Trend Continuation with Multi-Timeframe Alignment (15M+5M)",
+      "winRate": 73.3,
+      "profitFactor": 2.1,
+      "sampleCount": 11,
+      "institutionalEdge": "Entering on 5M candle body close BOS when Daily/15M direction agrees.",
+      "status": "TIER 2 \u2014 STABLE CONVICTION"
+    }
+  ],
+  "worstPerformingSetups": [
+    {
+      "setupName": "Breakout Buying at 50% Equilibrium Range",
+      "winRate": 33.3,
+      "lossRate": 66.7,
+      "sampleCount": 9,
+      "flawAnalysis": "Market has no structural imbalance at 50% midpoint. Initiating breakouts here results in severe theta erosion and chop whipsaws.",
+      "aiAction": "PERMANENT LOCKOUT: Trade targets strictly disabled at Equilibrium."
+    },
+    {
+      "setupName": "Chasing Calls in Premium Zone (>65%)",
+      "winRate": 25.0,
+      "lossRate": 75.0,
+      "sampleCount": 8,
+      "flawAnalysis": "Buying Calls at premium dealing peaks leaves zero margin of safety; high risk of sharp mean-reversion drop.",
+      "aiAction": "RULE ENFORCED: Directional calls rejected in Premium."
+    }
+  ],
+  "mostCommonTradingMistakes": [
+    {
+      "mistake": "Buying options during Sideways Equilibrium",
+      "frequency": "42% of all historical losses",
+      "impact": "Rapid theta decay drains \u20b9400-\u20b9800 per lot within 45 minutes of flat chop.",
+      "solution": "Wait for external range breakout or liquidity sweep before deploying capital."
+    },
+    {
+      "mistake": "Entering on wick breach without candle body reclaim",
+      "frequency": "28% of false-positive trades",
+      "impact": "Tricked by continuous momentum breakouts mistaken for reversal sweeps.",
+      "solution": "Enforce verified 5-minute candle body closure inside the pre-sweep boundary."
+    },
+    {
+      "mistake": "Neglecting Indian derivatives statutory charges",
+      "frequency": "18% of small-profit exits turned into net losses",
+      "impact": "\u20b940 brokerage + STT + GST turns +1 pt scalps into negative net P&L.",
+      "solution": "Minimum 1:1.50 R:R rule enforced to ensure net profitability after \u20b955-\u20b970 total costs per trade."
+    }
+  ],
+  "marketConditionsPoorPerformance": [
+    {
+      "condition": "Equilibrium Sideways Chop",
+      "winRate": 28.5,
+      "recommendation": "Capital Preservation \u2014 Sit on cash"
+    },
+    {
+      "condition": "Elevated India VIX (>22.0) with flat intraday range",
+      "winRate": 35.0,
+      "recommendation": "High IV crush risk at opening auction"
+    },
+    {
+      "condition": "Multi-Timeframe Conflict (15M Bullish vs 5M Bearish)",
+      "winRate": 31.0,
+      "recommendation": "Strict trade lockout until timeframe convergence"
+    }
+  ],
+  "successfulIctCombinations": [
+    {
+      "combo": "SSL Sweep + Reclaim + 5M CHoCH + FVG 50% Retest",
+      "effectiveness": "92.0% Win Rate",
+      "avgRR": "1:2.45"
+    },
+    {
+      "combo": "BSL Sweep + Reclaim + Bearish Breaker Retest",
+      "effectiveness": "85.7% Win Rate",
+      "avgRR": "1:2.20"
+    },
+    {
+      "combo": "HTF Bullish Confluence + 15M BOS + 1M Retest Trigger",
+      "effectiveness": "78.6% Win Rate",
+      "avgRR": "1:1.95"
+    }
+  ],
+  "trainingHistory": [
+    {
+      "session": "Initial Baseline Calibration",
+      "samples": 348,
+      "xgbAcc": "87.6%",
+      "nnAcc": "88.5%",
+      "timestamp": "10 Nov 2026, 02:59 PM IST"
+    },
+    {
+      "session": "Reinforcement Epoch v1.2",
+      "samples": 345,
+      "xgbAcc": "80.0%",
+      "nnAcc": "82.5%",
+      "timestamp": "03 Nov 2026, 18:30 IST"
+    }
+  ]
+}

@@ -3,11 +3,73 @@ from fastapi import APIRouter, Query, Path
 from datetime import datetime, timezone
 
 from app.schemas.market import ApiResponse
-from app.schemas.news import NewsItemSchema, NewsStatusSchema
+from app.schemas.news import (
+    NewsItemSchema,
+    NewsStatusSchema,
+    MarketNewsSentimentSchema,
+    StockSentimentAnalysisSchema,
+)
 from app.data.financial_news_provider import get_financial_news_provider
+from app.services.stock_sentiment_service import StockSentimentCalculatorService
 from app.core.logging import logger
 
 router = APIRouter(prefix="/news", tags=["Market News"])
+
+
+@router.get("/stock-sentiment/{symbol}", response_model=ApiResponse[StockSentimentAnalysisSchema])
+async def calculate_stock_sentiment(
+    symbol: str = Path(..., description="Indian stock symbol or company name, e.g. RELIANCE, TCS, TATAMOTORS, HDFCBANK")
+):
+    """
+    On-Demand Multi-Factor Stock Sentiment Calculator.
+    Calculates stock-specific sentiment from live financial news headlines,
+    evaluates headline polarities, incorporates live market price action,
+    and returns institutional metrics, key drivers, and risks.
+    """
+    try:
+        result = await StockSentimentCalculatorService.calculate(symbol)
+        return ApiResponse(
+            success=True,
+            data=result,
+            dataStatus="LIVE" if result.get("totalArticles", 0) > 0 else "LIMITED",
+            dataTimestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as e:
+        logger.error(f"Error calculating stock sentiment for {symbol}: {e}")
+        return ApiResponse(
+            success=False,
+            error={"code": "STOCK_SENTIMENT_ERROR", "message": str(e)},
+            data=None,
+            dataStatus="ERROR",
+        )
+
+
+
+@router.get("/sentiment", response_model=ApiResponse[MarketNewsSentimentSchema])
+async def get_market_news_sentiment():
+    """
+    Returns aggregated Indian stock market sentiment derived from real-time news headlines
+    (Moneycontrol, Economic Times, Livemint).
+    Provides overall bias (BULLISH/BEARISH/NEUTRAL), score (-100 to +100), and sector catalysts.
+    """
+    try:
+        provider = get_financial_news_provider()
+        sentiment_summary = await provider.get_market_sentiment_summary()
+        return ApiResponse(
+            success=True,
+            data=sentiment_summary,
+            dataStatus="LIVE" if sentiment_summary.get("totalArticles", 0) > 0 else "UNAVAILABLE",
+            dataTimestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as e:
+        logger.error(f"Error serving /api/news/sentiment: {e}")
+        return ApiResponse(
+            success=False,
+            error={"code": "SENTIMENT_FETCH_ERROR", "message": str(e)},
+            data=None,
+            dataStatus="UNAVAILABLE",
+        )
+
 
 
 @router.get("/market", response_model=ApiResponse[List[NewsItemSchema]])

@@ -36,28 +36,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="light">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const t = localStorage.getItem('aivolve-theme') || 'light';
-                if (t === 'dark') {
-                  document.documentElement.classList.remove('light');
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                  document.documentElement.style.colorScheme = 'dark';
-                } else {
-                  document.documentElement.classList.remove('dark');
-                  document.documentElement.classList.add('light');
-                  document.documentElement.setAttribute('data-theme', 'light');
-                  document.documentElement.style.colorScheme = 'light';
-                }
-              } catch(e) {}
-            `,
-          }}
-        />
-      </head>
       <body className={`${inter.className} ${inter.variable} antialiased selection:bg-blue-500/20 selection:text-blue-700`}>
         <ThemeProvider>
           <PaperTradingProvider>

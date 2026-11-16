@@ -11,7 +11,9 @@ import {
   NextSessionBacktestResult,
 } from '@/types/options';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ''
+  : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000');
 
 class OptionsService {
   private async fetchJson<T>(url: string): Promise<T | null> {
@@ -43,18 +45,18 @@ class OptionsService {
         {
           symbol: 'NIFTY 50',
           name: 'Nifty 50 Index',
-          currentValue: 24852.40,
-          change: 136.20,
-          changePercent: 0.55,
-          dayHigh: 24890.10,
-          dayLow: 24710.80,
-          openPrice: 24730.00,
-          previousClose: 24716.20,
+          currentValue: 23820.00,
+          change: 14.20,
+          changePercent: 0.06,
+          dayHigh: 23946.35,
+          dayLow: 23696.15,
+          openPrice: 23742.25,
+          previousClose: 23810.85,
           trend: 'Bullish',
           marketStatus: 'OPEN',
           dataStatus: 'MOCK',
-          timestamp: '15 Oct 2026, 03:30 PM IST',
-          sparkline: [24715, 24730, 24760, 24745, 24790, 24810, 24840, 24852.4],
+          timestamp: '04 Nov 2026, 12:50 PM IST',
+          sparkline: [23696, 23742, 23800, 23820],
         },
         {
           symbol: 'SENSEX',
@@ -127,50 +129,68 @@ class OptionsService {
     };
   }
 
+  private cleanSymbol(symbol?: string): string {
+    return (symbol && typeof symbol === 'string' ? symbol : 'NIFTY50').replace(/\s+/g, '').toUpperCase();
+  }
+
   async getIndexAnalysis(symbol: string): Promise<IndexAnalysisFullResponse | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<IndexAnalysisFullResponse>(`/api/options/${sym}/analysis`);
   }
 
-  async getCandles(symbol: string, timeframe: string = '15m') {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
-    return await this.fetchJson<any>(`/api/options/${sym}/candles?timeframe=${timeframe}`);
+  async getCandles(
+    symbol: string,
+    timeframe: string = '15m',
+    mode: 'spot' | 'premium' = 'spot',
+    strike?: number,
+    optionType: 'CE' | 'PE' = 'CE'
+  ) {
+    const sym = this.cleanSymbol(symbol);
+    let url = `/api/options/${sym}/candles?timeframe=${timeframe}&mode=${mode}`;
+    if (strike) url += `&strike=${strike}`;
+    if (optionType) url += `&option_type=${optionType}`;
+    return await this.fetchJson<any>(url);
   }
 
   async getOptionChain(symbol: string, expiry?: string, filterMode: 'ATM' | 'WIDE' = 'ATM'): Promise<OptionChainResponse | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     let url = `/api/options/${sym}/option-chain?filter_mode=${filterMode}`;
     if (expiry) url += `&expiry=${encodeURIComponent(expiry)}`;
     return await this.fetchJson<OptionChainResponse>(url);
   }
 
   async getSetups(symbol: string): Promise<{ todayOptionsSetups: TodayOptionsSetupsResult } | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<{ todayOptionsSetups: TodayOptionsSetupsResult }>(`/api/options/${sym}/setups`);
   }
 
+  async getSmc(symbol: string): Promise<{ smcAnalysis: any } | null> {
+    const sym = this.cleanSymbol(symbol);
+    return await this.fetchJson<{ smcAnalysis: any }>(`/api/options/${sym}/smc`);
+  }
+
   async getOutlook(symbol: string): Promise<{ todayOutlook: SessionOutlookData; nextSessionOutlook: SessionOutlookData } | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<{ todayOutlook: SessionOutlookData; nextSessionOutlook: SessionOutlookData }>(`/api/options/${sym}/outlook`);
   }
 
   async getPatterns(symbol: string): Promise<{ patterns: DetectedChartPattern[] } | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<{ patterns: DetectedChartPattern[] }>(`/api/options/${sym}/patterns`);
   }
 
   async getSentiment(symbol: string): Promise<{ sentiment: OptionsMarketSentiment } | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<{ sentiment: OptionsMarketSentiment }>(`/api/options/${sym}/sentiment`);
   }
 
   async getNextSessionOpeningOutlook(symbol: string): Promise<{ openingOutlook: NextSessionOpeningOutlook } | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     return await this.fetchJson<{ openingOutlook: NextSessionOpeningOutlook }>(`/api/options/${sym}/next-session/opening-outlook`);
   }
 
   async getNextSessionRecommendation(symbol: string, liveOpenPrice?: number): Promise<NextSessionRecommendation | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     let url = `/api/options/${sym}/next-session/recommendation`;
     if (liveOpenPrice) url += `?live_open_price=${liveOpenPrice}`;
     return await this.fetchJson<NextSessionRecommendation>(url);
@@ -182,9 +202,35 @@ class OptionsService {
     brokerage: number = 20.0,
     slippage: number = 0.05
   ): Promise<NextSessionBacktestResult | null> {
-    const sym = symbol.replace(/\s+/g, '').toUpperCase();
+    const sym = this.cleanSymbol(symbol);
     const url = `/api/options/${sym}/next-session/backtest?lookback_sessions=${lookback}&brokerage_per_order=${brokerage}&slippage_pct=${slippage}`;
     return await this.fetchJson<NextSessionBacktestResult>(url);
+  }
+
+  async getIctAnalysis(symbol: string, timeframe: string = '15m'): Promise<any | null> {
+    const sym = this.cleanSymbol(symbol);
+    return await this.fetchJson<any>(`/api/options/${sym}/ict-analysis?timeframe=${timeframe}`);
+  }
+
+  async getMultiTimeframe(symbol: string): Promise<any | null> {
+    const sym = this.cleanSymbol(symbol);
+    return await this.fetchJson<any>(`/api/options/${sym}/multi-timeframe`);
+  }
+
+  async runIctBacktest(symbol: string, payload: any = {}): Promise<any | null> {
+    const sym = this.cleanSymbol(symbol);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/options/${sym}/backtest-ict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (err) {
+      console.warn(`ICT backtest failed for ${sym}:`, err);
+      return null;
+    }
   }
 }
 

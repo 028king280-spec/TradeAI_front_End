@@ -11,7 +11,9 @@
  * - Fallback polling for non-WebSocket providers
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ''
+  : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000');
 
 export interface LiveTick {
   symbol: string;
@@ -24,7 +26,9 @@ export interface LiveTick {
   avgPrice?: number;
   change?: number;
   changePercent?: number;
-  dataStatus: 'LIVE' | 'MOCK' | 'UNAVAILABLE' | 'WAITING';
+  dataStatus: 'LIVE' | 'MOCK' | 'UNAVAILABLE' | 'WAITING' | 'DATA_OFFLINE' | 'STALE_TICK' | 'MARKET_CLOSED';
+  feedStatus?: string;
+  isTradeQualified?: boolean;
   provider?: string;
   timestamp?: number;
 }

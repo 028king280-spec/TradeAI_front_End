@@ -22,7 +22,20 @@ from app.core.logging import logger
 from app.core.cache import CacheService
 from app.data.providers.base import MarketDataProvider
 from app.data.normalizer import MarketDataNormalizer
-from app.data.providers.mock_provider import MockMarketDataProvider
+
+_RATE_LIMIT_ERROR_CODES = {"AB1004", "AB1019"}
+_RATE_LIMIT_KEYWORDS = ("exceeding access rate", "too many requests", "toomanyrequests", "rate limit")
+
+_SYMBOL_METADATA: Dict[str, Dict[str, str]] = {
+    "NIFTY 50": {"companyName": "Nifty 50 Index", "sector": "Benchmark Index", "category": "Index"},
+    "NIFTY": {"companyName": "Nifty 50 Index", "sector": "Benchmark Index", "category": "Index"},
+    "SENSEX": {"companyName": "BSE SENSEX Index", "sector": "Benchmark Index", "category": "Index"},
+    "BSE SENSEX": {"companyName": "BSE SENSEX Index", "sector": "Benchmark Index", "category": "Index"},
+    "BANK NIFTY": {"companyName": "Nifty Bank Index", "sector": "Banking Index", "category": "Index"},
+    "BANKNIFTY": {"companyName": "Nifty Bank Index", "sector": "Banking Index", "category": "Index"},
+    "FINNIFTY": {"companyName": "Nifty Financial Services", "sector": "Financial Index", "category": "Index"},
+    "INDIA VIX": {"companyName": "India Volatility Index", "sector": "Volatility Index", "category": "Index"},
+}
 
 
 # ============================================================
@@ -68,12 +81,14 @@ ANGELONE_TOKEN_MAP: Dict[str, Dict[str, str]] = {
     "BANK NIFTY": {"token": "99926009", "exchange": "NSE", "symbol_token": "99926009", "tradingsymbol": "BANKNIFTY"},
     "BANKNIFTY": {"token": "99926009", "exchange": "NSE", "symbol_token": "99926009", "tradingsymbol": "BANKNIFTY"},
     "FINNIFTY": {"token": "99926037", "exchange": "NSE", "symbol_token": "99926037", "tradingsymbol": "FINNIFTY"},
-    "INDIA VIX": {"token": "99926004", "exchange": "NSE", "symbol_token": "99926004", "tradingsymbol": "INDIAVIX"},
+    "NIFTY FINANCIAL SERVICES": {"token": "99926037", "exchange": "NSE", "symbol_token": "99926037", "tradingsymbol": "FINNIFTY"},
+    "NIFTYFIN": {"token": "99926037", "exchange": "NSE", "symbol_token": "99926037", "tradingsymbol": "FINNIFTY"},
+    "INDIA VIX": {"token": "99926017", "exchange": "NSE", "symbol_token": "99926017", "tradingsymbol": "India VIX"},
     "NIFTY IT": {"token": "99926013", "exchange": "NSE", "symbol_token": "99926013", "tradingsymbol": "NIFTYIT"},
     "NIFTY AUTO": {"token": "99926023", "exchange": "NSE", "symbol_token": "99926023", "tradingsymbol": "NIFTYAUTO"},
     "NIFTY PHARMA": {"token": "99926014", "exchange": "NSE", "symbol_token": "99926014", "tradingsymbol": "NIFTYPHARMA"},
     "NIFTY FMCG": {"token": "99926020", "exchange": "NSE", "symbol_token": "99926020", "tradingsymbol": "NIFTYFMCG"},
-    "NIFTY METAL": {"token": "99926017", "exchange": "NSE", "symbol_token": "99926017", "tradingsymbol": "NIFTYMETAL"},
+    "NIFTY METAL": {"token": "99926030", "exchange": "NSE", "symbol_token": "99926030", "tradingsymbol": "NIFTYMETAL"},
     "NIFTY ENERGY": {"token": "99926022", "exchange": "NSE", "symbol_token": "99926022", "tradingsymbol": "NIFTYENERGY"},
     "NIFTY PSU BANK": {"token": "99926026", "exchange": "NSE", "symbol_token": "99926026", "tradingsymbol": "NIFTYPSUBANK"},
     # Major Equities (NSE symbol tokens)
@@ -134,7 +149,11 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         self._login_time: Optional[float] = None
         self._is_logged_in = False
 
-        self.fallback = MockMarketDataProvider()
+        # Reliability & diagnostics state (no silent mock fallback)
+        self._max_retries: int = 2
+        self._retry_backoff_seconds: float = 0.25
+        self._diagnostics: Dict[str, Any] = {}
+        self.last_error: Optional[str] = None
 
     @property
     def is_authenticated(self) -> bool:
@@ -204,11 +223,109 @@ class AngelOneMarketDataProvider(MarketDataProvider):
             return True
         return await self.login()
 
+    def set_manual_session(self, jwt_token: str, feed_token: str):
+        """Set manual daily session tokens directly without re-login (Decision 1)."""
+        self._jwt_token = jwt_token
+        self._feed_token = feed_token
+        self._is_logged_in = True
+        self._login_time = time.time()
+        logger.info("Manual Angel One session tokens registered successfully.")
+
+    async def _get_eod_snapshot(self, symbol: str, token_info: Dict[str, str]) -> Dict[str, Any]:
+        """
+        Returns verified EOD settlement snapshot when market is closed ONLY if a
+        genuine broker settlement or prior verified quote is available in cache.
+        Never fabricates EOD snapshots from synthetic/mock providers.
+        """
+        from app.data.market_calendar import MarketCalendar
+        cached = await CacheService.get(f"eod_quote:{symbol}")
+        if isinstance(cached, dict) and cached.get("currentPrice", 0) > 0 and not cached.get("is_mock"):
+            cached["dataStatus"] = "MARKET_CLOSED"
+            cached["feedStatus"] = "VERIFIED_EOD"
+            cached["is_mock"] = False
+            cached["is_synthetic"] = False
+            return cached
+
+        last_verified = await CacheService.get(f"last_verified_quote:{symbol}")
+        if isinstance(last_verified, dict) and last_verified.get("currentPrice", 0) > 0 and not last_verified.get("is_mock"):
+            close_p = float(last_verified.get("close") or last_verified.get("previousClose") or last_verified.get("currentPrice") or 0.0)
+            if close_p > 0:
+                eod_quote = {
+                    **last_verified,
+                    "symbol": symbol,
+                    "ltp": close_p,
+                    "currentPrice": close_p,
+                    "dataStatus": "MARKET_CLOSED",
+                    "feedStatus": "VERIFIED_EOD",
+                    "isTradeQualified": True,
+                    "is_mock": False,
+                    "is_synthetic": False,
+                    "marketCalendar": "CLOSED",
+                    "provider": "angelone_eod",
+                    "timestamp": MarketCalendar.format_ist_timestamp(),
+                }
+                await CacheService.set(f"eod_quote:{symbol}", eod_quote, ttl_seconds=3600)
+                return eod_quote
+
+        return {
+            "symbol": symbol,
+            "companyName": _SYMBOL_METADATA.get(symbol, {}).get("companyName", f"{symbol} Limited"),
+            "exchange": token_info.get("exchange", "NSE"),
+            "ltp": 0.0,
+            "currentPrice": 0.0,
+            "openPrice": 0.0,
+            "dayHigh": 0.0,
+            "dayLow": 0.0,
+            "previousClose": 0.0,
+            "volume": 0,
+            "change": 0.0,
+            "changePercent": 0.0,
+            "dataStatus": "DATA_OFFLINE",
+            "feedStatus": "DATA_OFFLINE",
+            "isTradeQualified": False,
+            "is_mock": False,
+            "is_synthetic": False,
+            "marketCalendar": "CLOSED",
+            "provider": "angelone",
+            "degradedReason": f"Verified EOD settlement quote unavailable for {symbol}; mock fallback disabled.",
+            "message": f"Verified EOD settlement quote unavailable for {symbol}; synthetic fallback disabled.",
+        }
+
     def _get_token_info(self, symbol: str) -> Dict[str, str]:
         """Resolve symbol to Angel One token info."""
         upper = symbol.upper().strip()
         if upper in ANGELONE_TOKEN_MAP:
             return ANGELONE_TOKEN_MAP[upper]
+
+        # Dynamic lookup across 30,000+ NSE/BSE listed instruments via InstrumentMaster
+        try:
+            from app.data.instrument_master import get_instrument_master
+            master = get_instrument_master()
+            opt = master.get_option_by_symbol(upper)
+            if opt and opt.get("token"):
+                tok = str(opt["token"])
+                exch = opt.get("exch_seg", "NFO")
+                sym = opt.get("symbol", upper)
+                return {
+                    "token": tok,
+                    "exchange": exch,
+                    "symbol_token": tok,
+                    "tradingsymbol": sym,
+                }
+            eq = master.get_equity(upper)
+            if eq and eq.get("token"):
+                tok = str(eq["token"])
+                exch = eq.get("exch_seg", "NSE")
+                sym = eq.get("symbol", f"{upper}-EQ")
+                return {
+                    "token": tok,
+                    "exchange": exch,
+                    "symbol_token": tok,
+                    "tradingsymbol": sym,
+                }
+        except Exception as e:
+            logger.debug(f"InstrumentMaster lookup error for {symbol}: {e}")
+
         # Default to NSE equity
         return {
             "token": upper,
@@ -240,33 +357,113 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         if isinstance(cached, dict) and cached.get("currentPrice", 0) > 0 and "companyName" in cached:
             return cached
 
+        from app.data.market_calendar import MarketCalendar
+
         if not await self._ensure_authenticated():
-            mock_quote = await self.fallback.get_quote(clean_sym)
-            mock_quote["dataStatus"] = "MOCK"
-            return mock_quote
-
-        try:
-            url = f"{self.base_url}/rest/secure/angelbroking/market/v1/quote/"
-            exchange = token_info.get("exchange", "NSE")
-            symbol_token = token_info.get("symbol_token", clean_sym)
-            trading_symbol = token_info.get("tradingsymbol", clean_sym)
-
-            payload = {
-                "mode": "FULL",
-                "exchangeTokens": {
-                    exchange: [symbol_token],
-                },
+            reason = "Angel One session unauthenticated or feed offline."
+            self.last_error = reason
+            self._diagnostics[f"quote:{clean_sym}"] = {"status": "DATA_OFFLINE", "reason": reason, "retry_attempts": 0}
+            return {
+                "symbol": clean_sym,
+                "companyName": _SYMBOL_METADATA.get(clean_sym, {}).get("companyName", f"{clean_sym} Limited"),
+                "exchange": token_info.get("exchange", "NSE"),
+                "ltp": 0.0,
+                "currentPrice": 0.0,
+                "openPrice": 0.0,
+                "dayHigh": 0.0,
+                "dayLow": 0.0,
+                "previousClose": 0.0,
+                "volume": 0,
+                "change": 0.0,
+                "changePercent": 0.0,
+                "dataStatus": "DATA_OFFLINE",
+                "feedStatus": "DATA_OFFLINE",
+                "isTradeQualified": False,
+                "is_mock": False,
+                "is_synthetic": False,
+                "provider": "angelone",
+                "degradedReason": reason,
+                "message": "Angel One session unauthenticated or feed offline. Live execution disabled.",
             }
 
-            async with httpx.AsyncClient(timeout=6.0) as client:
-                res = await client.post(url, json=payload, headers=self._get_headers())
-                data = res.json()
+        url = f"{self.base_url}/rest/secure/angelbroking/market/v1/quote/"
+        exchange = token_info.get("exchange", "NSE")
+        symbol_token = token_info.get("symbol_token", clean_sym)
+        trading_symbol = token_info.get("tradingsymbol", clean_sym)
 
-                if data.get("status") and data.get("data"):
-                    fetched = data["data"].get("fetched", [])
-                    if fetched:
+        payload = {
+            "mode": "FULL",
+            "exchangeTokens": {
+                exchange: [symbol_token],
+            },
+        }
+
+        last_reason = "No data returned by Angel One quote API."
+        last_status_code: Optional[int] = None
+        last_error_code: Optional[str] = None
+        retry_attempts = 0
+        reauthenticated = False
+
+        for attempt in range(self._max_retries + 1):
+            retry_attempts = attempt
+            try:
+                async with httpx.AsyncClient(timeout=6.0) as client:
+                    res = await client.post(url, json=payload, headers=self._get_headers())
+                    last_status_code = res.status_code
+
+                    if res.status_code == 401 and not reauthenticated:
+                        logger.info("Angel One token expired (401). Re-authenticating...")
+                        reauthenticated = True
+                        self._jwt_token = None
+                        self._is_logged_in = False
+                        if await self.login():
+                            res = await client.post(url, json=payload, headers=self._get_headers())
+                            last_status_code = res.status_code
+
+                    if res.status_code == 429 or res.status_code >= 500:
+                        last_reason = f"HTTP {res.status_code} from Angel One quote endpoint."
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
+                    if res.status_code != 200 or not res.text.strip():
+                        last_reason = f"HTTP {res.status_code} with empty body from Angel One quote endpoint."
+                        if attempt < self._max_retries and res.status_code == 200:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
+                    try:
+                        data = res.json()
+                    except Exception as json_err:
+                        last_reason = f"Malformed JSON from Angel One quote endpoint: {json_err}"
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
+                    last_error_code = str(data.get("errorcode") or "") or None
+                    api_msg = str(data.get("message") or "")
+                    is_rate_limit = (
+                        (last_error_code in _RATE_LIMIT_ERROR_CODES)
+                        or any(k in api_msg.lower() for k in _RATE_LIMIT_KEYWORDS)
+                    )
+                    if is_rate_limit:
+                        last_reason = f"Angel One quote rate limited ({last_error_code or 'RATE_LIMIT'}): {api_msg}"
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
+                    fetched = (data.get("data") or {}).get("fetched", []) if data.get("status") else []
+                    if data.get("status") and fetched:
                         quote_raw = fetched[0]
                         ltp = float(quote_raw.get("ltp", 0.0))
+                        if ltp <= 0:
+                            last_reason = f"Non-positive quote LTP ({ltp}) returned for {clean_sym}."
+                            break
+
                         open_price = float(quote_raw.get("open", ltp))
                         high = float(quote_raw.get("high", ltp))
                         low = float(quote_raw.get("low", ltp))
@@ -276,10 +473,10 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                         change = float(quote_raw.get("netChange", ltp - close))
                         change_pct = float(quote_raw.get("percentChange", 0))
 
-                        info = self.fallback._get_stock_info(clean_sym) if hasattr(self.fallback, "_get_stock_info") else {}
-                        company_name = info.get("companyName", f"{clean_sym} Limited")
-                        sector = info.get("sector", "Diversified")
-                        category = info.get("category", "Large Cap")
+                        meta = _SYMBOL_METADATA.get(clean_sym, {})
+                        company_name = meta.get("companyName", f"{clean_sym} Limited")
+                        sector = meta.get("sector", "Diversified")
+                        category = meta.get("category", "Large Cap")
 
                         normalized = MarketDataNormalizer.normalize_quote(
                             symbol=clean_sym,
@@ -306,21 +503,64 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                         normalized["dataStatus"] = "LIVE"
                         normalized["provider"] = "angelone"
                         normalized["tradingSymbol"] = trading_symbol
+                        normalized["is_mock"] = False
+                        normalized["is_synthetic"] = False
 
-                        # Cache for fast access & zero lag
                         await CacheService.set(f"live_quote:{clean_sym}", normalized, ttl_seconds=5)
+                        await CacheService.set(f"last_verified_quote:{clean_sym}", normalized, ttl_seconds=86400)
                         await CacheService.set(f"live_ltp:{clean_sym}", ltp, ttl_seconds=5)
-
                         return normalized
 
-                logger.warning(f"Angel One quote returned no data for {clean_sym}. Response: {data.get('message', '')}")
+                    last_reason = api_msg or f"Angel One quote returned empty/false payload for {clean_sym}."
+                    break
 
-        except Exception as e:
-            logger.error(f"Error fetching Angel One quote for {clean_sym}: {e}")
+            except Exception as e:
+                last_reason = f"Angel One quote request failed for {clean_sym}: {e}"
+                logger.error(last_reason)
+                if attempt < self._max_retries:
+                    await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                    continue
 
-        mock_quote = await self.fallback.get_quote(clean_sym)
-        mock_quote["dataStatus"] = "UNAVAILABLE" if self.is_authenticated else "MOCK"
-        return mock_quote
+        self.last_error = last_reason
+        self._diagnostics[f"quote:{clean_sym}"] = {
+            "status": "DATA_OFFLINE",
+            "reason": last_reason,
+            "http_status": last_status_code,
+            "error_code": last_error_code,
+            "retry_attempts": retry_attempts,
+        }
+        logger.warning(f"Angel One quote unavailable for {clean_sym}: {last_reason} (retries={retry_attempts})")
+
+        if not MarketCalendar.is_market_open():
+            eod_res = await self._get_eod_snapshot(clean_sym, token_info)
+            if eod_res.get("dataStatus") == "MARKET_CLOSED":
+                return eod_res
+
+        return {
+            "symbol": clean_sym,
+            "companyName": _SYMBOL_METADATA.get(clean_sym, {}).get("companyName", f"{clean_sym} Limited"),
+            "exchange": token_info.get("exchange", "NSE"),
+            "ltp": 0.0,
+            "currentPrice": 0.0,
+            "openPrice": 0.0,
+            "dayHigh": 0.0,
+            "dayLow": 0.0,
+            "previousClose": 0.0,
+            "volume": 0,
+            "change": 0.0,
+            "changePercent": 0.0,
+            "dataStatus": "DATA_OFFLINE",
+            "feedStatus": "DATA_OFFLINE",
+            "isTradeQualified": False,
+            "is_mock": False,
+            "is_synthetic": False,
+            "provider": "angelone",
+            "degradedReason": last_reason,
+            "errorCode": last_error_code,
+            "httpStatus": last_status_code,
+            "retryAttempts": retry_attempts,
+            "message": f"Real-time quote unavailable for {clean_sym}. Synthetic fallback disabled.",
+        }
 
     async def get_ltp(self, symbol: str) -> Dict[str, Any]:
         """
@@ -333,11 +573,20 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         # Check cache first
         cached = await CacheService.get(f"live_ltp:{clean_sym}")
         if cached:
-            return {"symbol": clean_sym, "ltp": cached, "dataStatus": "LIVE"}
+            return {"symbol": clean_sym, "ltp": cached, "dataStatus": "LIVE", "provider": "angelone", "is_mock": False}
 
         if not await self._ensure_authenticated():
-            return {"symbol": clean_sym, "ltp": 0, "dataStatus": "MOCK"}
+            return {
+                "symbol": clean_sym,
+                "ltp": 0.0,
+                "dataStatus": "DATA_OFFLINE",
+                "feedStatus": "DATA_OFFLINE",
+                "provider": "angelone",
+                "is_mock": False,
+                "degradedReason": "Angel One session unauthenticated.",
+            }
 
+        reason = "Angel One LTP fetch failed."
         try:
             url = f"{self.base_url}/rest/secure/angelbroking/market/v1/quote/"
             exchange = token_info.get("exchange", "NSE")
@@ -352,19 +601,37 @@ class AngelOneMarketDataProvider(MarketDataProvider):
 
             async with httpx.AsyncClient(timeout=5.0) as client:
                 res = await client.post(url, json=payload, headers=self._get_headers())
-                data = res.json()
+                if res.status_code == 401:
+                    self._is_logged_in = False
+                    if await self._ensure_authenticated():
+                        res = await client.post(url, json=payload, headers=self._get_headers())
 
-                if data.get("status") and data.get("data"):
-                    fetched = data["data"].get("fetched", [])
-                    if fetched:
-                        ltp = float(fetched[0].get("ltp", 0))
-                        await CacheService.set(f"live_ltp:{clean_sym}", ltp, ttl_seconds=10)
-                        return {"symbol": clean_sym, "ltp": ltp, "dataStatus": "LIVE"}
+                if res.status_code == 200 and res.text.strip():
+                    data = res.json()
+                    if data.get("status") and data.get("data"):
+                        fetched = data["data"].get("fetched", [])
+                        if fetched:
+                            ltp = float(fetched[0].get("ltp", 0))
+                            if ltp > 0:
+                                await CacheService.set(f"live_ltp:{clean_sym}", ltp, ttl_seconds=10)
+                                return {"symbol": clean_sym, "ltp": ltp, "dataStatus": "LIVE", "provider": "angelone", "is_mock": False}
+                    reason = str(data.get("message") or "Empty LTP payload from Angel One.")
+                else:
+                    reason = f"HTTP {res.status_code} from Angel One LTP endpoint."
 
         except Exception as e:
-            logger.error(f"Angel One LTP error for {clean_sym}: {e}")
+            reason = f"Angel One LTP error for {clean_sym}: {e}"
+            logger.error(reason)
 
-        return {"symbol": clean_sym, "ltp": 0, "dataStatus": "UNAVAILABLE"}
+        return {
+            "symbol": clean_sym,
+            "ltp": 0.0,
+            "dataStatus": "DATA_UNAVAILABLE",
+            "feedStatus": "DATA_UNAVAILABLE",
+            "provider": "angelone",
+            "is_mock": False,
+            "degradedReason": reason,
+        }
 
     async def get_batch_quotes(self, exch_seg: str, tokens: List[str]) -> Dict[str, Dict[str, Any]]:
         """
@@ -498,6 +765,46 @@ class AngelOneMarketDataProvider(MarketDataProvider):
 
         return None
 
+    def _build_unavailable_candles_df(
+        self,
+        symbol: str,
+        timeframe: str,
+        status: str,
+        reason: str,
+        retry_attempts: int = 0,
+        http_status: Optional[int] = None,
+        error_code: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """
+        Builds an explicit empty degraded/unavailable DataFrame with preserved
+        diagnostics. Never substitutes synthetic/mock candles on failure.
+        """
+        self.last_error = reason
+        diag = {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "status": status,
+            "reason": reason,
+            "retry_attempts": retry_attempts,
+            "http_status": http_status,
+            "error_code": error_code,
+        }
+        self._diagnostics[f"candles:{symbol}:{timeframe}"] = diag
+        empty_df = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume", "vwap"])
+        empty_df.attrs.update({
+            "dataStatus": status,
+            "feedStatus": status,
+            "provider": "angelone",
+            "timeframe": timeframe,
+            "is_mock": False,
+            "is_synthetic": False,
+            "degraded_reason": reason,
+            "retry_attempts": retry_attempts,
+            "http_status": http_status,
+            "error_code": error_code,
+        })
+        return empty_df
+
     async def get_historical_candles(
         self,
         symbol: str,
@@ -508,24 +815,44 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         """
         Fetch historical candles from Angel One SmartAPI.
         Endpoint: POST /rest/secure/angelbroking/historical/v1/getCandleData
-        
-        Intervals: ONE_MINUTE, THREE_MINUTE, FIVE_MINUTE, TEN_MINUTE, 
+
+        Intervals: ONE_MINUTE, THREE_MINUTE, FIVE_MINUTE, TEN_MINUTE,
                    FIFTEEN_MINUTE, THIRTY_MINUTE, ONE_HOUR, ONE_DAY
+
+        On provider failure, rate limiting, or empty responses, returns an explicit
+        empty DataFrame annotated with unavailable/degraded diagnostics and retry counts.
+        Never silently substitutes synthetic/mock candles.
         """
         clean_sym = symbol.upper().strip()
         token_info = self._get_token_info(clean_sym)
 
         cache_key = f"hist_candles:{clean_sym}:{timeframe}:{from_date.strftime('%Y%m%d%H')}"
-        cached_json = await CacheService.get(cache_key)
-        if cached_json:
+        cached_val = await CacheService.get(cache_key)
+        if cached_val:
             try:
                 import io
-                return pd.read_json(io.StringIO(cached_json))
+                if isinstance(cached_val, dict) and "json" in cached_val:
+                    cached_df = pd.read_json(io.StringIO(cached_val["json"]))
+                    if isinstance(cached_val.get("attrs"), dict):
+                        cached_df.attrs.update(cached_val["attrs"])
+                else:
+                    cached_df = pd.read_json(io.StringIO(cached_val))
+                cached_df.attrs.setdefault("dataStatus", "LIVE")
+                cached_df.attrs["provider"] = "angelone"
+                cached_df.attrs["timeframe"] = timeframe
+                cached_df.attrs["is_mock"] = False
+                cached_df.attrs["is_synthetic"] = False
+                return cached_df
             except Exception:
                 pass
 
         if not await self._ensure_authenticated():
-            return await self.fallback.get_historical_candles(clean_sym, timeframe, from_date, to_date)
+            return self._build_unavailable_candles_df(
+                clean_sym,
+                timeframe,
+                status="DATA_OFFLINE",
+                reason="Angel One session unauthenticated; mock fallback disabled.",
+            )
 
         tf_map = {
             "1m": "ONE_MINUTE",
@@ -540,45 +867,153 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         interval = tf_map.get(timeframe, "ONE_DAY")
         exchange = token_info.get("exchange", "NSE")
         symbol_token = token_info.get("symbol_token", clean_sym)
-        trading_symbol = token_info.get("tradingsymbol", clean_sym)
 
-        try:
-            url = f"{self.base_url}/rest/secure/angelbroking/historical/v1/getCandleData"
-            payload = {
-                "exchange": exchange,
-                "symboltoken": symbol_token,
-                "interval": interval,
-                "fromdate": from_date.strftime("%Y-%m-%d %H:%M"),
-                "todate": to_date.strftime("%Y-%m-%d %H:%M"),
-            }
+        url = f"{self.base_url}/rest/secure/angelbroking/historical/v1/getCandleData"
+        payload = {
+            "exchange": exchange,
+            "symboltoken": symbol_token,
+            "interval": interval,
+            "fromdate": from_date.strftime("%Y-%m-%d %H:%M"),
+            "todate": to_date.strftime("%Y-%m-%d %H:%M"),
+        }
 
-            async with httpx.AsyncClient(timeout=3.5) as client:
-                res = await client.post(url, json=payload, headers=self._get_headers())
-                if res.status_code == 200 and res.text.strip():
+        last_reason = f"Angel One historical candle API returned no data for {clean_sym} ({timeframe})."
+        last_status = "DATA_UNAVAILABLE"
+        last_http_status: Optional[int] = None
+        last_error_code: Optional[str] = None
+        retry_attempts = 0
+        reauthenticated = False
+
+        for attempt in range(self._max_retries + 1):
+            retry_attempts = attempt
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    res = await client.post(url, json=payload, headers=self._get_headers())
+                    last_http_status = res.status_code
+
+                    if res.status_code == 401 and not reauthenticated:
+                        reauthenticated = True
+                        self._jwt_token = None
+                        self._is_logged_in = False
+                        if await self.login():
+                            res = await client.post(url, json=payload, headers=self._get_headers())
+                            last_http_status = res.status_code
+
+                    if res.status_code == 429 or res.status_code >= 500:
+                        last_status = "DEGRADED"
+                        last_reason = f"Angel One getCandleData rate-limited or server error (HTTP {res.status_code}) for {clean_sym} {timeframe}."
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
+                    if res.status_code != 200:
+                        last_status = "DATA_UNAVAILABLE"
+                        last_reason = f"Angel One getCandleData HTTP {res.status_code} for {clean_sym} {timeframe}."
+                        break
+
+                    if not res.text.strip():
+                        last_status = "DEGRADED"
+                        last_reason = f"Angel One getCandleData returned empty response body for {clean_sym} {timeframe} (likely throttled)."
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
+
                     try:
                         data = res.json()
-                    except Exception:
-                        data = {}
+                    except Exception as json_err:
+                        last_status = "DEGRADED"
+                        last_reason = f"Angel One getCandleData malformed JSON for {clean_sym} {timeframe}: {json_err}"
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
 
-                    if data.get("status") and data.get("data"):
-                        candles = data["data"]
-                        if candles and len(candles) > 0:
-                            # Angel One returns: [[timestamp, open, high, low, close, volume], ...]
-                            df = pd.DataFrame(
-                                candles,
-                                columns=["timestamp", "open", "high", "low", "close", "volume"],
-                            )
-                            df["timestamp"] = pd.to_datetime(df["timestamp"])
-                            df = df.sort_values("timestamp").reset_index(drop=True)
-                            df["vwap"] = ((df["high"] + df["low"] + df["close"]) / 3).round(2)
-                            result_df = df[["timestamp", "open", "high", "low", "close", "volume", "vwap"]]
-                            await CacheService.set(cache_key, result_df.to_json(), ttl_seconds=60)
-                            return result_df
+                    last_error_code = str(data.get("errorcode") or "") or None
+                    api_msg = str(data.get("message") or "")
+                    is_rate_limit = (
+                        (last_error_code in _RATE_LIMIT_ERROR_CODES)
+                        or any(k in api_msg.lower() for k in _RATE_LIMIT_KEYWORDS)
+                    )
+                    if is_rate_limit:
+                        last_status = "DEGRADED"
+                        last_reason = f"Angel One getCandleData rate limit ({last_error_code or 'RATE_LIMIT'}): {api_msg}"
+                        if attempt < self._max_retries:
+                            await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                            continue
+                        break
 
-        except Exception as e:
-            logger.debug(f"Angel One historical candle fallback for {clean_sym}: {e}")
+                    if not data.get("status"):
+                        last_status = "DATA_UNAVAILABLE"
+                        last_reason = f"Angel One getCandleData rejected request ({last_error_code or 'API_FALSE'}): {api_msg or 'Unknown error'}"
+                        break
 
-        return await self.fallback.get_historical_candles(clean_sym, timeframe, from_date, to_date)
+                    candles = data.get("data") or []
+                    if not candles:
+                        last_status = "DATA_UNAVAILABLE"
+                        last_reason = f"Angel One getCandleData returned 0 candles for {clean_sym} {timeframe}."
+                        break
+
+                    df = pd.DataFrame(
+                        candles,
+                        columns=["timestamp", "open", "high", "low", "close", "volume"],
+                    )
+                    df["timestamp"] = pd.to_datetime(df["timestamp"])
+                    df = df.sort_values("timestamp").reset_index(drop=True)
+                    cum_v = df["volume"].cumsum()
+                    typ_p = (df["high"] + df["low"] + df["close"]) / 3.0
+                    if len(cum_v) > 0 and cum_v.iloc[-1] > 0:
+                        df["vwap"] = ((typ_p * df["volume"]).cumsum() / cum_v).round(2)
+                    else:
+                        df["vwap"] = typ_p.expanding().mean().round(2)
+                    result_df = df[["timestamp", "open", "high", "low", "close", "volume", "vwap"]]
+
+                    from app.data.quality_validator import DataQualityEngine
+                    ohlc_audit = DataQualityEngine.validate_ohlc(result_df, timeframe)
+                    result_df = ohlc_audit["sanitizedDf"]
+                    df_status = "DEGRADED" if ohlc_audit.get("ohlc_repaired") else "LIVE"
+                    result_df.attrs.update({
+                        "dataStatus": df_status,
+                        "feedStatus": "DEGRADED" if ohlc_audit.get("ohlc_repaired") else "VERIFIED_LIVE",
+                        "provider": "angelone",
+                        "timeframe": timeframe,
+                        "is_mock": False,
+                        "is_synthetic": False,
+                        "retry_attempts": retry_attempts,
+                    })
+                    self._diagnostics[f"candles:{clean_sym}:{timeframe}"] = {
+                        "symbol": clean_sym,
+                        "timeframe": timeframe,
+                        "status": df_status,
+                        "bars": len(result_df),
+                        "retry_attempts": retry_attempts,
+                    }
+                    await CacheService.set(
+                        cache_key,
+                        {"json": result_df.to_json(date_format="iso"), "attrs": dict(result_df.attrs)},
+                        ttl_seconds=60,
+                    )
+                    return result_df
+
+            except Exception as e:
+                last_status = "DEGRADED"
+                last_reason = f"Angel One getCandleData error for {clean_sym} {timeframe}: {e}"
+                logger.warning(f"{last_reason} (attempt {attempt + 1}/{self._max_retries + 1})")
+                if attempt < self._max_retries:
+                    await asyncio.sleep(self._retry_backoff_seconds * (attempt + 1))
+                    continue
+
+        logger.warning(f"Angel One historical candles unavailable for {clean_sym} {timeframe}: {last_reason} (retries={retry_attempts})")
+        return self._build_unavailable_candles_df(
+            clean_sym,
+            timeframe,
+            status=last_status,
+            reason=last_reason,
+            retry_attempts=retry_attempts,
+            http_status=last_http_status,
+            error_code=last_error_code,
+        )
 
     async def get_intraday_candles(
         self,
@@ -587,6 +1022,9 @@ class AngelOneMarketDataProvider(MarketDataProvider):
     ) -> pd.DataFrame:
         """
         Fetch today's intraday candles using historical API with current day range.
+        Returns genuine candles even when bar count is < 5 (e.g., 1h morning bars),
+        or an explicit empty degraded/unavailable DataFrame on provider failure.
+        Never substitutes synthetic/mock candles.
         """
         from_date = datetime.now(timezone(timedelta(hours=5, minutes=30))).replace(
             hour=9, minute=15, second=0, microsecond=0
@@ -601,6 +1039,8 @@ class AngelOneMarketDataProvider(MarketDataProvider):
     async def get_all_indices(self) -> List[Dict[str, Any]]:
         """
         Fetch quotes for all primary benchmark indices: NIFTY 50, SENSEX, BANK NIFTY, FINNIFTY, INDIA VIX.
+        Unavailable indices are emitted explicitly with DATA_UNAVAILABLE / DATA_OFFLINE
+        status and diagnostic reasons — never substituted with mock data.
         """
         primary_indices = ["NIFTY 50", "SENSEX", "BANK NIFTY", "FINNIFTY", "INDIA VIX"]
         tasks = [self.get_quote(idx) for idx in primary_indices]
@@ -608,25 +1048,42 @@ class AngelOneMarketDataProvider(MarketDataProvider):
 
         results = []
         for idx_name, q in zip(primary_indices, quotes):
-            quote_data = q if (isinstance(q, dict) and "ltp" in q and q.get("currentPrice", 0) > 0) else None
-            if not quote_data:
-                try:
-                    quote_data = await self.fallback.get_quote(idx_name)
-                except Exception:
-                    quote_data = None
+            if isinstance(q, Exception):
+                results.append({
+                    "symbol": idx_name,
+                    "name": _SYMBOL_METADATA.get(idx_name, {}).get("companyName", idx_name),
+                    "currentValue": 0.0,
+                    "change": 0.0,
+                    "changePercent": 0.0,
+                    "dayHigh": 0.0,
+                    "dayLow": 0.0,
+                    "openPrice": 0.0,
+                    "previousClose": 0.0,
+                    "trend": "Neutral",
+                    "sparkline": [],
+                    "volatilityStatus": "Unavailable",
+                    "dataStatus": "DATA_UNAVAILABLE",
+                    "feedStatus": "DATA_UNAVAILABLE",
+                    "isTradeQualified": False,
+                    "is_mock": False,
+                    "is_synthetic": False,
+                    "provider": "angelone",
+                    "degradedReason": f"Index quote error: {q}",
+                })
+                continue
 
-            if quote_data and isinstance(quote_data, dict):
-                ltp = float(quote_data.get("currentPrice") or quote_data.get("ltp", 0.0))
-                chg = float(quote_data.get("change", 0.0))
-                chg_pct = float(quote_data.get("changePercent", 0.0))
-                d_high = float(quote_data.get("dayHigh") or quote_data.get("high", ltp))
-                d_low = float(quote_data.get("dayLow") or quote_data.get("low", ltp))
-                d_open = float(quote_data.get("openPrice") or quote_data.get("open", ltp))
-                d_close = float(quote_data.get("previousClose") or quote_data.get("close", ltp - chg))
+            if isinstance(q, dict) and float(q.get("currentPrice") or q.get("ltp") or 0.0) > 0 and str(q.get("dataStatus", "")).upper() not in ("DATA_UNAVAILABLE", "DATA_OFFLINE", "MOCK", "SYNTHETIC"):
+                ltp = float(q.get("currentPrice") or q.get("ltp", 0.0))
+                chg = float(q.get("change", 0.0))
+                chg_pct = float(q.get("changePercent", 0.0))
+                d_high = float(q.get("dayHigh") or q.get("high", ltp))
+                d_low = float(q.get("dayLow") or q.get("low", ltp))
+                d_open = float(q.get("openPrice") or q.get("open", ltp))
+                d_close = float(q.get("previousClose") or q.get("close", ltp - chg))
 
                 results.append({
                     "symbol": idx_name,
-                    "name": quote_data.get("name", idx_name),
+                    "name": q.get("name", _SYMBOL_METADATA.get(idx_name, {}).get("companyName", idx_name)),
                     "currentValue": ltp,
                     "change": chg,
                     "changePercent": chg_pct,
@@ -635,22 +1092,64 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                     "openPrice": d_open,
                     "previousClose": d_close,
                     "trend": "Bullish" if chg >= 0 else "Bearish",
-                    "sparkline": quote_data.get("sparkline") or [d_low, d_open, ltp, d_high],
+                    "sparkline": q.get("sparkline") or [d_low, d_open, ltp, d_high],
                     "volatilityStatus": "Low" if idx_name == "INDIA VIX" and ltp < 13 else "Moderate",
-                    "dataStatus": quote_data.get("dataStatus", "MOCK"),
-                    "provider": quote_data.get("provider", "angelone"),
+                    "dataStatus": q.get("dataStatus", "LIVE"),
+                    "feedStatus": q.get("feedStatus", "VERIFIED_LIVE"),
+                    "isTradeQualified": q.get("dataStatus", "LIVE") == "LIVE",
+                    "is_mock": False,
+                    "is_synthetic": False,
+                    "provider": q.get("provider", "angelone"),
+                })
+            else:
+                q_dict = q if isinstance(q, dict) else {}
+                ds = q_dict.get("dataStatus") or "DATA_UNAVAILABLE"
+                results.append({
+                    "symbol": idx_name,
+                    "name": q_dict.get("companyName", _SYMBOL_METADATA.get(idx_name, {}).get("companyName", idx_name)),
+                    "currentValue": 0.0,
+                    "change": 0.0,
+                    "changePercent": 0.0,
+                    "dayHigh": 0.0,
+                    "dayLow": 0.0,
+                    "openPrice": 0.0,
+                    "previousClose": 0.0,
+                    "trend": "Neutral",
+                    "sparkline": [],
+                    "volatilityStatus": "Unavailable",
+                    "dataStatus": ds,
+                    "feedStatus": q_dict.get("feedStatus", ds),
+                    "isTradeQualified": False,
+                    "is_mock": False,
+                    "is_synthetic": False,
+                    "provider": "angelone",
+                    "degradedReason": q_dict.get("degradedReason") or q_dict.get("message") or f"Quote unavailable for {idx_name}",
                 })
 
-        if len(results) >= 4:
-            return results
-        return await self.fallback.get_all_indices()
+        return results
 
     async def get_sector_data(self) -> List[Dict[str, Any]]:
-        """Sectoral indices from Angel One or fallback."""
-        return await self.fallback.get_sector_data()
+        """Sectoral feed is not exposed by Angel One quote API; never substitute mock sectors."""
+        return []
 
     async def get_market_breadth(self) -> Dict[str, Any]:
-        return await self.fallback.get_market_breadth()
+        """Breadth feed unavailable from Angel One; returns explicit unavailable state without mock fallback."""
+        return {
+            "advancing": 0,
+            "declining": 0,
+            "unchanged": 0,
+            "ratio": 0.0,
+            "advances": 0,
+            "declines": 0,
+            "advanceDeclineRatio": None,
+            "marketSentiment": "Unavailable",
+            "dataStatus": "DATA_UNAVAILABLE",
+            "feedStatus": "DATA_UNAVAILABLE",
+            "is_mock": False,
+            "is_synthetic": False,
+            "provider": "angelone",
+            "degradedReason": "Market breadth feed unavailable from Angel One; mock fallback disabled.",
+        }
 
     async def get_option_chain(
         self,

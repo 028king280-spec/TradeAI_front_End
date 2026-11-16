@@ -8,11 +8,18 @@ import {
   StockAnalysis,
   AIInsight,
 } from '@/types/market';
+import { ObserverIntelligenceData } from '@/types/observer';
 import { apiClient } from '@/lib/api';
 import { ALL_SEARCH_STOCKS, MOCK_STOCK_ANALYSES } from '@/lib/mock-market-data';
 
 // Service layer connected to FastAPI Quantitative Backend with resilient local fallback
 export const marketDataService = {
+  /**
+   * Fetch The God's Eye - Observer Signal Intelligence Array
+   */
+  async getObserverIntelligence(): Promise<ObserverIntelligenceData> {
+    return apiClient.getObserverIntelligence();
+  },
   /**
    * Fetch primary market benchmark indices (NIFTY 50, BANK NIFTY, FINNIFTY, INDIA VIX)
    */

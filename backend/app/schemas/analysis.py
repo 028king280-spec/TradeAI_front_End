@@ -61,16 +61,32 @@ class SectorAnalysisSchema(BaseModel):
     sectorName: str
     sectorTrend: str  # 'Bullish' | 'Bearish' | 'Neutral'
     sectorPerformance: float
-    relativeStrength: str  # 'Strong' | 'Moderate' | 'Lagging' | 'Neutral'
-    stockVsSector: str
+    relativeStrength: Optional[str] = "Neutral"
+    stockVsSector: Optional[str] = ""
+    sector_bias: Optional[str] = None
+    relative_strength: Optional[str] = None
+    alpha: Optional[float] = None
+    sector_score: Optional[Union[int, float]] = None
 
 
 class MarketContextSchema(BaseModel):
-    nifty50Trend: str
-    bankNiftyTrend: str
-    marketBreadthStatus: str  # 'Positive' | 'Neutral' | 'Negative'
-    indiaVixStatus: str  # 'Low' | 'Moderate' | 'High' | 'Elevated'
-    overallMarketSupport: str  # 'Strong' | 'Moderate' | 'Weak'
+    nifty50Trend: Optional[str] = "Neutral"
+    bankNiftyTrend: Optional[str] = "Neutral"
+    marketBreadthStatus: Optional[str] = "Neutral"
+    indiaVixStatus: Optional[str] = "Moderate"
+    overallMarketSupport: Optional[str] = "Moderate"
+    score: Optional[Union[int, float]] = None
+    status: Optional[str] = None
+    bias: Optional[str] = None
+    confidence: Optional[str] = None
+    marketMomentum: Optional[str] = None
+    volatility: Optional[str] = None
+    liquidityCondition: Optional[str] = None
+    niftyChange: Optional[float] = None
+    bankNiftyChange: Optional[float] = None
+    indiaVix: Optional[float] = None
+    breadthRatio: Optional[float] = None
+    marketScoreWeight: Optional[float] = None
 
 
 class NewsEventSchema(BaseModel):
@@ -85,12 +101,12 @@ class NewsEventSchema(BaseModel):
 
 class ScoreCategorySchema(BaseModel):
     category: str
-    score: int
-    maxScore: int
+    score: Union[int, float]
+    maxScore: Union[int, float]
 
 
 class StockAnalysisScoreSchema(BaseModel):
-    totalScore: int
+    totalScore: Union[int, float]
     status: str
     categories: List[ScoreCategorySchema]
 

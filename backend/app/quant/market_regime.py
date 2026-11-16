@@ -23,9 +23,13 @@ class MarketRegimeEngine:
         bank_chg = bank_quote.get("changePercent", 0.0) if bank_quote else 0.4
         vix_val = vix_quote.get("currentValue", 14.5) if vix_quote else 14.5
 
-        adv = breadth.get("advancing", 1320)
-        dec = breadth.get("declining", 840)
-        breadth_ratio = round(adv / dec, 2) if dec > 0 else 1.5
+        adv = breadth.get("advancing", 0) or 0
+        dec = breadth.get("declining", 0) or 0
+        breadth_unavailable = (
+            breadth.get("dataStatus") in ("DATA_UNAVAILABLE", "DATA_OFFLINE", "DEGRADED", "UNAVAILABLE")
+            or (adv == 0 and dec == 0)
+        )
+        breadth_ratio = 1.0 if breadth_unavailable else (round(adv / dec, 2) if dec > 0 else 1.0)
 
         # Score components
         regime_points = 50
@@ -60,7 +64,9 @@ class MarketRegimeEngine:
             regime_points -= 6
 
         # VIX contribution
-        if vix_val < 13.0:
+        if vix_val <= 0:
+            vol_status = "Unavailable"
+        elif vix_val < 13.0:
             vol_status = "Low"
             regime_points += 8
         elif vix_val < 18.0:

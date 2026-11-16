@@ -186,7 +186,8 @@ class HistoricalDataService:
         from_date = to_date - timedelta(days=90)
 
         df = await provider.get_historical_candles(clean_sym, timeframe, from_date, to_date)
-        if not df.empty:
+        df_attrs = df.attrs if (df is not None and hasattr(df, "attrs")) else {}
+        if not df.empty and not df_attrs.get("is_mock") and not df_attrs.get("is_synthetic"):
             asyncio_task = cls.ingest_candles(clean_sym, timeframe, df, session)
             import asyncio
             asyncio.create_task(asyncio_task)

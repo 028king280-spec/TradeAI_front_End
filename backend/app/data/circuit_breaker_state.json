@@ -1,0 +1,54 @@
+{
+  "configuredBudgetINR": null,
+  "budgetApprovedBy": null,
+  "budgetApprovalReference": null,
+  "budgetApprovalReason": null,
+  "budgetApprovalDate": null,
+  "activeBreach": null,
+  "historicalBreaches": [],
+  "consumedApprovalReferences": [
+    "MOCK-ACTIVE-001",
+    "GOV-RISK-2026-TEST"
+  ],
+  "configurationAuditLog": [
+    {
+      "id": "CFG-SECURITY-PURGE-01",
+      "timestamp": "14 Nov 2026, 05:40 PM IST",
+      "actor": "SECURITY_AUDITOR",
+      "approvalReference": "NONE",
+      "action": "REVOKE_UNAUTHORIZED_BUDGET",
+      "outcome": "SUCCESS",
+      "reason": "SECURITY REMEDIATION: Unauthorized test budgets (₹7,500 and ₹15,000) purged. State reset to fail-closed RISK_BUDGET_UNCONFIGURED. Probe references consumed to prevent reuse.",
+      "previousBudgetINR": 15000.0,
+      "newBudgetINR": null
+    },
+    {
+      "id": "CFG-0B468FD2",
+      "timestamp": "14 Nov 2026, 05:15 PM IST",
+      "actor": "QUANT_RISK_COMMITTEE",
+      "approvalReference": "MOCK-ACTIVE-001",
+      "reason": "Replay attack attempt",
+      "previousBudgetINR": 7500.0,
+      "newBudgetINR": 15000.0
+    },
+    {
+      "id": "CFG-FDA55070",
+      "timestamp": "14 Nov 2026, 05:15 PM IST",
+      "actor": "QUANT_RISK_COMMITTEE",
+      "approvalReference": "MOCK-ACTIVE-001",
+      "reason": "Unauthenticated spoofing test",
+      "previousBudgetINR": 5000.0,
+      "newBudgetINR": 7500.0
+    },
+    {
+      "id": "CFG-5D4A5BC3",
+      "timestamp": "14 Nov 2026, 05:02 PM IST",
+      "actor": "QUANT_RISK_COMMITTEE",
+      "approvalReference": "GOV-RISK-2026-TEST",
+      "reason": "test",
+      "previousBudgetINR": null,
+      "newBudgetINR": 5000.0
+    }
+  ],
+  "lastUpdated": "14 Nov 2026, 05:40 PM IST"
+}

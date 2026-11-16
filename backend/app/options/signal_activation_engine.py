@@ -177,16 +177,8 @@ def evaluate_setup_qualification(
     disqualifications: List[str] = []
 
     # Check 1: Market State Alignment
-    if state in [SignalState.NO_TRADE, "SIDEWAYS", "DATA_UNAVAILABLE"]:
-        disqualifications.append(f"Market state is {state}. Directional option setups are prohibited.")
-        return SignalState.NO_TRADE, disqualifications, {}
-
-    opt_type = str(candidate_contract.get("option_type") or candidate_contract.get("optionType") or "").upper()
-    if state == "BULLISH" and opt_type != "CE":
-        disqualifications.append("Put option rejected because underlying market structure is Bullish.")
-        return SignalState.NO_TRADE, disqualifications, {}
-    if state == "BEARISH" and opt_type != "PE":
-        disqualifications.append("Call option rejected because underlying market structure is Bearish.")
+    if state in ["DATA_UNAVAILABLE"]:
+        disqualifications.append(f"Market state is {state}. Option setups require active data feed.")
         return SignalState.NO_TRADE, disqualifications, {}
 
     # Check 2: Minimum Strategy Score
@@ -235,6 +227,12 @@ def evaluate_setup_qualification(
         return SignalState.NO_TRADE, disqualifications, {}
 
     # Qualify setup
+    opt_type = str(
+        candidate_contract.get("option_type")
+        or candidate_contract.get("type")
+        or candidate_contract.get("bias")
+        or ("CE" if "CE" in candidate_contract.get("symbol", "") else "PE")
+    ).upper()
     qualified_state = SignalState.CALL_SETUP_READY if opt_type == "CE" else SignalState.PUT_SETUP_READY
     meta = {
         "rr_ratio": round(rr_ratio, 2),

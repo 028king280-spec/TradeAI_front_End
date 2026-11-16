@@ -86,6 +86,20 @@ def evaluate_options_market_sentiment(
     elif vix > 22.0:
         reasons_to_avoid.append("India VIX is elevated (>22.0). Option premiums carry high extrinsic risk; sharp intraday whipsaws are likely.")
 
+    # 7. Day High / Low Price Action Rejection (20 pts)
+    # If price has fallen significantly from the day's high, supply rejection penalizes bullish and awards bearish
+    step_ref = 50.0 if "NIFTY" in symbol.upper() and "BANK" not in symbol.upper() else 100.0
+    if day_high and (day_high - current_price) >= (step_ref * 0.7):
+        drop = day_high - current_price
+        bearish_pts += 20.0
+        bullish_pts = max(0.0, bullish_pts - 15.0)
+        supporting_factors.append(f"Price rejected sharply from session high (₹{day_high:.1f} → ₹{current_price:.1f}, -{drop:.1f} pts), indicating aggressive institutional supply.")
+    elif day_low and (current_price - day_low) >= (step_ref * 0.7):
+        bounce = current_price - day_low
+        bullish_pts += 20.0
+        bearish_pts = max(0.0, bearish_pts - 15.0)
+        supporting_factors.append(f"Price rebounded sharply from session low (₹{day_low:.1f} → ₹{current_price:.1f}, +{bounce:.1f} pts), indicating institutional demand absorption.")
+
     # If conflicting factors exceed 2 or scores are closely tied
     score_diff = abs(bullish_pts - bearish_pts)
     if score_diff < 15.0:

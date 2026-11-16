@@ -45,7 +45,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleMobile }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [providerMode, setProviderMode] = useState<'MOCK' | 'LIVE'>('MOCK');
+  const [providerMode, setProviderMode] = useState<'MOCK' | 'LIVE' | 'MARKET_CLOSED' | 'DATA_OFFLINE'>('MOCK');
+  const [marketStatus, setMarketStatus] = useState<'OPEN' | 'CLOSED'>('CLOSED');
   const searchRef = useRef<HTMLDivElement>(null);
   const tickerRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +83,26 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleMobile }) => {
 
   useEffect(() => {
     async function checkHealth() {
+      try {
+        const res = await fetch('/api/market/live');
+        if (res.ok) {
+          const json = await res.json();
+          const mktStatus = json?.data?.marketStatus || 'CLOSED';
+          setMarketStatus(mktStatus === 'OPEN' ? 'OPEN' : 'CLOSED');
+          if (mktStatus === 'CLOSED') {
+            setProviderMode('MARKET_CLOSED');
+          } else if (json?.dataStatus === 'LIVE') {
+            setProviderMode('LIVE');
+          } else if (json?.dataStatus === 'DATA_OFFLINE') {
+            setProviderMode('DATA_OFFLINE');
+          } else {
+            setProviderMode('MOCK');
+          }
+          return;
+        }
+      } catch {
+        // Fallback check
+      }
       const health = await apiClient.getHealth();
       if (health && health.provider === 'real') {
         setProviderMode('LIVE');
@@ -90,6 +111,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleMobile }) => {
       }
     }
     checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSelectStock = (symbol: string) => {
@@ -177,23 +200,41 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleMobile }) => {
 
           {/* Market Status Indicators */}
           <div className="hidden sm:flex items-center gap-2">
-            <MarketStatusBadge exchange="NSE" status="OPEN" />
-            <MarketStatusBadge exchange="BSE" status="OPEN" />
+            <MarketStatusBadge exchange="NSE" status={marketStatus} />
+            <MarketStatusBadge exchange="BSE" status={marketStatus} />
           </div>
 
-          {/* Data Mode Indicator (LIVE vs MOCK) */}
+          {/* Data Mode Indicator (LIVE vs MARKET_CLOSED vs DATA_OFFLINE vs MOCK) */}
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[10px] font-mono">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                providerMode === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                providerMode === 'LIVE'
+                  ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                  : providerMode === 'MARKET_CLOSED'
+                  ? 'bg-blue-500'
+                  : providerMode === 'DATA_OFFLINE'
+                  ? 'bg-rose-500 animate-ping'
+                  : 'bg-amber-500'
               }`}
             />
             <span
               className={`font-semibold ${
-                providerMode === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                providerMode === 'LIVE'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : providerMode === 'MARKET_CLOSED'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : providerMode === 'DATA_OFFLINE'
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-amber-600 dark:text-amber-400'
               }`}
             >
-              {providerMode === 'LIVE' ? 'LIVE DATA' : 'MOCK FEED'}
+              {providerMode === 'LIVE'
+                ? 'LIVE DATA'
+                : providerMode === 'MARKET_CLOSED'
+                ? 'MARKET CLOSED (EOD)'
+                : providerMode === 'DATA_OFFLINE'
+                ? 'DATA OFFLINE'
+                : 'MOCK FEED'}
             </span>
           </div>
 

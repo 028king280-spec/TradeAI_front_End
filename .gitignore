@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.sf/
 
 # debug
 npm-debug.log*
@@ -48,6 +49,10 @@ backend/*/*/__pycache__/
 *.pyc
 *.pyo
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
+*.log
 backend/.env
+backend/scratch/

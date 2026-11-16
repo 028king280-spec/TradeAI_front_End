@@ -35,62 +35,14 @@ const DEFAULT_TELEGRAM_CONFIG: TelegramAlertConfig = {
   notifyPut: true,
 };
 
-// Pre-seeded initial active suggestions so user sees working live data immediately!
-const SEED_POSITIONS: PaperPosition[] = [
-  {
-    id: 'pos-1',
-    symbol: 'RELIANCE',
-    companyName: 'Reliance Industries Ltd',
-    signalType: 'CALL',
-    entryPrice: 1448.0,
-    currentPrice: 1455.0,
-    quantity: 100,
-    investedAmount: 144800,
-    targetPrice: 1510.0,
-    stopLossPrice: 1420.0,
-    pnl: 700,
-    pnlPercent: 0.48,
-    openedAt: 'Today, 09:35 AM',
-  },
-  {
-    id: 'pos-2',
-    symbol: 'SBIN',
-    companyName: 'State Bank of India',
-    signalType: 'CALL',
-    entryPrice: 820.0,
-    currentPrice: 825.4,
-    quantity: 200,
-    investedAmount: 164000,
-    targetPrice: 855.0,
-    stopLossPrice: 805.0,
-    pnl: 1080,
-    pnlPercent: 0.66,
-    openedAt: 'Today, 10:15 AM',
-  },
-];
-
-const SEED_HISTORY: PaperTradeHistory[] = [
-  {
-    id: 'hist-1',
-    symbol: 'TCS',
-    companyName: 'Tata Consultancy Services',
-    signalType: 'CALL',
-    entryPrice: 4120.0,
-    exitPrice: 4210.0,
-    quantity: 50,
-    investedAmount: 206000,
-    realizedPnl: 4500,
-    realizedPnlPercent: 2.18,
-    exitReason: 'Target Met',
-    openedAt: 'Yesterday, 10:00 AM',
-    closedAt: 'Yesterday, 02:45 PM',
-  },
-];
+// Truthful initial state: Zero mock/fabricated trades.
+const SEED_POSITIONS: PaperPosition[] = [];
+const SEED_HISTORY: PaperTradeHistory[] = [];
 
 const PaperTradingContext = createContext<PaperTradingContextType | undefined>(undefined);
 
 export const PaperTradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [virtualBalance, setVirtualBalance] = useState<number>(691200); // 10L - invested in seed positions
+  const [virtualBalance, setVirtualBalance] = useState<number>(INITIAL_CAPITAL);
   const [positions, setPositions] = useState<PaperPosition[]>(SEED_POSITIONS);
   const [history, setHistory] = useState<PaperTradeHistory[]>(SEED_HISTORY);
   const [telegramConfig, setTelegramConfig] = useState<TelegramAlertConfig>(DEFAULT_TELEGRAM_CONFIG);

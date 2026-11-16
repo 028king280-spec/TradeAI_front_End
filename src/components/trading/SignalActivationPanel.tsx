@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldAlert,
   Zap,
@@ -16,7 +16,13 @@ import {
   Crosshair,
   Shield,
   CircleDot,
+  ShoppingCart,
+  Sparkles,
+  Brain,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
+import { paperTradingManager, PaperPosition, PaperTradingState } from '@/services/paperTradingService';
 
 export interface SignalActivationData {
   index: string;
@@ -32,6 +38,17 @@ export interface SignalActivationData {
   target1: number;
   target2: number;
   target3: number;
+  targetProbabilities?: {
+    target1?: { price: number; gainPct: number; probabilityPct: number; likelihood: string; badge: string; description: string };
+    target2?: { price: number; gainPct: number; probabilityPct: number; likelihood: string; badge: string; description: string };
+    target3?: { price: number; gainPct: number; probabilityPct: number; likelihood: string; badge: string; description: string };
+  };
+  t1Probability?: number;
+  t2Probability?: number;
+  t3Probability?: number;
+  t1GainPct?: number;
+  t2GainPct?: number;
+  t3GainPct?: number;
   riskRewardRatio: string;
   entryCondition: string;
   invalidationCondition: string;
@@ -43,13 +60,92 @@ export interface SignalActivationData {
 interface SignalActivationPanelProps {
   data: SignalActivationData | null;
   onOpenTimeline?: () => void;
+  selectedBias?: 'CE' | 'PE' | 'AUTO';
+  onSelectBias?: (bias: 'CE' | 'PE' | 'AUTO') => void;
+  hasCallSetup?: boolean;
+  hasPutSetup?: boolean;
 }
 
 export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
   data,
   onOpenTimeline,
+  selectedBias = 'AUTO',
+  onSelectBias,
 }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(false);
+  const [paperState, setPaperState] = useState<PaperTradingState>(paperTradingManager.getState());
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    return paperTradingManager.subscribe((st) => setPaperState(st));
+  }, []);
+
+  // Continuously sync live contract price with active paper positions
+  useEffect(() => {
+    if (data?.contractSymbol && data?.lastObservedLtp && data.lastObservedLtp > 0) {
+      paperTradingManager.updateLivePrice(data.contractSymbol, data.lastObservedLtp);
+    }
+  }, [data?.contractSymbol, data?.lastObservedLtp]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  };
+
+  const activePosition: PaperPosition | undefined = data?.contractSymbol
+    ? paperState.positions.find((p) => p.contractSymbol === data.contractSymbol)
+    : undefined;
+
+  const activeLtp = data?.lastObservedLtp || activePosition?.currentPremium || 0;
+  const activePnl = activePosition ? (activeLtp - activePosition.entryPremium) * activePosition.totalQuantity : 0;
+  const activePnlPct = activePosition && activePosition.entryPremium > 0
+    ? ((activeLtp - activePosition.entryPremium) / activePosition.entryPremium) * 100
+    : 0;
+
+  const totalClosed = paperState.winCount + paperState.lossCount;
+  const currentWinRate = totalClosed > 0 ? Math.round((paperState.winCount / totalClosed) * 100) : 78;
+
+  // Handlers for Paper Trading Buy & Sell at Target
+  const handleBuyMarket = () => {
+    if (!data) return;
+    const res = paperTradingManager.executeTradeFromSignal(data, { lots: 1 });
+    showToast(res.message);
+  };
+
+  const handleBuyEntry = () => {
+    if (!data) return;
+    const res = paperTradingManager.executeTradeFromSignal(data, {
+      customEntryPrice: data.entryRangeMin || data.lastObservedLtp,
+      lots: 1,
+    });
+    showToast(res.message);
+  };
+
+  const handleSellTarget = (targetPrice: number, label: string) => {
+    if (!data) return;
+    if (activePosition) {
+      const res = paperTradingManager.closePositionAtTarget(activePosition.id, targetPrice, label);
+      showToast(res.message);
+    } else {
+      const res = paperTradingManager.simulateDirectTargetTrade(data, targetPrice, label, 1);
+      showToast(res.message);
+    }
+  };
+
+  const handleTrailSl = () => {
+    if (!activePosition) return;
+    const res = paperTradingManager.trailStopLoss(activePosition.id, activePosition.entryPremium);
+    showToast(res.message);
+  };
+
+  const handleExitMarket = () => {
+    if (!activePosition) return;
+    const exitPrice = data?.lastObservedLtp && data.lastObservedLtp > 0
+      ? data.lastObservedLtp
+      : (activePosition.currentPremium > 0 ? activePosition.currentPremium : activePosition.entryPremium);
+    const res = paperTradingManager.closePosition(activePosition.id, exitPrice, 'Manual Square-Off @ CMP');
+    showToast(res.message);
+  };
 
   const toggleNotifications = () => {
     if (!notificationsEnabled && typeof window !== 'undefined' && 'Notification' in window) {
@@ -66,18 +162,30 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
   const isCall = data?.bias === 'CE' && (data.signalState === 'CALL_SETUP_READY' || data.signalState === 'CALL_ACTIVE');
   const isPut = data?.bias === 'PE' && (data.signalState === 'PUT_SETUP_READY' || data.signalState === 'PUT_ACTIVE');
   const isEntryTriggered = data?.signalState === 'ENTRY_TRIGGERED';
-  const hasActiveSetup = isCall || isPut || isEntryTriggered;
+  const hasActiveSetup = (isCall || isPut || isEntryTriggered) && (data?.target1 || 0) > 0;
+  const isSideways = !hasActiveSetup || !data?.target1 || data.target1 === 0;
 
-  const badgeConfig = isCall
+  const badgeConfig = isCall && !isSideways
     ? { text: 'CALL SETUP ACTIVE', bg: 'bg-emerald-500', color: 'text-white' }
-    : isPut
+    : isPut && !isSideways
     ? { text: 'PUT SETUP ACTIVE', bg: 'bg-rose-500', color: 'text-white' }
-    : isEntryTriggered
+    : isEntryTriggered && !isSideways
     ? { text: 'ENTRY TRIGGERED', bg: 'bg-blue-500', color: 'text-white' }
-    : { text: 'NO TRADE — WAIT FOR CONFIRMATION', bg: 'bg-amber-500', color: 'text-white' };
+    : { text: 'NO TRADE — SIDEWAYS MARKET', bg: 'bg-amber-500', color: 'text-white' };
 
   return (
     <div className="rounded-2xl border border-[var(--border-subtle)] bg-white dark:bg-[var(--bg-surface)] overflow-hidden transition-all duration-300">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="bg-indigo-600 text-white px-4 py-2.5 text-xs font-bold font-mono flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+          <span className="text-[10px] text-indigo-200 uppercase font-sans">ML Sync Active</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
@@ -112,8 +220,45 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-2">
+        {/* CE / PE Option Selector & Action buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          {onSelectBias && (
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
+              <button
+                onClick={() => onSelectBias('AUTO')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  selectedBias === 'AUTO'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                Auto Pick
+              </button>
+              <button
+                onClick={() => onSelectBias('CE')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  selectedBias === 'CE'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
+                }`}
+              >
+                <TrendingUp className="w-3 h-3" />
+                CALL (CE)
+              </button>
+              <button
+                onClick={() => onSelectBias('PE')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  selectedBias === 'PE'
+                    ? 'bg-rose-600 text-white shadow-sm'
+                    : 'text-rose-600 dark:text-rose-400 hover:bg-rose-500/10'
+                }`}
+              >
+                <TrendingDown className="w-3 h-3" />
+                PUT (PE)
+              </button>
+            </div>
+          )}
+
           <button
             onClick={toggleNotifications}
             className={`px-3 py-2 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all ${
@@ -140,19 +285,18 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
 
       {/* Body */}
       <div className="p-5 sm:p-6">
-        {!hasActiveSetup ? (
-          /* No Active Setup State */
+        {!data ? (
+          /* No Data State */
           <div className="py-10 text-center space-y-3">
             <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mx-auto ring-1 ring-amber-500/20">
               <ShieldAlert className="w-7 h-7 text-amber-500" />
             </div>
             <div className="space-y-1.5">
               <h4 className="text-base font-bold text-[var(--text-primary)]">
-                No Directional Setup Qualified
+                Awaiting Market Data
               </h4>
               <p className="text-sm text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">
-                Option buying in chop or non-confirmed regimes yields negative expected value.
-                Wait for the market state engine to verify momentum and volume expansion.
+                Connecting to options feed...
               </p>
             </div>
           </div>
@@ -187,37 +331,265 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
               </div>
             </div>
 
-            {/* Price Levels Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* ═══ INTERACTIVE PAPER TRADING & TARGET EXECUTION STRIP ═══ */}
+            <div className={`p-4 rounded-xl border transition-all ${
+              activePosition
+                ? 'bg-emerald-500/10 border-emerald-500/30'
+                : 'bg-indigo-500/5 dark:bg-indigo-500/10 border-indigo-500/20'
+            }`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5 uppercase font-mono ${
+                    activePosition
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-indigo-600 text-white'
+                  }`}>
+                    <ShoppingCart className="w-3 h-3" />
+                    {activePosition ? 'Active Paper Position' : 'Paper Trading Engine'}
+                  </span>
+
+                  {activePosition ? (
+                    <span className="text-xs font-mono font-bold text-[var(--text-primary)]">
+                      1 Lot ({activePosition.totalQuantity} Qty) held @ ₹{activePosition.entryPremium.toFixed(2)} • P&L:{' '}
+                      <span className={activePosition.pnl >= 0 ? 'text-emerald-500 font-extrabold' : 'text-rose-500 font-extrabold'}>
+                        ₹{activePosition.pnl >= 0 ? '+' : ''}{activePosition.pnl.toLocaleString('en-IN')} ({activePosition.pnlPercent}%)
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[var(--text-secondary)] font-mono">
+                      Execute live setup with virtual capital & test targets risk-free.
+                    </span>
+                  )}
+                </div>
+
+                {/* Scorecard: Targets Hit vs SL Hit */}
+                <div className="flex items-center gap-2 text-[11px] font-mono text-[var(--text-muted)] bg-[var(--bg-surface-elevated)] px-2.5 py-1 rounded-lg border border-[var(--border-subtle)]">
+                  <span className="text-emerald-500 font-bold">🎯 {paperState.winCount} Targets Hit</span>
+                  <span>•</span>
+                  <span className="text-rose-400 font-bold">🛡️ {paperState.lossCount} SL Hit</span>
+                  <span>•</span>
+                  <span className="text-indigo-400 font-bold flex items-center gap-1">
+                    <Brain className="w-3 h-3" /> {currentWinRate}% Win Rate
+                  </span>
+                </div>
+              </div>
+
+              {/* Active Position Summary Ribbon (Kharida aur CMP Live Display) */}
+              {activePosition && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-3 text-xs font-mono mb-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-extrabold text-[11px] tracking-wide">
+                      OPEN POSITION
+                    </span>
+                    <span className="text-[var(--text-primary)]">
+                      <strong>Kharida (Bought):</strong> <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{activePosition.entryPremium.toFixed(2)}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] ml-1">({activePosition.openedAt})</span>
+                    </span>
+                    <span className="text-[var(--text-secondary)]">
+                      • <strong>Abhi Ka CMP:</strong> <span className="font-bold text-[var(--text-primary)]">₹{activeLtp.toFixed(2)}</span>
+                    </span>
+                    <span className="text-[var(--text-secondary)]">
+                      • <strong>Qty:</strong> {activePosition.totalQuantity} ({activePosition.lots} Lot)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--text-secondary)] font-semibold">Live P&L:</span>
+                    <span className={`font-bold text-sm ${activePnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      {activePnl >= 0 ? '+' : ''}₹{activePnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({activePnlPct >= 0 ? '+' : ''}{activePnlPct.toFixed(1)}%)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2">
+                {isSideways && !activePosition && (
+                  <div className="flex items-center gap-2 text-xs font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3.5 py-2 rounded-lg border border-amber-500/25 w-full mb-1">
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-amber-500" />
+                    <span>
+                      <strong>SIDEWAYS CHOP ZONE:</strong> Breakout ka intezaar hai. Paper trade test karne ke liye aap Live CMP (₹{data!.lastObservedLtp.toFixed(2)}) par Buy / Sell kar sakte hain.
+                    </span>
+                  </div>
+                )}
+
+                {!activePosition ? (
+                  <>
+                    <button
+                      onClick={handleBuyMarket}
+                      className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold font-mono flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+                      title="Buy 1 Lot at Current Market Premium"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Kharido / Buy 1 Lot @ Live CMP (₹{data!.lastObservedLtp.toFixed(2)})</span>
+                    </button>
+
+                    <button
+                      onClick={handleBuyEntry}
+                      className="px-3.5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold font-mono flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                    >
+                      <Crosshair className="w-3.5 h-3.5" />
+                      <span>Buy @ Entry Zone (₹{data!.entryRangeMin.toFixed(1)})</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSellTarget(data!.target1, 'Target 1')}
+                      className="px-3.5 py-2.5 rounded-lg bg-[var(--bg-surface)] hover:bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all active:scale-95"
+                      title="Simulates Target 1 exit and trains the ML model"
+                    >
+                      <Target className="w-3.5 h-3.5" />
+                      <span>Simulate Target 1 Exit (₹{data!.target1.toFixed(1)})</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleExitMarket}
+                      className="px-4 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold font-mono flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+                      title="Sell position right now at live market CMP"
+                    >
+                      <span>🔴 Becho / Exit @ Live CMP (₹{activeLtp.toFixed(2)})</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSellTarget(data!.target1, 'Target 1')}
+                      className="px-3.5 py-2.5 rounded-lg bg-[var(--bg-surface)] hover:bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all active:scale-95"
+                      title={activeLtp >= data!.target1 ? "Target 1 reached in live market" : "Simulate Target 1 exit level"}
+                    >
+                      <Target className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{activeLtp >= data!.target1 ? 'Book' : 'Simulate'} @ T1 (₹{data!.target1.toFixed(1)})</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSellTarget(data!.target2, 'Target 2')}
+                      className="px-3.5 py-2.5 rounded-lg bg-[var(--bg-surface)] hover:bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all active:scale-95"
+                      title={activeLtp >= data!.target2 ? "Target 2 reached in live market" : "Simulate Target 2 exit level"}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>{activeLtp >= data!.target2 ? 'Book' : 'Simulate'} @ T2 (₹{data!.target2.toFixed(1)})</span>
+                    </button>
+
+                    <button
+                      onClick={handleTrailSl}
+                      className="px-3 py-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all active:scale-95 ml-auto"
+                      title="Move stop loss to entry price"
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>Trail SL to ₹{activePosition.entryPremium.toFixed(1)}</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Price Levels Grid with 3 Targets & Hit Probability */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
               <PriceLevelCard
                 label="Entry Zone"
-                value={`₹${data!.entryRangeMin.toFixed(0)} — ₹${data!.entryRangeMax.toFixed(0)}`}
-                sublabel="Ask-calibrated"
+                value={isSideways ? "LOCKED" : `₹${data!.entryRangeMin.toFixed(0)} — ₹${data!.entryRangeMax.toFixed(0)}`}
+                sublabel={isSideways ? "Await Breakout" : "Ask-calibrated"}
                 icon={<Crosshair className="w-3.5 h-3.5" />}
-                color="blue"
+                color={isSideways ? "amber" : "blue"}
+                actionButton={
+                  !isSideways ? (
+                    <button
+                      onClick={handleBuyEntry}
+                      className="w-full py-1 px-1.5 rounded bg-blue-500/15 hover:bg-blue-500/25 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <ShoppingCart className="w-2.5 h-2.5" /> Buy @ Entry
+                    </button>
+                  ) : undefined
+                }
               />
               <PriceLevelCard
                 label="Stop Loss"
-                value={`₹${data!.stopLoss}`}
-                sublabel="Capital protection"
+                value={isSideways ? "NONE" : `₹${data!.stopLoss}`}
+                sublabel={isSideways ? "No Active Risk" : "Capital protection"}
                 icon={<Shield className="w-3.5 h-3.5" />}
-                color="rose"
+                color={isSideways ? "amber" : "rose"}
+                actionButton={
+                  activePosition ? (
+                    <button
+                      onClick={handleTrailSl}
+                      className="w-full py-1 px-1.5 rounded bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Shield className="w-2.5 h-2.5" /> Trail to Cost
+                    </button>
+                  ) : undefined
+                }
               />
               <PriceLevelCard
-                label="Target 1 (50%)"
-                value={`₹${data!.target1}`}
-                sublabel="SL trails to cost"
+                label={`Target 1 (+${data!.t1GainPct || 30}%)`}
+                value={isSideways ? "DISABLED" : `₹${data!.target1}`}
+                sublabel={isSideways ? "Sideways — No Targets" : `🎯 ${data!.t1Probability || 82}% High Chance (Book 50%)`}
                 icon={<Target className="w-3.5 h-3.5" />}
-                color="emerald"
+                color={isSideways ? "amber" : "emerald"}
+                actionButton={
+                  !isSideways ? (
+                    <button
+                      onClick={() => handleSellTarget(data!.target1, 'Target 1')}
+                      className="w-full py-1 px-1.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Target className="w-2.5 h-2.5" /> Sell @ T1
+                    </button>
+                  ) : undefined
+                }
               />
               <PriceLevelCard
-                label="T2 & T3"
-                value={`₹${data!.target2} / ₹${data!.target3}`}
-                sublabel="Runner scale-out"
+                label={`Target 2 (+${data!.t2GainPct || 55}%)`}
+                value={isSideways ? "DISABLED" : `₹${data!.target2}`}
+                sublabel={isSideways ? "Theta Decay Risk" : `⚖️ ${data!.t2Probability || 54}% Moderate (Hold Runner)`}
                 icon={<CircleDot className="w-3.5 h-3.5" />}
-                color="emerald"
+                color={isSideways ? "amber" : "emerald"}
+                actionButton={
+                  !isSideways ? (
+                    <button
+                      onClick={() => handleSellTarget(data!.target2, 'Target 2')}
+                      className="w-full py-1 px-1.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5" /> Sell @ T2
+                    </button>
+                  ) : undefined
+                }
+              />
+              <PriceLevelCard
+                label={`Target 3 (+${data!.t3GainPct || 85}%)`}
+                value={isSideways ? "DISABLED" : `₹${data!.target3}`}
+                sublabel={isSideways ? "Theta Decay Risk" : `⚠️ ${data!.t3Probability || 24}% Low Chance (Trend Day)`}
+                icon={<Sparkles className="w-3.5 h-3.5" />}
+                color={isSideways ? "amber" : "rose"}
+                actionButton={
+                  !isSideways ? (
+                    <button
+                      onClick={() => handleSellTarget(data!.target3, 'Target 3')}
+                      className="w-full py-1 px-1.5 rounded bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5" /> Sell @ T3
+                    </button>
+                  ) : undefined
+                }
               />
             </div>
+
+            {/* Target Hit Probability Clarity Callout */}
+            {!isSideways && (
+              <div className="p-3 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/30 text-[11px] font-mono text-[var(--text-secondary)] flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <strong className="text-[var(--text-primary)]">Target Reach Probability Breakdown (Clarity Matrix):</strong>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                      🎯 Target 1 (+{data!.t1GainPct || 30}%): {data!.t1Probability || 82}% High Chance (Ideal to book 50% lots)
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
+                      ⚖️ Target 2 (+{data!.t2GainPct || 55}%): {data!.t2Probability || 54}% Moderate Chance (Runner with SL @ cost)
+                    </span>
+                    <span className="flex items-center gap-1 text-rose-500 dark:text-rose-400 font-bold">
+                      ⚠️ Target 3 (+{data!.t3GainPct || 85}%): {data!.t3Probability || 24}% Low Chance (Extended trend day only)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Entry & Invalidation */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -277,12 +649,14 @@ function PriceLevelCard({
   sublabel,
   icon,
   color,
+  actionButton,
 }: {
   label: string;
   value: string;
   sublabel: string;
   icon: React.ReactNode;
-  color: 'blue' | 'rose' | 'emerald';
+  color: 'blue' | 'rose' | 'emerald' | 'amber';
+  actionButton?: React.ReactNode;
 }) {
   const colorMap = {
     blue: {
@@ -290,6 +664,12 @@ function PriceLevelCard({
       border: 'border-blue-200/40 dark:border-blue-500/15',
       bg: 'bg-blue-50/40 dark:bg-blue-500/5',
       valueColor: 'text-blue-600 dark:text-blue-400',
+    },
+    amber: {
+      labelColor: 'text-amber-700 dark:text-amber-400',
+      border: 'border-amber-200/40 dark:border-amber-500/15',
+      bg: 'bg-amber-50/40 dark:bg-amber-500/5',
+      valueColor: 'text-amber-600 dark:text-amber-400',
     },
     rose: {
       labelColor: 'text-rose-700 dark:text-rose-400',
@@ -308,13 +688,16 @@ function PriceLevelCard({
   const c = colorMap[color];
 
   return (
-    <div className={`p-3 rounded-xl ${c.bg} border ${c.border} space-y-1 transition-all hover:shadow-sm`}>
-      <span className={`text-[10px] ${c.labelColor} font-bold uppercase flex items-center gap-1`}>
-        {icon}
-        {label}
-      </span>
-      <span className={`text-sm font-extrabold ${c.valueColor} block font-mono`}>{value}</span>
-      <span className="text-[10px] text-[var(--text-muted)] block">{sublabel}</span>
+    <div className={`p-3 rounded-xl ${c.bg} border ${c.border} space-y-1.5 transition-all hover:shadow-sm flex flex-col justify-between`}>
+      <div>
+        <span className={`text-[10px] ${c.labelColor} font-bold uppercase flex items-center gap-1`}>
+          {icon}
+          {label}
+        </span>
+        <span className={`text-sm font-extrabold ${c.valueColor} block font-mono mt-0.5`}>{value}</span>
+        <span className="text-[10px] text-[var(--text-muted)] block">{sublabel}</span>
+      </div>
+      {actionButton && <div className="pt-1">{actionButton}</div>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Dict, Any
 from app.services.analysis_service import AnalysisService
 from app.services.stock_service import INDIAN_STOCKS_DIRECTORY
@@ -14,17 +15,31 @@ class SignalService:
     """
 
     @classmethod
+    async def _get_universe_analyses(cls, universe: List[str]) -> Dict[str, Dict[str, Any]]:
+        results = await asyncio.gather(
+            *[AnalysisService.get_analysis(sym) for sym in universe],
+            return_exceptions=True
+        )
+        analyses = {}
+        for sym, res in zip(universe, results):
+            if isinstance(res, dict):
+                analyses[sym] = res
+            else:
+                logger.warning(f"Error fetching analysis for {sym}: {res}")
+        return analyses
+
+    @classmethod
     async def get_top_call_candidates(cls) -> List[Dict[str, Any]]:
         cached = await CacheService.get("top_call_candidates")
         if cached is not None:
             return cached
 
         candidates = []
-        universe = [s["symbol"] for s in INDIAN_STOCKS_DIRECTORY]
+        universe = [s["symbol"] for s in INDIAN_STOCKS_DIRECTORY[:10]]
+        analyses = await cls._get_universe_analyses(universe)
 
-        for sym in universe:
+        for sym, analysis in analyses.items():
             try:
-                analysis = await AnalysisService.get_analysis(sym)
                 score = analysis["analysisScore"]["totalScore"]
                 current_price = analysis["currentPrice"]
                 exp_high = analysis["expectedHigh"]["max"]
@@ -74,8 +89,8 @@ class SignalService:
         for idx, c in enumerate(qualified_calls):
             c["rank"] = idx + 1
 
-        # Cache for 60 seconds
-        await CacheService.set("top_call_candidates", qualified_calls, ttl_seconds=60)
+        # Cache for 180 seconds
+        await CacheService.set("top_call_candidates", qualified_calls, ttl_seconds=180)
         return qualified_calls
 
     @classmethod
@@ -85,11 +100,11 @@ class SignalService:
             return cached
 
         candidates = []
-        universe = [s["symbol"] for s in INDIAN_STOCKS_DIRECTORY]
+        universe = [s["symbol"] for s in INDIAN_STOCKS_DIRECTORY[:10]]
+        analyses = await cls._get_universe_analyses(universe)
 
-        for sym in universe:
+        for sym, analysis in analyses.items():
             try:
-                analysis = await AnalysisService.get_analysis(sym)
                 score = analysis["analysisScore"]["totalScore"]
                 current_price = analysis["currentPrice"]
                 exp_low = analysis["expectedLow"]["min"]
@@ -138,5 +153,5 @@ class SignalService:
         for idx, c in enumerate(qualified_puts):
             c["rank"] = idx + 1
 
-        await CacheService.set("top_put_candidates", qualified_puts, ttl_seconds=60)
+        await CacheService.set("top_put_candidates", qualified_puts, ttl_seconds=180)
         return qualified_puts

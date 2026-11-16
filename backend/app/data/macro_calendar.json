@@ -1,0 +1,541 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-11-14T14:50:00+05:30",
+  "governancePolicy": {
+    "status": "GOVERNANCE_PENDING",
+    "tier1BlackoutWindowMinutes": 15,
+    "preEventWarningWindowMinutes": 60,
+    "positionScalingFactor": 0.5,
+    "approvalStatus": "UNAPPROVED_INFORMATIONAL_ONLY"
+  },
+  "events": [
+    {
+      "eventId": "DOM-RBI-MPC-2602",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-02-06T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Bi-monthly monetary policy statement, repo rate decision and monetary policy stance by RBI Governor."
+    },
+    {
+      "eventId": "DOM-RBI-MPC-2604",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-04-09T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "First bi-monthly monetary policy statement for FY 2026-27."
+    },
+    {
+      "eventId": "DOM-RBI-MPC-2606",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-06-05T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Second bi-monthly monetary policy statement for FY 2026-27."
+    },
+    {
+      "eventId": "DOM-RBI-MPC-2608",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-08-06T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Third bi-monthly monetary policy statement for FY 2026-27."
+    },
+    {
+      "eventId": "DOM-RBI-MPC-2610",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-10-08T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Fourth bi-monthly monetary policy statement for FY 2026-27."
+    },
+    {
+      "eventId": "DOM-RBI-MPC-2612",
+      "name": "RBI Monetary Policy Committee Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-12-04T10:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Reserve Bank of India",
+        "sourceType": "RBI_OFFICIAL",
+        "referenceUrl": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx",
+        "verifiedAt": "2026-01-05T12:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Fifth bi-monthly monetary policy statement for FY 2026-27."
+    },
+    {
+      "eventId": "DOM-BUDGET-2027",
+      "name": "Union Budget of India 2027-28",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2027-02-01T11:00:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Finance, Government of India",
+        "sourceType": "GOVT_GAZETTE",
+        "referenceUrl": "https://www.indiabudget.gov.in/",
+        "verifiedAt": "2026-11-01T10:00:00+05:30"
+      },
+      "scheduleType": "TENTATIVE",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Presentation of Annual Financial Statement in Parliament (Constitutional convention Feb 1)."
+    },
+    {
+      "eventId": "DOM-CPI-2601",
+      "name": "India CPI Inflation (Dec 2025)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-01-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for December 2025."
+    },
+    {
+      "eventId": "DOM-CPI-2602",
+      "name": "India CPI Inflation (Jan 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-02-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for January 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2603",
+      "name": "India CPI Inflation (Feb 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-03-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for February 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2604",
+      "name": "India CPI Inflation (Mar 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-04-13T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for March 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2605",
+      "name": "India CPI Inflation (Apr 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-05-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for April 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2606",
+      "name": "India CPI Inflation (May 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-06-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for May 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2607",
+      "name": "India CPI Inflation (Jun 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-07-13T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for June 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2608",
+      "name": "India CPI Inflation (Jul 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-08-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for July 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2609",
+      "name": "India CPI Inflation (Aug 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-09-14T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for August 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2610",
+      "name": "India CPI Inflation (Sep 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-10-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for September 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2611",
+      "name": "India CPI Inflation (Oct 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-11-12T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for October 2026."
+    },
+    {
+      "eventId": "DOM-CPI-2612",
+      "name": "India CPI Inflation (Nov 2026)",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-12-14T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Consumer Price Index (Combined) for November 2026."
+    },
+    {
+      "eventId": "DOM-GDP-2602",
+      "name": "India Q3 FY26 GDP Release",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-02-27T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Quarterly estimates of Gross Domestic Product for Q3 (Oct-Dec) 2025-26."
+    },
+    {
+      "eventId": "DOM-GDP-2605",
+      "name": "India Q4 FY26 GDP Release",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-05-29T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Quarterly estimates of GDP for Q4 (Jan-Mar) and Provisional Estimates for Annual 2025-26."
+    },
+    {
+      "eventId": "DOM-GDP-2608",
+      "name": "India Q1 FY27 GDP Release",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-08-31T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Quarterly estimates of GDP for Q1 (Apr-Jun) 2026-27."
+    },
+    {
+      "eventId": "DOM-GDP-2611",
+      "name": "India Q2 FY27 GDP Release",
+      "tier": "TIER_2_HIGH",
+      "scheduledTime": "2026-11-30T17:30:00+05:30",
+      "timezone": "Asia/Kolkata",
+      "source": {
+        "authority": "Ministry of Statistics and Programme Implementation (MOSPI)",
+        "sourceType": "MOSPI_OFFICIAL",
+        "referenceUrl": "https://www.mospi.gov.in/",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "Quarterly estimates of GDP for Q2 (Jul-Sep) 2026-27."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2601",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-01-28T14:00:00-05:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision and monetary policy statement (14:00 EST / 00:30 IST +1 day)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2603",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-03-18T14:00:00-04:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision, economic projections and press conference (14:00 EDT / 23:30 IST)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2605",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-05-06T14:00:00-04:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision and statement (14:00 EDT / 23:30 IST)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2606",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-06-17T14:00:00-04:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision, summary of economic projections and press conference (14:00 EDT / 23:30 IST)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2607",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-07-29T14:00:00-04:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision and statement (14:00 EDT / 23:30 IST)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2609",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-09-16T14:00:00-04:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision, economic projections and press conference (14:00 EDT / 23:30 IST)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2611",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-11-05T14:00:00-05:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision and statement (14:00 EST / 00:30 IST +1 day)."
+    },
+    {
+      "eventId": "GLB-US-FOMC-2612",
+      "name": "US Federal Reserve FOMC Rate Decision",
+      "tier": "TIER_1_CRITICAL",
+      "scheduledTime": "2026-12-16T14:00:00-05:00",
+      "timezone": "America/New_York",
+      "source": {
+        "authority": "Federal Open Market Committee (FOMC)",
+        "sourceType": "FED_OFFICIAL",
+        "referenceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "verifiedAt": "2026-01-02T10:00:00+05:30"
+      },
+      "scheduleType": "CONFIRMED",
+      "liveStatus": "SCHEDULED",
+      "affectedIndices": ["NIFTY 50", "BANK NIFTY", "FINNIFTY"],
+      "description": "FOMC rate decision, economic projections and press conference (14:00 EST / 00:30 IST +1 day)."
+    }
+  ]
+}
+

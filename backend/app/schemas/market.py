@@ -9,7 +9,7 @@ class ApiResponse(BaseModel, Generic[T]):
     success: bool = True
     data: Optional[T] = None
     error: Optional[dict] = None
-    dataStatus: str = "MOCK"  # 'LIVE' | 'STALE' | 'MOCK' | 'UNAVAILABLE'
+    dataStatus: str = "UNAVAILABLE"  # 'LIVE' | 'STALE' | 'MOCK' | 'UNAVAILABLE'
     dataTimestamp: Optional[str] = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     analysisTimestamp: Optional[str] = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())

@@ -16,10 +16,19 @@ from app.services.market_service import MarketService
 router = APIRouter(prefix="/market", tags=["Market"])
 
 
+def _resolve_market_api_status(indices: List[Dict[str, Any]], provider_name: str) -> str:
+    if provider_name == "mock" or any(idx.get("is_mock") or idx.get("dataStatus") == "MOCK" for idx in indices):
+        return "MOCK"
+    if any(idx.get("dataStatus") == "LIVE" for idx in indices):
+        return "LIVE"
+    return "UNAVAILABLE"
+
+
 @router.get("/overview", response_model=ApiResponse[List[MarketIndexSchema]])
 async def get_market_overview():
     indices = await MarketService.get_indices()
-    return ApiResponse(success=True, data=indices)
+    provider_name = settings.MARKET_DATA_PROVIDER.lower()
+    return ApiResponse(success=True, data=indices, dataStatus=_resolve_market_api_status(indices, provider_name))
 
 
 @router.get("/live", response_model=ApiResponse[Dict[str, Any]])
@@ -30,11 +39,7 @@ async def get_market_live():
     indices = await MarketService.get_indices()
     sentiment = await MarketService.get_market_sentiment()
     provider_name = settings.MARKET_DATA_PROVIDER.lower()
-    is_live = (
-        (provider_name in ["angelone", "smartapi", "angel"] and bool(settings.ANGELONE_API_KEY))
-        or (provider_name == "upstox" and bool(settings.UPSTOX_ACCESS_TOKEN))
-    )
-    data_status = "LIVE" if is_live else "MOCK"
+    data_status = _resolve_market_api_status(indices, provider_name)
 
     return ApiResponse(
         success=True,
@@ -44,7 +49,7 @@ async def get_market_live():
             "marketStatus": MarketCalendar.get_market_status(),
             "provider": provider_name,
             "feedType": "SmartStream WebSocket + SmartAPI REST Quotes",
-            "activeTickersCount": len(indices),
+            "activeTickersCount": sum(1 for idx in indices if idx.get("dataStatus") == "LIVE"),
         },
         dataStatus=data_status,
     )
@@ -62,27 +67,30 @@ async def get_market_system_status():
     master = get_instrument_master()
     provider_name = settings.MARKET_DATA_PROVIDER.lower()
 
-    is_live = (
-        (provider_name in ["angelone", "smartapi", "angel"] and bool(settings.ANGELONE_API_KEY))
-        or (provider_name == "upstox" and bool(settings.UPSTOX_ACCESS_TOKEN))
-    )
+    is_authed = bool(getattr(provider, "is_authenticated", False))
+    if provider_name == "mock":
+        status_label = "MOCK"
+    elif (provider_name in ["angelone", "smartapi", "angel", "upstox", "dhan"]) and is_authed:
+        status_label = "LIVE"
+    else:
+        status_label = "UNAVAILABLE"
 
     return ApiResponse(
         success=True,
         data={
             "activeProvider": provider_name,
             "providerClass": provider.__class__.__name__,
-            "dataStatus": "LIVE" if is_live else "MOCK",
+            "dataStatus": status_label,
             "instrumentMaster": {
                 "loaded": master.is_loaded(),
                 "indexedContracts": len(master._by_token),
                 "underlyingsCount": len(master._expiries_by_underlying),
             },
             "marketCalendar": MarketCalendar.get_market_status(),
-            "feedConnected": True,
+            "feedConnected": status_label == "LIVE",
             "timestamp": MarketCalendar.now().isoformat(),
         },
-        dataStatus="LIVE" if is_live else "MOCK",
+        dataStatus=status_label,
     )
 
 
@@ -95,10 +103,6 @@ async def get_market_snapshot():
     sentiment = await MarketService.get_market_sentiment()
     drivers = await MarketService.get_market_drivers()
     provider_name = settings.MARKET_DATA_PROVIDER.lower()
-    is_live = (
-        (provider_name in ["angelone", "smartapi", "angel"] and bool(settings.ANGELONE_API_KEY))
-        or (provider_name == "upstox" and bool(settings.UPSTOX_ACCESS_TOKEN))
-    )
 
     return ApiResponse(
         success=True,
@@ -109,7 +113,7 @@ async def get_market_snapshot():
             "marketStatus": MarketCalendar.get_market_status(),
             "timestamp": MarketCalendar.now().isoformat(),
         },
-        dataStatus="LIVE" if is_live else "MOCK",
+        dataStatus=_resolve_market_api_status(indices, provider_name),
     )
 
 
@@ -141,3 +145,18 @@ async def get_sector_heatmap():
 async def get_recent_signals():
     signals = await MarketService.get_recent_signals()
     return ApiResponse(success=True, data=signals)
+
+
+@router.get("/observer", response_model=ApiResponse[Dict[str, Any]])
+async def get_observer_dashboard():
+    """
+    Returns The God's Eye - Observer Signal Intelligence Array and Pattern Recognition Engine data.
+    """
+    data = await MarketService.get_observer_intelligence()
+    indices = await MarketService.get_indices()
+    provider_name = settings.MARKET_DATA_PROVIDER.lower()
+    return ApiResponse(
+        success=True,
+        data=data,
+        dataStatus=_resolve_market_api_status(indices, provider_name),
+    )

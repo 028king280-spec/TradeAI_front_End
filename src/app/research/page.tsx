@@ -25,7 +25,8 @@ import {
 } from 'lucide-react';
 import { SignalBadge } from '@/components/shared/SignalBadge';
 import { formatINR } from '@/lib/utils';
-import { newsService, NewsItem } from '@/services/newsService';
+import { newsService, NewsItem, MarketNewsSentiment } from '@/services/newsService';
+
 
 interface ImpactedStock {
   symbol: string;
@@ -181,6 +182,7 @@ export default function ResearchIntelligencePage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState('rbi-policy');
   const [liveNews, setLiveNews] = useState<NewsItem[]>([]);
+  const [marketSentiment, setMarketSentiment] = useState<MarketNewsSentiment | null>(null);
   const [loadingLiveNews, setLoadingLiveNews] = useState<boolean>(true);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -194,9 +196,13 @@ export default function ResearchIntelligencePage() {
     async function fetchLiveNews() {
       setLoadingLiveNews(true);
       try {
-        const items = await newsService.getMarketNews(12);
-        if (!isCancelled && items.length > 0) {
-          setLiveNews(items);
+        const [items, sentiment] = await Promise.all([
+          newsService.getMarketNews(18),
+          newsService.getMarketSentiment(),
+        ]);
+        if (!isCancelled) {
+          if (items && items.length > 0) setLiveNews(items);
+          if (sentiment) setMarketSentiment(sentiment);
         }
       } catch (e) {
         console.warn('Live news fetch notice:', e);
@@ -209,6 +215,7 @@ export default function ResearchIntelligencePage() {
       isCancelled = true;
     };
   }, []);
+
 
   const handleSelectLiveNews = (item: NewsItem) => {
     setSelectedPresetId(item.id);
@@ -406,13 +413,81 @@ export default function ResearchIntelligencePage() {
 
         {/* Tab Content 0: Live Indian Market News Feed */}
         {activeTab === 'LIVE_FEED' && (
-          <div className="space-y-2.5">
+          <div className="space-y-3.5">
+            {/* Live Indian Sentiment Overview Banner with 1 to 10 Rating */}
+            {marketSentiment && (
+              <div className="rounded-xl p-4 border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-black/40 space-y-3 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs font-mono">
+                  {/* Rating Box */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 ${
+                        marketSentiment.sentimentRating >= 6.5
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : marketSentiment.sentimentRating <= 4.5
+                          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                      }`}
+                    >
+                      <span className="text-sm font-extrabold">{marketSentiment.sentimentRating} / 10</span>
+                      <span className="text-xs uppercase tracking-wide">({marketSentiment.ratingLabel || marketSentiment.overallSentiment})</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{marketSentiment.bullishCount} Bullish</span>
+                      <span>•</span>
+                      <span className="text-rose-600 dark:text-rose-400 font-semibold">{marketSentiment.bearishCount} Bearish</span>
+                      <span>•</span>
+                      <span>{marketSentiment.neutralCount} Neutral</span>
+                    </div>
+                  </div>
+
+                  {/* Sources Tag */}
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
+                    <span className="text-slate-400">Connected Sources:</span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Moneycontrol</span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Economic Times</span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Livemint</span>
+                  </div>
+                </div>
+
+                {/* 1 to 10 Visual Gradient Bar */}
+                <div className="space-y-1">
+                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06] relative overflow-hidden flex">
+                    <div
+                      className={`h-full transition-all duration-700 rounded-full ${
+                        marketSentiment.sentimentRating >= 6.5
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                          : marketSentiment.sentimentRating <= 4.5
+                          ? 'bg-gradient-to-r from-rose-500 to-amber-500'
+                          : 'bg-gradient-to-r from-amber-400 to-yellow-500'
+                      }`}
+                      style={{ width: `${(marketSentiment.sentimentRating / 10) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                    <span>1.0 (Extreme Bearish)</span>
+                    <span>5.5 (Neutral)</span>
+                    <span>10.0 (Extreme Bullish)</span>
+                  </div>
+                </div>
+
+                {marketSentiment.ratingExplanation && (
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-mono">
+                    {marketSentiment.ratingExplanation}
+                  </p>
+                )}
+              </div>
+            )}
+
+
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
               <span className="uppercase tracking-wider">
                 Click any live headline to extract instant trading impact and affected stocks:
               </span>
               <span>{liveNews.length} verified articles</span>
             </div>
+
 
             {loadingLiveNews ? (
               <div className="p-8 text-center text-xs text-slate-500 font-mono flex items-center justify-center gap-2">

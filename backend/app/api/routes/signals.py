@@ -1,8 +1,10 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, Query, Path, HTTPException
+from fastapi import APIRouter, Depends, Query, Path, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
+
+from app.core.logging import logger
 
 from app.db.database import get_db
 from app.schemas.market import ApiResponse
@@ -103,6 +105,7 @@ def _serialize_signal(s: SignalRecord) -> Dict[str, Any]:
 async def get_today_signals(session: AsyncSession = Depends(get_db)):
     """
     Returns today's stock screener candidates plus all actively tracked derivative setups.
+    Zero synthetic pre-seeding: returns an empty list when no signals have been qualified today.
     """
     calls = await SignalService.get_top_call_candidates()
     puts = await SignalService.get_top_put_candidates()
@@ -113,6 +116,11 @@ async def get_today_signals(session: AsyncSession = Depends(get_db)):
     res = await session.execute(q)
     tracked_signals = res.scalars().all()
 
+    from app.data.providers.factory import get_market_data_provider
+    provider = get_market_data_provider()
+    is_live = (provider.get_provider_name() in ["angelone", "upstox"]) and getattr(provider, "is_authenticated", False)
+    status_flag = "LIVE" if is_live else "MOCK"
+
     return ApiResponse(
         success=True,
         data={
@@ -122,7 +130,132 @@ async def get_today_signals(session: AsyncSession = Depends(get_db)):
             "totalTrackedToday": len(tracked_signals),
             "timestamp": MarketCalendar.now_ist().strftime("%d %b %Y, %I:%M %p IST"),
         },
-        dataStatus="LIVE",
+        dataStatus=status_flag,
+    )
+
+
+@router.post("/generate")
+async def generate_production_signal(
+    payload: Dict[str, Any] = Body(default_factory=dict),
+    session: AsyncSession = Depends(get_db),
+):
+    """
+    Explicit Production Signal Generation & Persistence Endpoint:
+    Runs the authoritative 12-stage pipeline and persists ONLY fully qualified
+    paper trading signals into SQLite storage.
+
+    Guarantees:
+      - Read-only queries (GET /options/{index}/analysis) never persist signals.
+      - Unqualified or rejected setups are never persisted into SignalRecord.
+      - Replay/duplicate protection: deterministic ID prevents duplicate creation.
+      - Atomic commit on success; rollback on failure.
+      - Strictly paper trading simulation; zero broker order execution.
+    """
+    from app.options.pipeline_orchestrator import execute_production_signal_pipeline
+    from app.api.routes.options import canonicalize_symbol
+    from app.data.providers.factory import get_market_data_provider
+
+    raw_symbol = payload.get("symbol") or payload.get("index") or "NIFTY 50"
+    clean_sym = canonicalize_symbol(raw_symbol)
+    available_capital = payload.get("available_capital")
+    if available_capital is not None:
+        try:
+            available_capital = float(available_capital)
+        except (ValueError, TypeError):
+            available_capital = None
+
+    provider = get_market_data_provider()
+
+    try:
+        pipeline_res = await execute_production_signal_pipeline(
+            symbol=clean_sym,
+            provider=provider,
+            session=session,
+            custom_quote=payload.get("custom_quote"),
+            custom_option_chain=payload.get("custom_option_chain"),
+            available_capital=available_capital,
+            config=payload.get("config"),
+        )
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Pipeline execution error in POST /api/signals/generate: {e}")
+        return ApiResponse(
+            success=False,
+            data={
+                "status": "FAILED",
+                "symbol": clean_sym,
+                "error": str(e),
+                "isTradeQualified": False,
+            },
+            dataStatus="DATA_UNAVAILABLE",
+        )
+
+    is_qualified = bool(pipeline_res.get("is_trade_qualified", False))
+    persisted_id = pipeline_res.get("persisted_signal_id")
+    action = pipeline_res.get("action", "NO_TRADE")
+    stage_status = pipeline_res.get("stage_status", {})
+    rejection_reasons = pipeline_res.get("rejection_reasons", [])
+    feed_status = pipeline_res.get("data_quality_report", {}).get("feedStatus", "MOCK")
+
+    if not is_qualified or action not in ("BUY_CE", "BUY_PE"):
+        return ApiResponse(
+            success=True,
+            data={
+                "status": "REJECTED",
+                "symbol": clean_sym,
+                "action": action,
+                "isTradeQualified": False,
+                "persistedSignalId": None,
+                "rejectionReasons": rejection_reasons,
+                "stageStatus": stage_status,
+                "pipelineResult": pipeline_res.get("frontend_options_setups"),
+            },
+            dataStatus=feed_status,
+        )
+
+    is_duplicate = bool(pipeline_res.get("is_duplicate", False))
+    status_str = "DUPLICATE" if is_duplicate else "GENERATED"
+
+    # Explicit transaction commit
+    try:
+        await session.commit()
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Transaction commit failed in POST /api/signals/generate: {e}")
+        return ApiResponse(
+            success=False,
+            data={
+                "status": "FAILED",
+                "symbol": clean_sym,
+                "error": f"Persistence commit failed: {e}",
+                "isTradeQualified": False,
+            },
+            dataStatus=feed_status,
+        )
+
+    existing_sig = await session.get(SignalRecord, persisted_id) if persisted_id else None
+
+    return ApiResponse(
+        success=True,
+        data={
+            "status": status_str,
+            "symbol": clean_sym,
+            "action": action,
+            "isTradeQualified": True,
+            "persistedSignalId": persisted_id,
+            "contract": pipeline_res.get("selected_contract", {}).get("contract_symbol"),
+            "strike": pipeline_res.get("selected_contract", {}).get("strike"),
+            "expiry": pipeline_res.get("selected_contract", {}).get("expiry"),
+            "entryPremium": pipeline_res.get("risk_plan", {}).get("entry_premium"),
+            "stopLossPremium": pipeline_res.get("risk_plan", {}).get("stop_loss_premium"),
+            "target1Premium": pipeline_res.get("risk_plan", {}).get("target_1_premium"),
+            "target2Premium": pipeline_res.get("risk_plan", {}).get("target_2_premium"),
+            "target3Premium": pipeline_res.get("risk_plan", {}).get("target_3_premium"),
+            "rewardRiskTarget1": pipeline_res.get("risk_plan", {}).get("reward_risk_target_1"),
+            "stageStatus": stage_status,
+            "persistedSignal": _serialize_signal(existing_sig) if existing_sig else None,
+        },
+        dataStatus=feed_status,
     )
 
 
@@ -147,10 +280,11 @@ async def get_signal_history(
     res = await session.execute(q)
     signals = res.scalars().all()
 
+    first_status = getattr(signals[0], "data_status", None) if signals else "MOCK"
     return ApiResponse(
         success=True,
         data=[_serialize_signal(s) for s in signals],
-        dataStatus="LIVE",
+        dataStatus="LIVE" if first_status == "VERIFIED_LIVE" else first_status,
     )
 
 
@@ -176,7 +310,8 @@ async def get_market_state(
     processed = process_candlestick_series(candles_df, clean, "15m")
 
     prov_name = provider.get_provider_name()
-    is_live = (prov_name in ["angelone", "upstox"]) and getattr(provider, "is_authenticated", False)
+    quote_status = str(quote.get("dataStatus") or "")
+    is_live = (prov_name in ["angelone", "upstox"]) and getattr(provider, "is_authenticated", False) and quote_status == "LIVE"
 
     state_info = evaluate_index_market_state(
         symbol=clean,
@@ -185,7 +320,13 @@ async def get_market_state(
         candles_info=processed,
         is_live_data=is_live,
     )
-    return ApiResponse(success=True, data=state_info, dataStatus="LIVE" if is_live else "MOCK")
+    if prov_name == "mock" or quote.get("is_mock") or quote_status == "MOCK":
+        api_status = "MOCK"
+    elif quote_status in ("LIVE", "STALE", "UNAVAILABLE"):
+        api_status = quote_status
+    else:
+        api_status = "UNAVAILABLE"
+    return ApiResponse(success=True, data=state_info, dataStatus=api_status)
 
 
 @router.get("/calls", response_model=ApiResponse[List[SignalCandidateSchema]])
@@ -214,10 +355,11 @@ async def get_signal_by_id(
     if not signal:
         raise HTTPException(status_code=404, detail="Signal not found.")
 
+    sig_status = getattr(signal, "data_status", None) or "MOCK"
     return ApiResponse(
         success=True,
         data=_serialize_signal(signal),
-        dataStatus="LIVE",
+        dataStatus=sig_status,
     )
 
 
@@ -257,7 +399,7 @@ async def get_signal_events(
             }
             for ev in events
         ],
-        dataStatus="LIVE",
+        dataStatus="LIVE" if events and events[0].data_quality_status == "VERIFIED_LIVE" else "MOCK",
     )
 
 
@@ -314,7 +456,7 @@ async def get_signal_timeline(
             "finalOutcome": sig.final_outcome,
             "timeline": timeline_items,
         },
-        dataStatus="LIVE",
+        dataStatus="LIVE" if events and events[0].data_quality_status == "VERIFIED_LIVE" else "MOCK",
     )
 
 
@@ -345,5 +487,5 @@ async def get_signal_failure_analysis(
         events=events,
         price_observations=[],
     )
-    return ApiResponse(success=True, data=analysis, dataStatus="LIVE")
-
+    sig_status = getattr(sig, "data_status", None) or "MOCK"
+    return ApiResponse(success=True, data=analysis, dataStatus=sig_status)

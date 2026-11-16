@@ -120,7 +120,7 @@ def compute_options_support_resistance_ladder(
 
     def format_level(obj, role):
         p = round(float(obj["price"]), 2)
-        dist_pct = round(((p - curr) / curr) * 100.0, 2)
+        dist_pct = round(((p - curr) / curr) * 100.0, 2) if curr > 0 else 0.0
         return {
             "role": role,
             "label": obj["name"],

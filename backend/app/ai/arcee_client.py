@@ -17,6 +17,7 @@ class ArceeAIClient:
     BASE_URL = settings.ARCEE_BASE_URL.rstrip("/")
     API_KEY = settings.ARCEE_API_KEY
     DEFAULT_MODEL = settings.ARCEE_MODEL or "trinity-large-thinking"
+    _is_available: bool = True
 
     @classmethod
     async def chat_completion(
@@ -29,6 +30,13 @@ class ArceeAIClient:
         """
         Sends chat completion request to Arcee AI.
         """
+        if not cls._is_available or not cls.API_KEY:
+            return {
+                "success": False,
+                "error": "arcee_unavailable",
+                "message": "Arcee AI is unavailable. Grounded fallback active.",
+            }
+
         endpoint = f"{cls.BASE_URL}/chat/completions"
         target_model = model or cls.DEFAULT_MODEL
 
@@ -46,7 +54,7 @@ class ArceeAIClient:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=2.0) as client:
                 res = await client.post(endpoint, json=payload, headers=headers)
 
                 if res.status_code == 200:
@@ -58,13 +66,14 @@ class ArceeAIClient:
                         "model": target_model,
                         "raw": data,
                     }
-                elif res.status_code == 402:
+                elif res.status_code in [402, 404, 403]:
+                    cls._is_available = False
                     logger.warning(
-                        "Arcee AI returned 402 Insufficient Credits. Using grounded fallback."
+                        f"Arcee AI returned {res.status_code}. Fast grounded fallback active."
                     )
                     return {
                         "success": False,
-                        "status_code": 402,
+                        "status_code": res.status_code,
                         "error": "billing.insufficient_credits",
                         "message": "Arcee AI API Key authenticated successfully, but account has insufficient credits. Grounded quant fallback active.",
                     }

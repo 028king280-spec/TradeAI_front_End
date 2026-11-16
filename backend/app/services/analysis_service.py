@@ -50,9 +50,10 @@ class AnalysisService:
         provider = get_market_data_provider()
         news_provider = get_financial_news_provider()
 
-        # 1. Fetch Real or Mock Quote & Candles
+        # 1. Fetch Quote & Candles (unavailable states remain explicit)
         quote = await provider.get_quote(sym)
-        current_price = float(quote.get("currentPrice") or quote.get("ltp", 100.0))
+        raw_ltp = quote.get("currentPrice") if quote.get("currentPrice") is not None else quote.get("ltp")
+        current_price = float(raw_ltp) if raw_ltp is not None else 0.0
         open_price = float(quote.get("openPrice") or quote.get("open", current_price))
         prev_close = float(quote.get("previousClose") or quote.get("close", current_price))
         day_high = float(quote.get("dayHigh") or quote.get("high", current_price))
@@ -133,7 +134,11 @@ class AnalysisService:
         analysis_score = score_eval["totalScore"]
 
         # 8. Volume Analysis
-        vol_avg20 = df_daily["volume"].rolling(20).mean().iloc[-1] if len(df_daily) >= 20 else df_daily["volume"].mean()
+        if not df_daily.empty and "volume" in df_daily.columns:
+            raw_vol_avg = df_daily["volume"].rolling(20).mean().iloc[-1] if len(df_daily) >= 20 else df_daily["volume"].mean()
+            vol_avg20 = float(raw_vol_avg) if pd.notna(raw_vol_avg) else 0.0
+        else:
+            vol_avg20 = 0.0
         vol_ratio = volume_eval["volume_ratio"]
         vol_trend = "Surging" if vol_ratio >= 1.5 else ("Above Average" if vol_ratio >= 1.1 else ("Average" if vol_ratio >= 0.8 else "Below Average"))
 
@@ -203,13 +208,13 @@ class AnalysisService:
         # Assemble full analytical payload
         payload = {
             "symbol": sym,
-            "companyName": quote["companyName"],
-            "exchange": quote["exchange"],
+            "companyName": quote.get("companyName", sym),
+            "exchange": quote.get("exchange", "NSE"),
             "category": quote.get("category", "Large Cap"),
             "sector": stock_sector,
             "currentPrice": current_price,
-            "change": quote["change"],
-            "changePercent": quote["changePercent"],
+            "change": quote.get("change", 0.0),
+            "changePercent": quote.get("changePercent", 0.0),
             "dayHigh": day_high,
             "dayLow": day_low,
             "volume": vol_analysis["currentVolume"],
@@ -233,8 +238,18 @@ class AnalysisService:
             "supportResistance": sr_levels,
             "technicalIndicators": technical,
             "volumeAnalysis": vol_analysis,
-            "marketContext": market_ctx,
-            "sectorAnalysis": sector_eval,
+            "marketContext": {
+                **market_ctx,
+                "nifty50Trend": "Bullish" if market_ctx.get("niftyChange", 0) > 0.1 else ("Bearish" if market_ctx.get("niftyChange", 0) < -0.1 else "Neutral"),
+                "bankNiftyTrend": "Bullish" if market_ctx.get("bankNiftyChange", 0) > 0.1 else ("Bearish" if market_ctx.get("bankNiftyChange", 0) < -0.1 else "Neutral"),
+                "marketBreadthStatus": "Positive" if market_ctx.get("breadthRatio", 1) >= 1.1 else ("Negative" if market_ctx.get("breadthRatio", 1) <= 0.9 else "Neutral"),
+                "indiaVixStatus": market_ctx.get("volatility", "Moderate"),
+                "overallMarketSupport": "Strong" if market_ctx.get("bias") == "BULLISH" else ("Weak" if market_ctx.get("bias") == "BEARISH" else "Moderate"),
+            },
+            "sectorAnalysis": {
+                **sector_eval,
+                "relativeStrength": sector_eval.get("relativeStrength") or sector_eval.get("relative_strength", "Neutral"),
+            },
             "news": news_items,
             "aiInsights": ai_insights,
             "summary": (
@@ -244,7 +259,7 @@ class AnalysisService:
                 f"Expected low range: ₹{expected_range['expectedLow']['min']:.2f}–₹{expected_range['expectedLow']['max']:.2f}."
             ),
             "chartData": chart_data,
-            "dataStatus": quote.get("dataStatus", "MOCK"),
+            "dataStatus": quote.get("dataStatus", "UNAVAILABLE"),
             "dataTimestamp": quote.get("timestamp"),
         }
 

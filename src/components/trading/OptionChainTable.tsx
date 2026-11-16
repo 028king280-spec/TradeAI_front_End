@@ -234,11 +234,11 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
                     {row.ce.changeInOi >= 0 ? `+${formatNumberIN(row.ce.changeInOi)}` : formatNumberIN(row.ce.changeInOi)}
                   </td>
                   <td className={`p-2 text-right ${isCallWall ? 'text-rose-500 font-bold' : ''}`}>
-                    {formatNumberIN(row.ce.oi)}
+                    {formatNumberIN(row.ce.oi || 0)}
                     {isCallWall && <span className="ml-1 text-[9px] px-1 rounded bg-rose-500/15">Wall</span>}
                   </td>
                   <td className="p-2 text-right font-bold text-blue-600 dark:text-blue-400 border-r border-[var(--border-subtle)]">
-                    ₹{row.ce.ltp.toFixed(2)}
+                    ₹{row.ce.ltp != null ? Number(row.ce.ltp).toFixed(2) : '--'}
                   </td>
 
                   {/* STRIKE */}
@@ -260,10 +260,10 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
 
                   {/* PUTS */}
                   <td className="p-2 text-left font-bold text-amber-600 dark:text-amber-400 border-l border-[var(--border-subtle)]">
-                    ₹{row.pe.ltp.toFixed(2)}
+                    ₹{row.pe.ltp != null ? Number(row.pe.ltp).toFixed(2) : '--'}
                   </td>
                   <td className={`p-2 text-left ${isPutWall ? 'text-emerald-500 font-bold' : ''}`}>
-                    {formatNumberIN(row.pe.oi)}
+                    {formatNumberIN(row.pe.oi || 0)}
                     {isPutWall && <span className="ml-1 text-[9px] px-1 rounded bg-emerald-500/15">Wall</span>}
                   </td>
                   <td

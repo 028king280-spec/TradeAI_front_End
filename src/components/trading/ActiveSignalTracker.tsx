@@ -140,7 +140,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
                         : 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border-[var(--border-subtle)]'
                     }`}
                   >
-                    {sig.status.replace(/_/g, ' ')}
+                    {sig.status ? String(sig.status).replace(/_/g, ' ') : ''}
                   </span>
 
                   {/* Net P&L */}

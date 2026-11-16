@@ -37,19 +37,23 @@ def calculate_next_session_opening_outlook(
     # If GIFT Nifty drift is provided, use it as overnight directional guide
     if gift_nifty_drift_points is not None:
         drift = float(gift_nifty_drift_points)
+        drift_source = "GIFT_NIFTY_LIVE"
+        drift_status = "OBSERVED"
     else:
-        # Benchmark drift derived from recent momentum and session range
-        # If closing price is near day's high (upper 25% of range), slight positive overnight drift
+        # Benchmark drift derived from recent momentum and session range (Technical Estimate Only)
+        # Never fabricate live GIFT Nifty observations when feed is offline (Core Principle 3)
         day_range = max(1.0, h - l)
         rel_pos = (c - l) / day_range
         drift = blended_gap_spread * (0.35 if rel_pos >= 0.70 else (-0.35 if rel_pos <= 0.30 else 0.05))
+        drift_source = "GIFT_NIFTY_UNAVAILABLE"
+        drift_status = "ESTIMATED_MOMENTUM_FALLBACK"
 
     expected_open_mid = round(c + drift, 2)
     expected_open_low = round(expected_open_mid - (blended_gap_spread * 0.5), 2)
     expected_open_high = round(expected_open_mid + (blended_gap_spread * 0.5), 2)
 
     gap_pts = round(expected_open_mid - c, 2)
-    gap_pct = round((gap_pts / c) * 100.0, 2)
+    gap_pct = round((gap_pts / c) * 100.0, 2) if c > 0 else 0.0
 
     if gap_pct >= 0.20:
         gap_type = "GAP_UP"
@@ -70,11 +74,19 @@ def calculate_next_session_opening_outlook(
         p_gap_down = 22.0
         gap_summary = f"Expected Flat / Stable Opening within ±{round(blended_gap_spread * 0.35, 1)} pts"
 
-    # Supporting Evidence
+    # Supporting Evidence with strict feed provenance
+    if drift_source == "GIFT_NIFTY_LIVE":
+        drift_evidence = f"GIFT Nifty live tick signals an overnight directional drift of {gap_pts:+.1f} points."
+    else:
+        drift_evidence = (
+            f"GIFT Nifty feed UNAVAILABLE: overnight directional bias ({gap_pts:+.1f} pts) "
+            f"is a technical estimate derived strictly from closing range momentum."
+        )
+
     evidence = [
         f"Previous session closed at ₹{c:,.2f} with day's high at ₹{h:,.2f} and low at ₹{l:,.2f}.",
         f"India VIX at {vix:.2f} implies an overnight volatility buffer of ±{round(overnight_sd_pts, 1)} points.",
-        f"GIFT Nifty / overnight index momentum signals a net directional bias of {gap_pts:+.1f} points.",
+        drift_evidence,
         f"Historical ATR (14) of {atr:.1f} supports an opening dispersion band of {expected_open_low:,.2f} — {expected_open_high:,.2f}."
     ]
 
@@ -100,6 +112,13 @@ def calculate_next_session_opening_outlook(
             "percent": gap_pct,
             "direction": gap_type,
             "summary": gap_summary,
+            "driftSource": drift_source,
+        },
+        "driftProvenance": {
+            "driftSource": drift_source,
+            "driftStatus": drift_status,
+            "isLiveGiftNifty": (gift_nifty_drift_points is not None),
+            "giftNiftyDriftPoints": gift_nifty_drift_points,
         },
         "scenarios": {
             "bullishGap": {

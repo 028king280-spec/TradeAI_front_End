@@ -10,7 +10,7 @@ from app.core.logging import logger
 from app.db.database import init_db
 from app.jobs.market_refresh import start_scheduler, scheduler
 from app.api.routes import health, market, stocks, analysis, ai, signals, knowledge, ml, options, news, performance
-from app.api.routes import live_stream
+from app.api.routes import live_stream, paper_trading, macro
 
 
 @asynccontextmanager
@@ -86,9 +86,17 @@ app = FastAPI(
 )
 
 # CORS Middleware
+origins = list(set([
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    *(settings.cors_origins_list or []),
+]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list or ["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -155,6 +163,8 @@ app.include_router(options.router, prefix="/api")
 app.include_router(news.router, prefix="/api")
 app.include_router(performance.router, prefix="/api")
 app.include_router(live_stream.router, prefix="/api")
+app.include_router(macro.router, prefix="/api")
+app.include_router(paper_trading.router)
 
 
 @app.get("/")

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from fastapi import APIRouter, Query, HTTPException, status
 from app.schemas.market import ApiResponse
 from app.schemas.stock import StockSearchItem, StockQuote
@@ -20,6 +20,15 @@ async def search_stocks(
     return ApiResponse(success=True, data=results)
 
 
+def _normalize_api_data_status(raw_status: Any, is_mock: bool = False) -> str:
+    status_str = str(raw_status or "")
+    if is_mock or status_str == "MOCK":
+        return "MOCK"
+    if status_str in ("LIVE", "STALE", "UNAVAILABLE"):
+        return status_str
+    return "UNAVAILABLE"
+
+
 @router.get("/{symbol}", response_model=ApiResponse[StockQuote])
 @router.get("/{symbol}/quote", response_model=ApiResponse[StockQuote])
 async def get_stock_quote(symbol: str):
@@ -27,7 +36,7 @@ async def get_stock_quote(symbol: str):
     provider = get_market_data_provider()
     try:
         quote = await provider.get_quote(clean_sym)
-        data_status = quote.get("dataStatus", "MOCK")
+        data_status = _normalize_api_data_status(quote.get("dataStatus"), bool(quote.get("is_mock")))
         return ApiResponse(success=True, data=quote, dataStatus=data_status)
     except Exception as e:
         raise HTTPException(
@@ -58,7 +67,12 @@ async def get_stock_candles(
                     "volume": float(row.get("volume", 0)),
                     "vwap": float(row.get("vwap", row["close"])),
                 })
-        return ApiResponse(success=True, data=records)
+        df_attrs = df.attrs if (df is not None and hasattr(df, "attrs")) else {}
+        data_status = _normalize_api_data_status(
+            df_attrs.get("dataStatus") or ("LIVE" if records else "UNAVAILABLE"),
+            bool(df_attrs.get("is_mock")),
+        )
+        return ApiResponse(success=True, data=records, dataStatus=data_status)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -75,7 +89,7 @@ async def get_stock_analysis(symbol: str):
         return ApiResponse(
             success=True,
             data=analysis,
-            dataStatus=analysis.get("dataStatus", "MOCK"),
+            dataStatus=_normalize_api_data_status(analysis.get("dataStatus")),
         )
     except Exception as e:
         raise HTTPException(
@@ -95,7 +109,7 @@ async def get_stock_technical(symbol: str):
         return ApiResponse(
             success=True,
             data=analysis["technicalIndicators"],
-            dataStatus=analysis.get("dataStatus", "MOCK"),
+            dataStatus=_normalize_api_data_status(analysis.get("dataStatus")),
         )
     except Exception as e:
         raise HTTPException(
@@ -113,7 +127,7 @@ async def get_stock_scenarios(symbol: str):
         return ApiResponse(
             success=True,
             data=analysis["scenarios"],
-            dataStatus=analysis.get("dataStatus", "MOCK"),
+            dataStatus=_normalize_api_data_status(analysis.get("dataStatus")),
         )
     except Exception as e:
         raise HTTPException(
@@ -131,7 +145,7 @@ async def get_stock_ai_insights(symbol: str):
         return ApiResponse(
             success=True,
             data=analysis["aiInsights"],
-            dataStatus=analysis.get("dataStatus", "MOCK"),
+            dataStatus=_normalize_api_data_status(analysis.get("dataStatus")),
         )
     except Exception as e:
         raise HTTPException(

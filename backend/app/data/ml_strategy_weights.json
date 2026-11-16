@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "06 Nov 2026, 10:08 AM IST",
+  "accuracySummary": {
+    "totalTrades": 53,
+    "targetsHit": 44,
+    "target1Hits": 44,
+    "target2Hits": 19,
+    "target3Hits": 11,
+    "slHits": 8,
+    "winRate": 83.0,
+    "profitFactor": 2.65,
+    "avgRealizedRr": 1.92,
+    "netPointsGained": 589.3
+  },
+  "modelPerformance": {
+    "Model A (Liquidity Sweep & CHoCH)": {
+      "key": "modelA",
+      "targetsHit": 27,
+      "slHits": 3,
+      "winRate": 90.0,
+      "weight": 1.56,
+      "status": "HIGH CONVICTION",
+      "edge": "+18.2% vs Baseline",
+      "optimalCondition": "Range-Bound Boundary Sweep (SSL/BSL)"
+    },
+    "Model B (Protected Swing & Mitigation)": {
+      "key": "modelB",
+      "targetsHit": 10,
+      "slHits": 3,
+      "winRate": 76.9,
+      "weight": 1.15,
+      "status": "STABLE CONVICTION",
+      "edge": "+9.4% vs Baseline",
+      "optimalCondition": "Clean FVG 50% CE Retest in Discount"
+    },
+    "Model C (BOS Trend Continuation)": {
+      "key": "modelC",
+      "targetsHit": 7,
+      "slHits": 3,
+      "winRate": 70.0,
+      "weight": 0.98,
+      "status": "STRICT FILTER APPLIED",
+      "edge": "+2.5% vs Baseline",
+      "optimalCondition": "High Relative Volume (>1.5x) Expansion"
+    }
+  },
+  "learnedRules": [
+    {
+      "id": "RULE-ML-01",
+      "title": "Discount Confluence Multiplier",
+      "strategy": "Model A & B Call Optimization",
+      "discovery": "Buying Call options when spot is strictly below 45% Dealing Range (Discount) increased Target 1 completion rate from 64.0% to 84.6%.",
+      "actionTaken": "Enforces a +25% confidence boost on setups located in Deep Discount (<35%).",
+      "confidenceScore": 92.5
+    },
+    {
+      "id": "RULE-ML-02",
+      "title": "Morning Liquidity Sweep Alpha",
+      "strategy": "Model A (Opening Sweep Reversal)",
+      "discovery": "External liquidity sweeps (PDH/PDL) occurring between 09:30 AM and 10:45 AM show 2.4x higher probability of Target 2 runner extension.",
+      "actionTaken": "Weights opening sweeps higher during the 09:30-10:45 AM institutional expansion window.",
+      "confidenceScore": 89.0
+    },
+    {
+      "id": "RULE-ML-03",
+      "title": "Equilibrium Chop Filter & Invalidation",
+      "strategy": "Model C Breakout Guard",
+      "discovery": "Breakouts initiated between 48% and 52% of the dealing range fail 62% of the time due to institutional consolidation absorption.",
+      "actionTaken": "Dynamically downgrades breakout setups at exact 50% Equilibrium and requires sweep confirmation before arming.",
+      "confidenceScore": 94.0
+    },
+    {
+      "id": "RULE-ML-04",
+      "title": "Dynamic Risk-Free Trailing SL",
+      "strategy": "Execution Trade Management",
+      "discovery": "Trailing Stop-Loss to entry cost immediately when price reaches +1.1R protects 100% of winning setups against sudden theta decay reversals.",
+      "actionTaken": "Auto-suggests 'Trail SL to Cost' as soon as Target 1 is approached.",
+      "confidenceScore": 96.0
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+Trade ID,Date,Index,Option type,Contract,Strike,Expiry,Entry time,Entry premium,Exit time,Exit premium,Quantity,Lots,Investment,Holding duration,Gross P&L,Transaction charges,Slippage,Net P&L,Net return percentage,Exit reason,Trade status
+PT-CCFBD096,05 Nov 2026,NIFTY 50,CE,NIFTY06NOV2624000CE,24000.0,06NOV2026,"05 Nov 2026, 10:32 PM IST",100.0,"05 Nov 2026, 10:32 PM IST",160.0,130,2,13000.0,"Intraday execution (< 1 min)",5525.0,149.75,0.0,5375.25,+5.38% (on NAV) / +41.35% (on Margin),Target 2 Hit,TARGET_2_HIT

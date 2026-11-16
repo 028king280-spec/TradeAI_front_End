@@ -75,17 +75,17 @@ const stateConfig = {
   },
   SIDEWAYS: {
     icon: Minus,
-    gradient: 'from-amber-500/8 via-amber-500/3 to-transparent',
-    darkGradient: 'dark:from-amber-500/10 dark:via-amber-500/3 dark:to-transparent',
-    border: 'border-amber-500/20 dark:border-amber-500/25',
-    iconBg: 'bg-amber-50 dark:bg-amber-500/15',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    badgeBg: 'bg-amber-500',
+    gradient: 'from-blue-500/8 via-indigo-500/3 to-transparent',
+    darkGradient: 'dark:from-blue-500/10 dark:via-indigo-500/3 dark:to-transparent',
+    border: 'border-blue-500/20 dark:border-blue-500/25',
+    iconBg: 'bg-blue-50 dark:bg-blue-500/15',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    badgeBg: 'bg-blue-600',
     badgeText: 'text-white',
-    pillBg: 'bg-amber-50 dark:bg-amber-500/10',
-    pillText: 'text-amber-700 dark:text-amber-400',
-    pillBorder: 'border-amber-200 dark:border-amber-500/25',
-    accentRing: 'ring-amber-500/20',
+    pillBg: 'bg-blue-50 dark:bg-blue-500/10',
+    pillText: 'text-blue-700 dark:text-blue-400',
+    pillBorder: 'border-blue-200 dark:border-blue-500/25',
+    accentRing: 'ring-blue-500/20',
   },
   NO_TRADE: {
     icon: ShieldAlert,
@@ -118,18 +118,32 @@ const stateConfig = {
 };
 
 export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
-  const state = data.marketState;
-  const config = stateConfig[state] || stateConfig.DATA_UNAVAILABLE;
+  const rawState = data.marketState || (data as any)?.market_regime || 'NO_TRADE';
+  const state = (typeof rawState === 'string' ? rawState : 'NO_TRADE').toUpperCase() as keyof typeof stateConfig;
+  const config = stateConfig[state] || stateConfig.NO_TRADE || stateConfig.DATA_UNAVAILABLE;
   const StateIcon = config.icon;
-  const isNoTradeOrSideways = state === 'NO_TRADE' || state === 'SIDEWAYS';
+  const isStrictNoTrade = data.isNoTrade === true || state === 'NO_TRADE';
+
+  const keyLevels = data.keyLevels || {
+    immediateSupport: 0,
+    immediateResistance: 0,
+    importantSupport: 0,
+    importantResistance: 0,
+    bullishActivationTrigger: 'Awaiting 5M breakout confirmation outside chop zone',
+    bearishActivationTrigger: 'Awaiting 5M breakdown confirmation outside chop zone',
+    confirmationRequired: '5M Close outside range with displacement',
+  };
+
+  const headline = data.headline || `${data.symbol || 'Index'} Market Regime: ${isStrictNoTrade ? 'NO TRADE' : state}`;
+  const explanation = data.explanation || (isStrictNoTrade ? 'Market is in sideways chop or risk budget is pending governance approval. Directional trading disabled to protect capital.' : 'Market structure active.');
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${config.gradient} ${config.darkGradient} ${config.border} bg-white dark:bg-[var(--bg-surface)] transition-all duration-300`}
+      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${config.gradient} ${config.darkGradient} ${config.border} bg-white dark:bg-[var(--bg-surface)] transition-all duration-300 font-mono`}
     >
       {/* Decorative glow */}
       <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-[0.04] blur-3xl pointer-events-none"
-        style={{ background: state === 'BULLISH' ? '#10b981' : state === 'BEARISH' ? '#f43f5e' : state === 'NO_TRADE' ? '#f97316' : '#f59e0b' }}
+        style={{ background: state === 'BULLISH' ? '#10b981' : state === 'BEARISH' ? '#f43f5e' : isStrictNoTrade ? '#f97316' : '#3b82f6' }}
       />
 
       <div className="relative p-5 sm:p-6">
@@ -147,36 +161,36 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
                   {data.symbol} Market Regime
                 </span>
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${config.pillBg} ${config.pillText} border ${config.pillBorder}`}>
-                  {state.replace('_', ' ')}
+                  {isStrictNoTrade ? 'NO TRADE' : (typeof state === 'string' ? state.replace(/_/g, ' ') : 'NO TRADE')}
                 </span>
               </div>
 
               {/* Headline */}
               <h3 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] leading-tight tracking-tight">
-                {data.headline}
+                {headline}
               </h3>
             </div>
           </div>
 
           {/* Status Badge + Data Status */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* Prominent NO TRADE / Status Badge */}
-            <div className={`px-4 py-2 rounded-xl ${config.badgeBg} ${config.badgeText} font-extrabold text-sm tracking-wide flex items-center gap-2 shadow-lg`}>
-              {isNoTradeOrSideways && (
+            {/* Prominent Status Badge */}
+            <div className={`px-4 py-2 rounded-xl ${isStrictNoTrade ? 'bg-orange-500 text-white' : config.badgeBg + ' ' + config.badgeText} font-extrabold text-sm tracking-wide flex items-center gap-2 shadow-lg`}>
+              {isStrictNoTrade && (
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/60" />
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/90" />
                 </span>
               )}
-              {isNoTradeOrSideways ? 'NO TRADE' : data.statusBadge}
+              {isStrictNoTrade ? 'NO TRADE' : (data.statusBadge || 'SETUPS ARMED')}
             </div>
 
             {/* Live indicator */}
             <div className="hidden sm:flex flex-col items-end gap-0.5">
               <span className="text-[10px] font-medium text-[var(--text-muted)]">Feed</span>
-              <span className={`text-xs font-bold flex items-center gap-1 ${data.dataStatus === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              <span className={`text-xs font-bold flex items-center gap-1 ${(data.dataStatus || 'LIVE') === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                 <Radio className="w-3 h-3" />
-                {data.dataStatus}
+                {data.dataStatus || 'LIVE'}
               </span>
             </div>
           </div>
@@ -186,17 +200,17 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
         <div className="mb-4 p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
             <strong className="text-[var(--text-primary)] font-semibold">Analysis: </strong>
-            {data.explanation}
+            {explanation}
           </p>
         </div>
 
-        {/* NO TRADE Reason Alert */}
-        {isNoTradeOrSideways && (data.reasonForNoTrade || data.primaryReason) && (
-          <div className={`mb-4 p-4 rounded-xl border ${state === 'NO_TRADE' ? 'bg-orange-50/80 dark:bg-orange-500/8 border-orange-200 dark:border-orange-500/20' : 'bg-amber-50/80 dark:bg-amber-500/8 border-amber-200 dark:border-amber-500/20'}`}>
+        {/* NO TRADE Reason Alert (Render ONLY when strictly in No-Trade mode) */}
+        {isStrictNoTrade && data.reasonForNoTrade && !data.reasonForNoTrade.toLowerCase().includes('none') && !data.reasonForNoTrade.toLowerCase().includes('qualified') && (
+          <div className="mb-4 p-4 rounded-xl border bg-orange-50/80 dark:bg-orange-500/8 border-orange-200 dark:border-orange-500/20">
             <div className="flex items-start gap-2.5">
-              <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${state === 'NO_TRADE' ? 'text-orange-500' : 'text-amber-500'}`} />
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-orange-500" />
               <div className="space-y-1">
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${state === 'NO_TRADE' ? 'text-orange-600 dark:text-orange-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                   Reason for No Trade
                 </span>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
@@ -226,19 +240,19 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
           <TriggerCard
             icon={<ArrowUpRight className="w-4 h-4" />}
             label="Bullish Activation"
-            description={data.keyLevels.bullishActivationTrigger}
+            description={keyLevels.bullishActivationTrigger}
             color="emerald"
           />
           <TriggerCard
             icon={<ArrowDownRight className="w-4 h-4" />}
             label="Bearish Activation"
-            description={data.keyLevels.bearishActivationTrigger}
+            description={keyLevels.bearishActivationTrigger}
             color="rose"
           />
           <TriggerCard
             icon={<CheckCircle2 className="w-4 h-4" />}
             label="Required Confirmation"
-            description={data.keyLevels.confirmationRequired}
+            description={keyLevels.confirmationRequired}
             color="indigo"
           />
         </div>
@@ -247,17 +261,17 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
         <div className="pt-3 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            <span>{data.analysisTimestamp}</span>
+            <span>{data.analysisTimestamp || 'Live Market'}</span>
           </div>
           <div className="flex items-center gap-3 font-medium">
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-              Support: ₹{data.keyLevels.importantSupport || data.keyLevels.immediateSupport}
+              Support: ₹{keyLevels.importantSupport || keyLevels.immediateSupport || '--'}
             </span>
             <span className="text-[var(--border-strong)]">•</span>
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
-              Resistance: ₹{data.keyLevels.importantResistance || data.keyLevels.immediateResistance}
+              Resistance: ₹{keyLevels.importantResistance || keyLevels.immediateResistance || '--'}
             </span>
           </div>
         </div>

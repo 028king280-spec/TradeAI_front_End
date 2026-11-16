@@ -11,6 +11,7 @@ import {
   Tooltip,
   CartesianGrid,
   ReferenceLine,
+  ReferenceArea,
   Area,
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -82,6 +83,8 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
   const [showVwap, setShowVwap] = useState<boolean>(true);
   const [showEma, setShowEma] = useState<boolean>(true);
   const [showVolume, setShowVolume] = useState<boolean>(true);
+  const [showSmc, setShowSmc] = useState<boolean>(true);
+  const [smcOverlay, setSmcOverlay] = useState<any>(null);
 
   // Live data hooks
   const { tick, connected } = useLiveTick(symbol);
@@ -102,8 +105,9 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
     async function loadCandles() {
       setLoading(true);
       const res = await optionsService.getCandles(symbol, timeframe);
-      if (!isCancelled && res && res.candles) {
-        setHistoricalCandles(res.candles);
+      if (!isCancelled && res) {
+        if (res.candles) setHistoricalCandles(res.candles);
+        if (res.smcOverlay) setSmcOverlay(res.smcOverlay);
       }
       setLoading(false);
     }
@@ -313,6 +317,16 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
                 }`}
               >
                 VOL
+              </button>
+              <button
+                onClick={() => setShowSmc(!showSmc)}
+                className={`px-2 py-1 text-[11px] font-mono rounded-md border transition-all ${
+                  showSmc
+                    ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 font-bold'
+                    : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
+                }`}
+              >
+                SMC Zones
               </button>
             </div>
           </div>
@@ -524,6 +538,119 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               />
             )}
 
+            {/* SMC Institutional Overlays */}
+            {showSmc && smcOverlay && (
+              <>
+                {/* Bullish Order Blocks (Demand Floor) */}
+                {smcOverlay.orderBlocks?.filter((b: any) => b.bias === 'BULLISH').slice(0, 2).map((ob: any, i: number) => (
+                  <ReferenceArea
+                    key={`ob-bull-${i}`}
+                    yAxisId="price"
+                    y1={ob.bottom}
+                    y2={ob.top}
+                    fill="rgba(16, 185, 129, 0.15)"
+                    stroke="rgba(16, 185, 129, 0.5)"
+                    strokeDasharray="3 3"
+                    label={{ value: `Bullish OB [₹${ob.bottom}-₹${ob.top}]`, fill: '#10b981', fontSize: 9, position: 'insideTopLeft' }}
+                  />
+                ))}
+
+                {/* Bearish Order Blocks (Supply Ceiling) */}
+                {smcOverlay.orderBlocks?.filter((b: any) => b.bias === 'BEARISH').slice(0, 2).map((ob: any, i: number) => (
+                  <ReferenceArea
+                    key={`ob-bear-${i}`}
+                    yAxisId="price"
+                    y1={ob.bottom}
+                    y2={ob.top}
+                    fill="rgba(244, 63, 94, 0.15)"
+                    stroke="rgba(244, 63, 94, 0.5)"
+                    strokeDasharray="3 3"
+                    label={{ value: `Bearish OB [₹${ob.bottom}-₹${ob.top}]`, fill: '#f43f5e', fontSize: 9, position: 'insideBottomLeft' }}
+                  />
+                ))}
+
+                {/* Fair Value Gaps (FVG) */}
+                {smcOverlay.fairValueGaps?.filter((g: any) => !g.mitigated).slice(0, 2).map((fvg: any, i: number) => (
+                  <ReferenceArea
+                    key={`fvg-${i}`}
+                    yAxisId="price"
+                    y1={fvg.bottom}
+                    y2={fvg.top}
+                    fill={fvg.bias === 'BULLISH' ? 'rgba(59, 130, 246, 0.12)' : 'rgba(234, 88, 12, 0.12)'}
+                    stroke={fvg.bias === 'BULLISH' ? '#3b82f6' : '#ea580c'}
+                    strokeDasharray="2 2"
+                    label={{ value: `FVG 50% CE: ₹${fvg.ce50}`, fill: fvg.bias === 'BULLISH' ? '#3b82f6' : '#ea580c', fontSize: 9, position: 'insideRight' }}
+                  />
+                ))}
+
+                {/* 50% Equilibrium Line */}
+                {smcOverlay.dealingRange?.equilibrium && (
+                  <ReferenceLine
+                    yAxisId="price"
+                    y={smcOverlay.dealingRange.equilibrium}
+                    stroke="#f59e0b"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    label={{ value: `50% Equilibrium: ₹${smcOverlay.dealingRange.equilibrium}`, fill: '#f59e0b', fontSize: 10, position: 'insideTopRight' }}
+                  />
+                )}
+
+                {/* BSL & SSL Liquidity Levels */}
+                {smcOverlay.liquidityPools?.bslLevels?.[0]?.level && (
+                  <ReferenceLine
+                    yAxisId="price"
+                    y={smcOverlay.liquidityPools.bslLevels[0].level}
+                    stroke="#ec4899"
+                    strokeWidth={1}
+                    strokeDasharray="5 5"
+                    label={{ value: `BSL (PDH): ₹${smcOverlay.liquidityPools.bslLevels[0].level}`, fill: '#ec4899', fontSize: 9, position: 'insideTopLeft' }}
+                  />
+                )}
+                {smcOverlay.liquidityPools?.sslLevels?.[0]?.level && (
+                  <ReferenceLine
+                    yAxisId="price"
+                    y={smcOverlay.liquidityPools.sslLevels[0].level}
+                    stroke="#06b6d4"
+                    strokeWidth={1}
+                    strokeDasharray="5 5"
+                    label={{ value: `SSL (PDL): ₹${smcOverlay.liquidityPools.sslLevels[0].level}`, fill: '#06b6d4', fontSize: 9, position: 'insideBottomLeft' }}
+                  />
+                )}
+
+                {/* BOS & CHoCH Structural Lines */}
+                {smcOverlay.advancedIct?.structure?.bosChoch?.lastBos?.brokenLevel && (
+                  <ReferenceLine
+                    yAxisId="price"
+                    y={smcOverlay.advancedIct.structure.bosChoch.lastBos.brokenLevel}
+                    stroke={smcOverlay.advancedIct.structure.bosChoch.lastBos.type.includes('BULLISH') ? '#10b981' : '#f43f5e'}
+                    strokeWidth={1.2}
+                    strokeDasharray="3 3"
+                    label={{
+                      value: `BOS: ₹${smcOverlay.advancedIct.structure.bosChoch.lastBos.brokenLevel}`,
+                      fill: smcOverlay.advancedIct.structure.bosChoch.lastBos.type.includes('BULLISH') ? '#10b981' : '#f43f5e',
+                      fontSize: 9,
+                      position: 'insideRight',
+                    }}
+                  />
+                )}
+                {smcOverlay.advancedIct?.structure?.bosChoch?.lastChoch?.brokenLevel && (
+                  <ReferenceLine
+                    yAxisId="price"
+                    y={smcOverlay.advancedIct.structure.bosChoch.lastChoch.brokenLevel}
+                    stroke="#a855f7"
+                    strokeWidth={1.5}
+                    strokeDasharray="2 2"
+                    label={{
+                      value: `CHoCH: ₹${smcOverlay.advancedIct.structure.bosChoch.lastChoch.brokenLevel}`,
+                      fill: '#a855f7',
+                      fontSize: 9,
+                      position: 'insideLeft',
+                    }}
+                  />
+                )}
+              </>
+            )}
+
             {/* Volume Bars */}
             {showVolume && (
               <Bar yAxisId="vol" dataKey="volume" fill="url(#volumeGradient)" radius={[2, 2, 0, 0]} />
@@ -584,6 +711,19 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               </span>
               <span className="flex items-center gap-1.5 text-purple-400">
                 <span className="w-3 h-0.5 bg-purple-400 opacity-60" /> EMA50
+              </span>
+            </>
+          )}
+          {showSmc && (
+            <>
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500/30 border border-emerald-500" /> Bull OB
+              </span>
+              <span className="flex items-center gap-1.5 text-rose-400">
+                <span className="w-2.5 h-2.5 rounded-xs bg-rose-500/30 border border-rose-500" /> Bear OB
+              </span>
+              <span className="flex items-center gap-1.5 text-blue-400">
+                <span className="w-2.5 h-2.5 rounded-xs bg-blue-500/30 border border-blue-500" /> FVG
               </span>
             </>
           )}

@@ -18,6 +18,8 @@ import { optionsService } from '@/services/optionsService';
 import { IndexAnalysisFullResponse } from '@/types/options';
 import { OptionsCandlestickChart } from '@/components/trading/OptionsCandlestickChart';
 import { OptionsSetupsCard } from '@/components/trading/OptionsSetupsCard';
+import { SmartMoneyConceptsCard } from '@/components/trading/SmartMoneyConceptsCard';
+import { PaperTradingSimulator } from '@/components/trading/PaperTradingSimulator';
 import { SupportResistanceLadderView } from '@/components/trading/SupportResistanceLadder';
 import { SessionOutlookCard } from '@/components/trading/SessionOutlookCard';
 import { MarketSentimentPanel } from '@/components/trading/MarketSentimentPanel';
@@ -30,6 +32,8 @@ import { SignalActivationPanel, SignalActivationData } from '@/components/tradin
 import { ActiveSignalTracker, TrackedSignalItem } from '@/components/trading/ActiveSignalTracker';
 import { SignalTimelineModal } from '@/components/trading/SignalTimelineModal';
 import { FailureAnalysisModal } from '@/components/trading/FailureAnalysisModal';
+import { MLStrategyLearnerPanel } from '@/components/trading/MLStrategyLearnerPanel';
+import { MacroEventCalendarCard } from '@/components/trading/MacroEventCalendarCard';
 
 interface PageProps {
   params: Promise<{ index: string }>;
@@ -64,13 +68,15 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
       // Fetch today's tracked signals from backend
       try {
-        const sigRes = await fetch(`http://localhost:8000/api/signals/today`);
-        const sigJson = await sigRes.json();
-        if (!isCancelled && sigJson.success && sigJson.data?.trackedOptionSetups) {
-          setTrackedSignals(sigJson.data.trackedOptionSetups);
+        const sigRes = await fetch('/api/signals/today');
+        if (sigRes.ok) {
+          const sigJson = await sigRes.json();
+          if (!isCancelled && sigJson.success && sigJson.data?.trackedOptionSetups) {
+            setTrackedSignals(sigJson.data.trackedOptionSetups);
+          }
         }
-      } catch (e) {
-        console.error('Failed to load tracked signals:', e);
+      } catch {
+        // Silently handle if backend is reconnecting
       }
 
       setLoading(false);
@@ -146,6 +152,15 @@ export default function IndexAnalysisPage({ params }: PageProps) {
     (s) => s.symbol.toUpperCase() === indexSymbol.toUpperCase() || s.symbol.toUpperCase().includes(rawIndex)
   );
 
+  const isMarketClosed =
+    analysis?.dataStatus === 'MARKET_CLOSED' ||
+    (analysis as any)?.marketCalendar === 'CLOSED';
+
+  const isDataOffline =
+    analysis?.dataStatus === 'DATA_OFFLINE' ||
+    analysis?.dataStatus === 'DATA_UNAVAILABLE' ||
+    analysis?.dataStatus === 'STALE_TICK';
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Bar */}
@@ -162,9 +177,19 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold border ${
                 analysis?.dataStatus === 'LIVE'
                   ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+                  : analysis?.dataStatus === 'MARKET_CLOSED'
+                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
+                  : analysis?.dataStatus === 'DATA_OFFLINE' || analysis?.dataStatus === 'DATA_UNAVAILABLE'
+                  ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20'
                   : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
               }`}>
-                {analysis?.dataStatus || 'CONNECTING'}
+                {analysis?.dataStatus === 'LIVE'
+                  ? 'VERIFIED LIVE'
+                  : analysis?.dataStatus === 'MARKET_CLOSED'
+                  ? 'MARKET CLOSED (EOD)'
+                  : analysis?.dataStatus === 'DATA_OFFLINE'
+                  ? 'DATA OFFLINE'
+                  : analysis?.dataStatus || 'CONNECTING'}
               </span>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -227,6 +252,46 @@ export default function IndexAnalysisPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Institutional Market Closed Banner (Decision 3) */}
+      {isMarketClosed && (
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-700 dark:text-blue-300 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+            <div>
+              <span className="font-bold uppercase tracking-wider text-[11px] block">
+                MARKET CLOSED — Verified End-Of-Day (EOD) Snapshot
+              </span>
+              <span className="text-[11px] opacity-90">
+                NSE/BSE trading session is closed. Showing official closing settlement prices. Live order execution is paused until next trading session.
+              </span>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-md bg-blue-500/15 font-mono text-[10px] font-semibold shrink-0">
+            STAGE 1 PRE-MARKET
+          </span>
+        </div>
+      )}
+
+      {/* Data Gating / Offline Warning Banner */}
+      {!isMarketClosed && isDataOffline && (
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-700 dark:text-rose-300 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+            <div>
+              <span className="font-bold uppercase tracking-wider text-[11px] block">
+                DATA INTEGRITY WARNING — FEED {analysis?.dataStatus}
+              </span>
+              <span className="text-[11px] opacity-90">
+                Live exchange quotes are currently disconnected or degraded. To protect capital, automatic setup qualification and paper trading order execution are strictly suspended.
+              </span>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-md bg-rose-500/20 font-mono text-[10px] font-bold text-rose-600 dark:text-rose-400 shrink-0">
+            SIGNALS GATED
+          </span>
+        </div>
+      )}
+
       {loading && !analysis ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -261,6 +326,9 @@ export default function IndexAnalysisPage({ params }: PageProps) {
             onSelectFailureAnalysis={(id) => setSelectedFailureSignalId(id)}
           />
 
+          {/* Machine Learning Strategy Learner & Adaptive Accuracy Scorecard */}
+          <MLStrategyLearnerPanel indexSymbol={indexSymbol} />
+
           {/* Next-Session Options Recommendation Engine */}
           {analysis.nextSessionRecommendation && (
             <NextSessionRecommendationCard
@@ -277,6 +345,9 @@ export default function IndexAnalysisPage({ params }: PageProps) {
             />
           )}
 
+          {/* Macroeconomic Event Intelligence & Proximity Radar (REQ-6.11) */}
+          <MacroEventCalendarCard currentIndex={indexSymbol} />
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Column */}
             <div className="lg:col-span-2 space-y-6">
@@ -289,7 +360,13 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
               <MarketSentimentPanel sentiment={analysis.sentiment} />
 
+              {analysis.smcAnalysis && (
+                <SmartMoneyConceptsCard data={analysis.smcAnalysis} />
+              )}
+
               <OptionsSetupsCard data={analysis.todayOptionsSetups} />
+
+              <PaperTradingSimulator />
 
               <ChartPatternsCard patterns={analysis.patterns} />
             </div>

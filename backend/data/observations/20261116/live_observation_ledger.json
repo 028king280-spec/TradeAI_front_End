@@ -1,0 +1,322 @@
+{
+  "auditDate": "2026-11-16",
+  "auditTimeIST": "11:14 AM IST",
+  "observationWindow": "10:52 - 11:14 IST",
+  "streamingEfficiency": {
+    "status": "SUCCESS",
+    "timestamp": "16 Nov 2026, 11:13 AM IST",
+    "provider": "angelone",
+    "websocket_connected": true,
+    "websocket_status": "STREAMING",
+    "usable_ticks": 80404,
+    "rejected_ticks": 48,
+    "malformed_packets": 0,
+    "sequence_gaps": 37740,
+    "duplicate_packets": 0,
+    "stale_ticks": 0,
+    "out_of_order_ticks": 0,
+    "candle_validation_failures": 0,
+    "seconds_since_last_tick": 0.02,
+    "reconnection_count": 0,
+    "backend_errors": 0,
+    "cpu_usage_pct": 38.4,
+    "ram_usage_mb": 425.59,
+    "ram_usage_pct": 77.8,
+    "rest_latency_ms": 8.5,
+    "api_p95_latency_ms": 22.4,
+    "tick_processing_latency_ms": 1.1
+  },
+  "predictionsRecorded": [
+    {
+      "predictionId": "PRED-NIFTY-20261116-1794807840-5M",
+      "index": "NIFTY",
+      "underlyingSymbol": "NIFTY 50",
+      "creationTimestamp": "2026-11-16T05:44:00.633118+00:00",
+      "targetHorizonMinutes": 5,
+      "targetEvaluationTimestamp": "2026-11-16T05:49:00.633118+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 25151.6,
+        "likelyHigh": 25337.6
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 25225.8,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-NIFTY-20261116-1794807840-15M",
+      "index": "NIFTY",
+      "underlyingSymbol": "NIFTY 50",
+      "creationTimestamp": "2026-11-16T05:44:00.633118+00:00",
+      "targetHorizonMinutes": 15,
+      "targetEvaluationTimestamp": "2026-11-16T05:59:00.633118+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 25151.6,
+        "likelyHigh": 25337.6
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 25225.8,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-NIFTY-20261116-1794807840-30M",
+      "index": "NIFTY",
+      "underlyingSymbol": "NIFTY 50",
+      "creationTimestamp": "2026-11-16T05:44:00.633118+00:00",
+      "targetHorizonMinutes": 30,
+      "targetEvaluationTimestamp": "2026-11-16T06:14:00.633118+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 25151.6,
+        "likelyHigh": 25337.6
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 25225.8,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-NIFTY-20261116-1794807840-60M",
+      "index": "NIFTY",
+      "underlyingSymbol": "NIFTY 50",
+      "creationTimestamp": "2026-11-16T05:44:00.633118+00:00",
+      "targetHorizonMinutes": 60,
+      "targetEvaluationTimestamp": "2026-11-16T06:44:00.633118+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 25151.6,
+        "likelyHigh": 25337.6
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 25225.8,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-BANKNIFTY-20261116-1794807843-5M",
+      "index": "BANKNIFTY",
+      "underlyingSymbol": "BANK NIFTY",
+      "creationTimestamp": "2026-11-16T05:44:03.149491+00:00",
+      "targetHorizonMinutes": 5,
+      "targetEvaluationTimestamp": "2026-11-16T05:49:03.149491+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 61213.2,
+        "likelyHigh": 61712.8
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 61407.0,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-BANKNIFTY-20261116-1794807843-15M",
+      "index": "BANKNIFTY",
+      "underlyingSymbol": "BANK NIFTY",
+      "creationTimestamp": "2026-11-16T05:44:03.149491+00:00",
+      "targetHorizonMinutes": 15,
+      "targetEvaluationTimestamp": "2026-11-16T05:59:03.149491+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 61213.2,
+        "likelyHigh": 61712.8
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 61407.0,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-BANKNIFTY-20261116-1794807843-30M",
+      "index": "BANKNIFTY",
+      "underlyingSymbol": "BANK NIFTY",
+      "creationTimestamp": "2026-11-16T05:44:03.149491+00:00",
+      "targetHorizonMinutes": 30,
+      "targetEvaluationTimestamp": "2026-11-16T06:14:03.149491+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 61213.2,
+        "likelyHigh": 61712.8
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 61407.0,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-BANKNIFTY-20261116-1794807843-60M",
+      "index": "BANKNIFTY",
+      "underlyingSymbol": "BANK NIFTY",
+      "creationTimestamp": "2026-11-16T05:44:03.149491+00:00",
+      "targetHorizonMinutes": 60,
+      "targetEvaluationTimestamp": "2026-11-16T06:44:03.149491+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 61213.2,
+        "likelyHigh": 61712.8
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 61407.0,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-FINNIFTY-20261116-1794807846-5M",
+      "index": "FINNIFTY",
+      "underlyingSymbol": "FINNIFTY",
+      "creationTimestamp": "2026-11-16T05:44:06.253587+00:00",
+      "targetHorizonMinutes": 5,
+      "targetEvaluationTimestamp": "2026-11-16T05:49:06.253587+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 27857.8,
+        "likelyHigh": 28047.55
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 27933.65,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-FINNIFTY-20261116-1794807846-15M",
+      "index": "FINNIFTY",
+      "underlyingSymbol": "FINNIFTY",
+      "creationTimestamp": "2026-11-16T05:44:06.253587+00:00",
+      "targetHorizonMinutes": 15,
+      "targetEvaluationTimestamp": "2026-11-16T05:59:06.253587+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 27857.8,
+        "likelyHigh": 28047.55
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 27933.65,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-FINNIFTY-20261116-1794807846-30M",
+      "index": "FINNIFTY",
+      "underlyingSymbol": "FINNIFTY",
+      "creationTimestamp": "2026-11-16T05:44:06.253587+00:00",
+      "targetHorizonMinutes": 30,
+      "targetEvaluationTimestamp": "2026-11-16T06:14:06.253587+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 27857.8,
+        "likelyHigh": 28047.55
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 27933.65,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    },
+    {
+      "predictionId": "PRED-FINNIFTY-20261116-1794807846-60M",
+      "index": "FINNIFTY",
+      "underlyingSymbol": "FINNIFTY",
+      "creationTimestamp": "2026-11-16T05:44:06.253587+00:00",
+      "targetHorizonMinutes": 60,
+      "targetEvaluationTimestamp": "2026-11-16T06:44:06.253587+00:00",
+      "direction": "NO_TRADE",
+      "rangeTarget": {
+        "likelyLow": 27857.8,
+        "likelyHigh": 28047.55
+      },
+      "confidence": 0.0,
+      "modelReference": "AIVOLVE_v3_Hybrid_ICT_SMC_ML",
+      "dataSource": "AngelOne_SmartStream_WebSocket",
+      "sourceTimestamp": 1794807837000,
+      "inputQuoteFreshnessSec": 0.02,
+      "spotPriceAtCreation": 27933.65,
+      "status": "PENDING_MATURATION",
+      "governanceDisqualification": [
+        "RISK_BUDGET_UNCONFIGURED: Daily loss budget is pending governance approval; new entries blocked until explicitly configured."
+      ],
+      "circuitBreakerState": "RISK_BUDGET_UNCONFIGURED"
+    }
+  ],
+  "maturedPredictionsScored": 0,
+  "disqualifiedSetupsCount": 12,
+  "notes": "All directional trades disqualified fail-closed under Neutral Chop Regime and unconfigured risk budgets. 0 unfinished predictions scored."
+}

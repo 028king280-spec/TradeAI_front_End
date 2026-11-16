@@ -63,7 +63,7 @@ class SupportResistanceEngine:
             method: str,
             implication: str
         ) -> Dict[str, Any]:
-            dist = round(((price - cur) / cur) * 100.0, 2)
+            dist = round(((price - cur) / cur) * 100.0, 2) if cur > 0 else 0.0
             return {
                 "label": label,
                 "price": round(price, 2),

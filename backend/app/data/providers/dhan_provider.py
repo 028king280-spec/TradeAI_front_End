@@ -193,8 +193,17 @@ class DhanMarketDataProvider(MarketDataProvider):
                 return pd.DataFrame(records)
         except Exception as e:
             logger.warning(f"DhanHQ intraday candles error for {symbol}: {e}")
-            # Fallback to empty DataFrame
-            return pd.DataFrame()
+            empty_df = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume", "vwap"])
+            empty_df.attrs.update({
+                "dataStatus": "DATA_UNAVAILABLE",
+                "feedStatus": "DATA_UNAVAILABLE",
+                "provider": "dhan",
+                "timeframe": timeframe,
+                "is_mock": False,
+                "is_synthetic": False,
+                "degraded_reason": str(e),
+            })
+            return empty_df
 
     async def get_index_quote(self, index_symbol: str) -> Dict[str, Any]:
         indices = await self.get_all_indices()
@@ -204,76 +213,50 @@ class DhanMarketDataProvider(MarketDataProvider):
         return indices[0]
 
     async def get_all_indices(self) -> List[Dict[str, Any]]:
+        """Explicit unavailable index states — never return hardcoded synthetic prices."""
         return [
             {
-                "symbol": "NIFTY 50",
-                "name": "Nifty 50 Index",
-                "currentValue": 24852.40,
-                "change": 136.20,
-                "changePercent": 0.55,
-                "dayHigh": 24890.10,
-                "dayLow": 24710.80,
-                "trend": "Bullish",
-                "sparkline": [24715, 24730, 24760, 24745, 24790, 24810, 24840, 24852.4],
-                "volatilityStatus": "Moderate",
-            },
-            {
-                "symbol": "BANK NIFTY",
-                "name": "Nifty Bank Index",
-                "currentValue": 51420.80,
-                "change": 312.40,
-                "changePercent": 0.61,
-                "dayHigh": 51550.00,
-                "dayLow": 51080.00,
-                "trend": "Bullish",
-                "sparkline": [51100, 51180, 51240, 51210, 51330, 51380, 51410, 51420.8],
-                "volatilityStatus": "Moderate",
-            },
-            {
-                "symbol": "FINNIFTY",
-                "name": "Nifty Financial Services",
-                "currentValue": 23910.15,
-                "change": 122.30,
-                "changePercent": 0.51,
-                "dayHigh": 23980.50,
-                "dayLow": 23760.00,
-                "trend": "Bullish",
-                "sparkline": [23780, 23810, 23850, 23830, 23890, 23900, 23920, 23910.15],
-                "volatilityStatus": "Moderate",
-            },
-            {
-                "symbol": "INDIA VIX",
-                "name": "India Volatility Index",
-                "currentValue": 13.42,
-                "change": -0.54,
-                "changePercent": -3.85,
-                "dayHigh": 14.15,
-                "dayLow": 13.20,
-                "trend": "Bearish",
-                "sparkline": [14.10, 13.95, 13.80, 13.70, 13.60, 13.50, 13.45, 13.42],
-                "volatilityStatus": "Moderate",
-            },
+                "symbol": sym,
+                "name": label,
+                "currentValue": 0.0,
+                "change": 0.0,
+                "changePercent": 0.0,
+                "dayHigh": 0.0,
+                "dayLow": 0.0,
+                "trend": "Neutral",
+                "sparkline": [],
+                "volatilityStatus": "Unavailable",
+                "dataStatus": "DATA_UNAVAILABLE",
+                "feedStatus": "DATA_UNAVAILABLE",
+                "provider": "dhan",
+                "is_mock": False,
+                "is_synthetic": False,
+                "degradedReason": f"Dhan index snapshot unavailable for {sym}; synthetic prices disabled.",
+            }
+            for sym, label in [
+                ("NIFTY 50", "Nifty 50 Index"),
+                ("BANK NIFTY", "Nifty Bank Index"),
+                ("FINNIFTY", "Nifty Financial Services"),
+                ("INDIA VIX", "India Volatility Index"),
+            ]
         ]
 
     async def get_sector_data(self) -> List[Dict[str, Any]]:
-        return [
-            {"sector": "IT", "performancePercent": 1.42, "strength": "Strong", "topStock": "TCS (+1.49%)", "advancers": 8, "decliners": 2},
-            {"sector": "Energy", "performancePercent": 1.10, "strength": "Strong", "topStock": "RELIANCE (+1.24%)", "advancers": 7, "decliners": 3},
-            {"sector": "Banking", "performancePercent": 0.98, "strength": "Strong", "topStock": "SBIN (+1.38%)", "advancers": 9, "decliners": 3},
-            {"sector": "Financial Services", "performancePercent": 0.85, "strength": "Moderate", "topStock": "BAJFINANCE (+1.15%)", "advancers": 14, "decliners": 6},
-            {"sector": "Metals", "performancePercent": 0.75, "strength": "Moderate", "topStock": "TATASTEEL (+1.05%)", "advancers": 10, "decliners": 5},
-            {"sector": "Auto", "performancePercent": 0.65, "strength": "Moderate", "topStock": "M&M (+1.82%)", "advancers": 9, "decliners": 6},
-            {"sector": "FMCG", "performancePercent": 0.12, "strength": "Moderate", "topStock": "ITC (+0.45%)", "advancers": 8, "decliners": 7},
-            {"sector": "Realty", "performancePercent": -0.30, "strength": "Negative", "topStock": "DLF (-0.75%)", "advancers": 4, "decliners": 6},
-            {"sector": "Pharma", "performancePercent": -0.45, "strength": "Weak", "topStock": "SUNPHARMA (-0.88%)", "advancers": 5, "decliners": 10},
-        ]
+        """Sectoral data unavailable from Dhan REST API; never substitute static mock sectors."""
+        return []
 
     async def get_market_breadth(self) -> Dict[str, Any]:
         return {
-            "advancing": 1482,
-            "declining": 746,
-            "unchanged": 104,
-            "ratio": 1.99,
+            "advancing": 0,
+            "declining": 0,
+            "unchanged": 0,
+            "ratio": 0.0,
+            "dataStatus": "DATA_UNAVAILABLE",
+            "feedStatus": "DATA_UNAVAILABLE",
+            "provider": "dhan",
+            "is_mock": False,
+            "is_synthetic": False,
+            "degradedReason": "Market breadth feed unavailable from Dhan; synthetic data disabled.",
         }
 
     async def get_option_chain(

@@ -10,7 +10,7 @@ from app.data.market_calendar import MarketCalendar
 MOCK_UNIVERSE = {
     "NIFTY 50": {
         "companyName": "Nifty 50 Index",
-        "basePrice": 24852.40,
+        "basePrice": 23810.00,
         "exchange": "NSE",
         "sector": "Benchmark Index",
         "category": "Index",
@@ -19,7 +19,7 @@ MOCK_UNIVERSE = {
     },
     "NIFTY": {
         "companyName": "Nifty 50 Index",
-        "basePrice": 24852.40,
+        "basePrice": 23810.00,
         "exchange": "NSE",
         "sector": "Benchmark Index",
         "category": "Index",
@@ -28,7 +28,7 @@ MOCK_UNIVERSE = {
     },
     "SENSEX": {
         "companyName": "BSE SENSEX Index",
-        "basePrice": 81850.50,
+        "basePrice": 78900.00,
         "exchange": "BSE",
         "sector": "Benchmark Index",
         "category": "Index",
@@ -37,7 +37,7 @@ MOCK_UNIVERSE = {
     },
     "BSE SENSEX": {
         "companyName": "BSE SENSEX Index",
-        "basePrice": 81850.50,
+        "basePrice": 78900.00,
         "exchange": "BSE",
         "sector": "Benchmark Index",
         "category": "Index",
@@ -46,7 +46,7 @@ MOCK_UNIVERSE = {
     },
     "BANK NIFTY": {
         "companyName": "Nifty Bank Index",
-        "basePrice": 51420.80,
+        "basePrice": 55600.00,
         "exchange": "NSE",
         "sector": "Banking Index",
         "category": "Index",
@@ -55,7 +55,7 @@ MOCK_UNIVERSE = {
     },
     "BANKNIFTY": {
         "companyName": "Nifty Bank Index",
-        "basePrice": 51420.80,
+        "basePrice": 55600.00,
         "exchange": "NSE",
         "sector": "Banking Index",
         "category": "Index",
@@ -206,6 +206,15 @@ MOCK_UNIVERSE = {
         "trend": "Neutral",
         "volatility": 0.014,
     },
+    "YESBANK": {
+        "companyName": "Yes Bank Limited",
+        "basePrice": 15.38,
+        "exchange": "NSE",
+        "sector": "Banking",
+        "category": "Mid Cap",
+        "trend": "Neutral",
+        "volatility": 0.022,
+    },
 }
 
 
@@ -225,6 +234,14 @@ class MockMarketDataProvider(MarketDataProvider):
 
     def _get_stock_info(self, symbol: str) -> Dict[str, Any]:
         sym = symbol.upper().replace("_", " ").strip()
+        clean_key = sym.replace(" ", "")
+
+        # Check explicit equity profiles first (so HDFCBANK, ICICIBANK aren't treated as Bank Nifty)
+        if clean_key in MOCK_UNIVERSE:
+            return MOCK_UNIVERSE[clean_key]
+        if sym in MOCK_UNIVERSE:
+            return MOCK_UNIVERSE[sym]
+
         if "NIFTY 50" in sym or sym == "NIFTY":
             return {
                 "companyName": "Nifty 50 Index",
@@ -238,14 +255,14 @@ class MockMarketDataProvider(MarketDataProvider):
         if "SENSEX" in sym:
             return {
                 "companyName": "BSE SENSEX Index",
-                "basePrice": 81850.50,
+                "basePrice": 78900.00,
                 "exchange": "BSE",
                 "sector": "Benchmark Index",
                 "category": "Index",
                 "trend": "Bullish",
                 "volatility": 0.011,
             }
-        if "BANK" in sym:
+        if sym in ("BANKNIFTY", "BANK NIFTY", "NIFTY BANK", "NIFTYBANK") or ("BANK" in sym and "NIFTY" in sym):
             return {
                 "companyName": "Nifty Bank Index",
                 "basePrice": 51420.80,
@@ -258,10 +275,28 @@ class MockMarketDataProvider(MarketDataProvider):
 
         if sym in MOCK_UNIVERSE:
             return MOCK_UNIVERSE[sym]
-        # Fallback for unknown symbols
+        # Fallback for unknown symbols: inspect InstrumentMaster options strikes if available
+        try:
+            from app.data.instrument_master import get_instrument_master
+            master = get_instrument_master()
+            strikes = master.get_strikes_for_underlying(clean_key)
+            if strikes:
+                median_strike = strikes[len(strikes) // 2]
+                return {
+                    "companyName": f"{sym} Limited",
+                    "basePrice": median_strike,
+                    "exchange": "NSE",
+                    "sector": "Equity",
+                    "category": "F&O Stock",
+                    "trend": "Neutral",
+                    "volatility": 0.015,
+                }
+        except Exception:
+            pass
+
         return {
-            "companyName": f"{sym} India Limited",
-            "basePrice": 1000.0,
+            "companyName": f"{sym} Limited",
+            "basePrice": 250.0,
             "exchange": "NSE",
             "sector": "Diversified",
             "category": "Mid Cap",
@@ -304,6 +339,10 @@ class MockMarketDataProvider(MarketDataProvider):
             "vwap": vwap,
             "timestamp": MarketCalendar.format_ist_timestamp(),
             "dataStatus": "MOCK",
+            "feedStatus": "SYNTHETIC",
+            "provider": "mock",
+            "is_mock": True,
+            "is_synthetic": True,
         }
 
     async def get_historical_candles(
@@ -352,37 +391,75 @@ class MockMarketDataProvider(MarketDataProvider):
             current_dt += timedelta(days=1)
 
         df = pd.DataFrame(records)
+        df.attrs.update({
+            "dataStatus": "MOCK",
+            "feedStatus": "SYNTHETIC",
+            "provider": "mock",
+            "timeframe": timeframe,
+            "is_mock": True,
+            "is_synthetic": True,
+        })
         return df
 
     async def get_intraday_candles(
         self,
         symbol: str,
-        timeframe: str = "15m"
+        timeframe: str = "15m",
+        live_price: Optional[float] = None
     ) -> pd.DataFrame:
         info = self._get_stock_info(symbol)
-        base = info["basePrice"]
+        base = float(live_price) if (live_price is not None and live_price > 0) else info["basePrice"]
         trend = info["trend"]
 
-        # 26 15-min intervals between 09:15 and 15:30
+        tf_minutes = {
+            "1m": 1,
+            "3m": 3,
+            "5m": 5,
+            "10m": 10,
+            "15m": 15,
+            "30m": 30,
+            "1h": 60,
+            "1d": 375,
+        }
+        interval_min = tf_minutes.get(timeframe.lower(), 15)
         now = MarketCalendar.now_ist()
         start_time = now.replace(hour=9, minute=15, second=0, microsecond=0)
-        records = []
-        curr = base * 0.995
 
-        rng = np.random.RandomState(sum(ord(c) for c in symbol) + 99)
-        step_drift = 0.0008 if trend == "Bullish" else (-0.0008 if trend == "Bearish" else 0.0)
+        # Calculate bars up to the current moment in market hours
+        if MarketCalendar.is_market_open():
+            elapsed_minutes = max(15, min(375, int((now - start_time).total_seconds() / 60)))
+            total_bars = max(3, min(75, elapsed_minutes // interval_min))
+        else:
+            total_bars = min(75, max(7, 375 // interval_min))
+
+        records = []
+        target_close = float(live_price) if (live_price is not None and live_price > 0) else base
+        curr = target_close * 0.994
+
+        rng = np.random.RandomState(sum(ord(c) for c in symbol) + 99 + interval_min)
+        step_drift = 0.0006 if trend == "Bullish" else (-0.0006 if trend == "Bearish" else 0.0)
 
         cum_vol = 0
         cum_pv = 0.0
 
-        for i in range(26):
-            bar_time = start_time + timedelta(minutes=15 * i)
-            delta = rng.normal(loc=step_drift, scale=0.003) * curr
+        for i in range(total_bars):
+            bar_time = start_time + timedelta(minutes=interval_min * i)
+            scale_volatility = 0.0025 * ((interval_min / 15.0) ** 0.5)
+
+            # Smoothly drift toward target_close at the final bar
+            progress = (i + 1) / total_bars
+            target_at_step = curr + ((target_close - curr) * progress * 0.3)
+            delta = rng.normal(loc=step_drift, scale=scale_volatility) * target_at_step
             open_p = curr
-            close_p = round(curr + delta, 2)
-            high_p = round(max(open_p, close_p) * (1 + abs(rng.normal(0, 0.0015))), 2)
-            low_p = round(min(open_p, close_p) * (1 - abs(rng.normal(0, 0.0015))), 2)
-            volume = int(rng.uniform(30000, 150000))
+            close_p = round(target_at_step + delta, 2)
+
+            # If final bar, lock to live_price
+            if i == total_bars - 1 and live_price and live_price > 0:
+                close_p = round(float(live_price), 2)
+
+            high_p = round(max(open_p, close_p) * (1 + abs(rng.normal(0, scale_volatility * 0.4))), 2)
+            low_p = round(min(open_p, close_p) * (1 - abs(rng.normal(0, scale_volatility * 0.4))), 2)
+            volume = int(rng.uniform(20000, 120000) * (interval_min / 15.0))
 
             typical_price = (high_p + low_p + close_p) / 3
             cum_vol += volume
@@ -391,7 +468,7 @@ class MockMarketDataProvider(MarketDataProvider):
 
             records.append({
                 "timestamp": bar_time,
-                "time": bar_time.strftime("%H:%M"),
+                "time": bar_time.strftime("%H:%M") if timeframe != "1d" else bar_time.strftime("%d %b"),
                 "open": open_p,
                 "high": high_p,
                 "low": low_p,
@@ -401,7 +478,16 @@ class MockMarketDataProvider(MarketDataProvider):
             })
             curr = close_p
 
-        return pd.DataFrame(records)
+        df = pd.DataFrame(records)
+        df.attrs.update({
+            "dataStatus": "MOCK",
+            "feedStatus": "SYNTHETIC",
+            "provider": "mock",
+            "timeframe": timeframe,
+            "is_mock": True,
+            "is_synthetic": True,
+        })
+        return df
 
     async def get_index_quote(self, index_symbol: str) -> Dict[str, Any]:
         indices = await self.get_all_indices()
@@ -411,7 +497,7 @@ class MockMarketDataProvider(MarketDataProvider):
         return indices[0]
 
     async def get_all_indices(self) -> List[Dict[str, Any]]:
-        return [
+        indices = [
             {
                 "symbol": "NIFTY 50",
                 "name": "Nifty 50 Index",
@@ -473,9 +559,20 @@ class MockMarketDataProvider(MarketDataProvider):
                 "volatilityStatus": "Moderate",
             },
         ]
+        return [
+            {
+                **item,
+                "dataStatus": "MOCK",
+                "feedStatus": "SYNTHETIC",
+                "provider": "mock",
+                "is_mock": True,
+                "is_synthetic": True,
+            }
+            for item in indices
+        ]
 
     async def get_sector_data(self) -> List[Dict[str, Any]]:
-        return [
+        sectors = [
             {"sector": "IT", "performancePercent": 1.42, "strength": "Strong", "topStock": "TCS (+1.49%)", "advancers": 8, "decliners": 2},
             {"sector": "Energy", "performancePercent": 1.10, "strength": "Strong", "topStock": "RELIANCE (+1.24%)", "advancers": 7, "decliners": 3},
             {"sector": "Banking", "performancePercent": 0.98, "strength": "Strong", "topStock": "SBIN (+1.38%)", "advancers": 9, "decliners": 3},
@@ -486,6 +583,7 @@ class MockMarketDataProvider(MarketDataProvider):
             {"sector": "Realty", "performancePercent": -0.30, "strength": "Negative", "topStock": "DLF (-0.75%)", "advancers": 4, "decliners": 6},
             {"sector": "Pharma", "performancePercent": -0.45, "strength": "Weak", "topStock": "SUNPHARMA (-0.88%)", "advancers": 5, "decliners": 10},
         ]
+        return [{**s, "dataStatus": "MOCK", "provider": "mock", "is_mock": True, "is_synthetic": True} for s in sectors]
 
     async def get_market_breadth(self) -> Dict[str, Any]:
         return {
@@ -493,6 +591,11 @@ class MockMarketDataProvider(MarketDataProvider):
             "declining": 746,
             "unchanged": 104,
             "ratio": 1.99,
+            "dataStatus": "MOCK",
+            "feedStatus": "SYNTHETIC",
+            "provider": "mock",
+            "is_mock": True,
+            "is_synthetic": True,
         }
 
     async def get_option_chain(
