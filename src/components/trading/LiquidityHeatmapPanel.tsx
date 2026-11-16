@@ -1,19 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Flame, 
-  Filter, 
-  ArrowUp, 
-  ArrowDown, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  Eye, 
-  ShieldCheck,
-  TrendingUp,
-  Sparkles
-} from 'lucide-react';
+import { Flame, Filter, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
 
 export interface LiquidityLevelItem {
   id: string;
@@ -124,10 +112,10 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
   const getBadgeStyle = (category: string, status: string) => {
     if (status.includes('SWEPT')) {
       return {
-        bg: 'bg-slate-700/40',
-        text: 'text-slate-300',
-        border: 'border-slate-600/40',
-        pill: 'bg-slate-500/20 text-slate-300',
+        bg: 'bg-[var(--bg-surface-elevated)]',
+        text: 'text-[var(--text-secondary)]',
+        border: 'border-[var(--border-subtle)]',
+        pill: 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]',
       };
     }
     if (category === 'BSL') {
@@ -156,23 +144,23 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl text-slate-100">
+    <div className="bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-xl p-5 shadow-xl text-[var(--text-primary)]">
       {/* Top Header & Color Taxonomy Legend */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-tr from-amber-600 to-rose-600 rounded-lg text-white shadow-lg shadow-amber-500/20">
+          <div className="p-2.5 bg-gradient-to-tr from-amber-600 to-rose-600 rounded-lg text-[var(--text-primary)] shadow-lg shadow-amber-500/20">
             <Flame className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-white tracking-tight">
+              <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
                 Advanced Liquidity Detection & Heatmap Engine
               </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                 Institutional Pools
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               Tolerance-based clustering distinguishing institutional sweeps with reclaim from true breakouts
             </p>
           </div>
@@ -189,8 +177,8 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
           <span className="flex items-center gap-1 font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
             <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> EQH/EQL (Yellow)
           </span>
-          <span className="flex items-center gap-1 font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-            <span className="w-2 h-2 rounded-full bg-slate-400 inline-block" /> Swept (Grey)
+          <span className="flex items-center gap-1 font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface-elevated)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
+            <span className="w-2 h-2 rounded-full bg-[var(--bg-surface-elevated)] inline-block" /> Swept (Grey)
           </span>
         </div>
       </div>
@@ -198,15 +186,15 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
       {/* Filter Toggles */}
       <div className="mt-4 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5 text-slate-400 mr-1" />
+          <Filter className="w-3.5 h-3.5 text-[var(--text-secondary)] mr-1" />
           {(['ALL', 'BSL', 'SSL', 'EQH_EQL', 'SWEPT'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveFilter(tab)}
               className={`px-3 py-1 text-xs font-semibold rounded-lg border transition ${
                 activeFilter === tab
-                  ? 'bg-slate-800 text-white border-slate-600 shadow-sm'
-                  : 'bg-slate-950/40 text-slate-400 border-slate-800/80 hover:text-slate-200'
+                  ? 'bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] border-[var(--border-subtle)] shadow-sm'
+                  : 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
               }`}
             >
               {tab === 'ALL' ? 'All Pools' : tab === 'EQH_EQL' ? 'EQH / EQL' : tab}
@@ -214,8 +202,8 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
           ))}
         </div>
 
-        <div className="text-xs text-slate-400">
-          Current LTP: <strong className="text-white font-mono">₹{currentPrice.toLocaleString('en-IN')}</strong>
+        <div className="text-xs text-[var(--text-secondary)]">
+          Current LTP: <strong className="text-[var(--text-primary)] tabular-nums">₹{currentPrice.toLocaleString('en-IN')}</strong>
         </div>
       </div>
 
@@ -229,7 +217,7 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
           return (
             <div
               key={lvl.id}
-              className={`p-3.5 rounded-lg border transition hover:bg-slate-800/40 ${style.bg} ${style.border} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
+              className={`p-3.5 rounded-lg border transition hover:bg-[var(--bg-surface-elevated)] ${style.bg} ${style.border} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
             >
               <div className="flex items-start sm:items-center gap-3">
                 <div className={`p-2 rounded-lg font-bold shrink-0 ${style.pill}`}>
@@ -237,34 +225,34 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{lvl.type}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${style.pill}`}>
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">{lvl.type}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider ${style.pill}`}>
                       {lvl.status.replace(/_/g, ' ')}
                     </span>
                     {lvl.isExternal && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border border-[var(--accent-blue)]/20 font-semibold">
                         External
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                  <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-1">
                     <span>
                       Strength:{' '}
-                      <strong className="text-white font-mono">{lvl.strengthScore}/10</strong>
+                      <strong className="text-[var(--text-primary)] tabular-nums">{lvl.strengthScore}/10</strong>
                     </span>
                     {lvl.clusterCount && lvl.clusterCount > 1 && (
                       <span>
-                        Cluster: <strong className="text-slate-200">{lvl.clusterCount} Points</strong>
+                        Cluster: <strong className="text-[var(--text-primary)]">{lvl.clusterCount} Points</strong>
                       </span>
                     )}
                     {lvl.volumeRatio && (
                       <span>
-                        Vol Ratio: <strong className="text-slate-200">{lvl.volumeRatio}x</strong>
+                        Vol Ratio: <strong className="text-[var(--text-primary)]">{lvl.volumeRatio}x</strong>
                       </span>
                     )}
                     {lvl.wickRejectionPct && (
                       <span>
-                        Wick Rejection: <strong className="text-slate-200">{lvl.wickRejectionPct}%</strong>
+                        Wick Rejection: <strong className="text-[var(--text-primary)]">{lvl.wickRejectionPct}%</strong>
                       </span>
                     )}
                   </div>
@@ -273,7 +261,7 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
 
               {/* Price & Dealing Distance */}
               <div className="text-right sm:self-auto self-end">
-                <div className="text-base font-black text-white font-mono">
+                <div className="text-base font-semibold text-[var(--text-primary)] tabular-nums">
                   ₹{lvl.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
                 <div className={`text-xs font-semibold ${isAbove ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -286,10 +274,10 @@ export const LiquidityHeatmapPanel: React.FC<LiquidityHeatmapPanelProps> = ({
       </div>
 
       {/* Sweep vs True Breakout Validation Note */}
-      <div className="mt-4 p-3 bg-slate-950/60 border border-slate-800 rounded-lg text-xs text-slate-400 flex items-start gap-2">
+      <div className="mt-4 p-3 bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded-lg text-xs text-[var(--text-secondary)] flex items-start gap-2">
         <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <strong className="text-slate-200">Institutional Validation Rule:</strong> A valid liquidity sweep requires a wick extending beyond the pool followed by a rapid candle body reclaim inside the dealing range and displacement confirmation. Wicks without reclaim are classified as continuous expansion breakouts, preventing premature reversal traps.
+          <strong className="text-[var(--text-primary)]">Institutional Validation Rule:</strong> A valid liquidity sweep requires a wick extending beyond the pool followed by a rapid candle body reclaim inside the dealing range and displacement confirmation. Wicks without reclaim are classified as continuous expansion breakouts, preventing premature reversal traps.
         </p>
       </div>
     </div>

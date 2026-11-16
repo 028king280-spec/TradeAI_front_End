@@ -1,23 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Brain,
-  Sparkles,
-  TrendingUp,
-  Target,
-  Shield,
-  Zap,
-  CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
-  BarChart3,
-  Award,
-  Layers,
-  Clock,
-  ArrowUpRight,
-  Info,
-} from 'lucide-react';
+import { Brain, Sparkles, TrendingUp, Target, Shield, CheckCircle2, RotateCcw, Award, Layers, ArrowUpRight } from 'lucide-react';
 
 interface MLStrategyData {
   symbol: string;
@@ -97,7 +81,7 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
   const rules = data?.learnedRules || [];
 
   return (
-    <div className="rounded-2xl border border-indigo-500/25 bg-[var(--bg-surface)] overflow-hidden shadow-sm space-y-5 font-mono">
+    <div className="rounded-2xl border border-[var(--accent-blue)]/25 bg-[var(--bg-surface)] overflow-hidden shadow-sm space-y-5 tabular-nums">
       {/* Header */}
       <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -106,10 +90,10 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
                 Machine Learning Strategy Learner
               </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/30">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold border border-purple-500/30">
                 Online RL Reinforcement
               </span>
             </div>
@@ -136,10 +120,10 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Targets Hit */}
           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-bold flex items-center gap-1">
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-semibold flex items-center gap-1">
               <Target className="w-3.5 h-3.5" /> Targets Hit
             </span>
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+            <div className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
               {summary ? summary.targetsHit : '--'}
             </div>
             <span className="text-[10px] text-[var(--text-muted)] block">
@@ -149,10 +133,10 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
 
           {/* Stop Losses Hit */}
           <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-1">
-            <span className="text-[10px] text-rose-600 dark:text-rose-400 uppercase font-bold flex items-center gap-1">
+            <span className="text-[10px] text-rose-600 dark:text-rose-400 uppercase font-semibold flex items-center gap-1">
               <Shield className="w-3.5 h-3.5" /> Stop Losses Hit
             </span>
-            <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
+            <div className="text-2xl font-semibold text-rose-600 dark:text-rose-400">
               {summary ? summary.slHits : '--'}
             </div>
             <span className="text-[10px] text-[var(--text-muted)] block">
@@ -161,11 +145,11 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
           </div>
 
           {/* Win Rate % */}
-          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
-            <span className="text-[10px] text-indigo-600 dark:text-indigo-400 uppercase font-bold flex items-center gap-1">
+          <div className="p-4 rounded-xl bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 space-y-1">
+            <span className="text-[10px] text-[var(--accent-blue)] dark:text-[var(--accent-blue)] uppercase font-semibold flex items-center gap-1">
               <Award className="w-3.5 h-3.5" /> Target Accuracy
             </span>
-            <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+            <div className="text-2xl font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)]">
               {summary ? `${summary.winRate}%` : '--'}
             </div>
             <span className="text-[10px] text-[var(--text-muted)] block">
@@ -175,10 +159,10 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
 
           {/* Realized Profit Factor & R:R */}
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 space-y-1">
-            <span className="text-[10px] text-purple-600 dark:text-purple-400 uppercase font-bold flex items-center gap-1">
+            <span className="text-[10px] text-purple-600 dark:text-purple-400 uppercase font-semibold flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5" /> Profit Factor
             </span>
-            <div className="text-2xl font-black text-purple-600 dark:text-purple-400">
+            <div className="text-2xl font-semibold text-purple-600 dark:text-purple-400">
               {summary ? `${summary.profitFactor}x` : '--'}
             </div>
             <span className="text-[10px] text-[var(--text-muted)] block">
@@ -190,7 +174,7 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
         {/* Visual Target Hit vs SL Progress Bar */}
         {summary && (
           <div className="space-y-1.5 p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-            <div className="flex items-center justify-between text-xs font-bold">
+            <div className="flex items-center justify-between text-xs font-semibold">
               <span className="text-emerald-500 flex items-center gap-1">
                 🎯 {summary.targetsHit} Targets Hit ({summary.winRate}%)
               </span>
@@ -210,11 +194,11 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
         {/* Model Performance Matrix (Adaptive Weights) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-bold text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-xs uppercase font-semibold text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-[var(--accent-blue)]" />
               SMC Strategy Models Calibration (ML Weighted)
             </span>
-            <span className="text-[10px] text-indigo-400">Auto-prioritizes high edge models</span>
+            <span className="text-[10px] text-[var(--accent-blue)]">Auto-prioritizes high edge models</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -224,14 +208,14 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
                 className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] space-y-2.5 relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[170px]" title={modelTitle}>
+                  <span className="text-xs font-semibold text-[var(--text-primary)] truncate max-w-[170px]" title={modelTitle}>
                     {modelTitle.split('(')[0]}
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase ${
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase ${
                     m.weight >= 1.2
                       ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
                       : m.weight >= 1.0
-                      ? 'bg-blue-500/15 text-blue-500 border border-blue-500/30'
+                      ? 'bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] border border-[var(--accent-blue)]/30'
                       : 'bg-amber-500/15 text-amber-500 border border-amber-500/30'
                   }`}>
                     {m.weight}x Weight
@@ -239,10 +223,10 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
                 </div>
 
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xl font-black font-mono text-[var(--text-primary)]">
+                  <span className="text-xl font-semibold tabular-nums text-[var(--text-primary)]">
                     {m.winRate}%
                   </span>
-                  <span className="text-[11px] font-bold text-emerald-500 font-mono">
+                  <span className="text-[11px] font-semibold text-emerald-500 tabular-nums">
                     {m.edge}
                   </span>
                 </div>
@@ -261,7 +245,7 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
         {/* Machine Learning Discovered Rules & New Strategies */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-bold text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
+            <span className="text-xs uppercase font-semibold text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               ML Discovered Rules & Algorithmic Strategy Optimizations
             </span>
@@ -272,14 +256,14 @@ export const MLStrategyLearnerPanel: React.FC<MLStrategyLearnerPanelProps> = ({ 
             {rules.map((rule) => (
               <div
                 key={rule.id}
-                className="p-4 rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 via-[var(--bg-surface-elevated)] to-transparent space-y-2 hover:border-indigo-500/35 transition-all"
+                className="p-4 rounded-xl border border-[var(--accent-blue)]/15 bg-gradient-to-br from-[var(--accent-blue)]/5 via-[var(--bg-surface-elevated)] to-transparent space-y-2 hover:border-[var(--accent-blue)]/35 transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     {rule.title}
                   </span>
-                  <span className="text-[10px] font-bold text-purple-400 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
+                  <span className="text-[10px] font-semibold text-purple-400 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
                     {rule.confidenceScore}% Conf
                   </span>
                 </div>

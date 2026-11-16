@@ -53,7 +53,7 @@ const stateConfig = {
     iconBg: 'bg-emerald-50 dark:bg-emerald-500/15',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
     badgeBg: 'bg-emerald-500',
-    badgeText: 'text-white',
+    badgeText: 'text-[var(--text-primary)]',
     pillBg: 'bg-emerald-50 dark:bg-emerald-500/10',
     pillText: 'text-emerald-700 dark:text-emerald-400',
     pillBorder: 'border-emerald-200 dark:border-emerald-500/25',
@@ -67,7 +67,7 @@ const stateConfig = {
     iconBg: 'bg-rose-50 dark:bg-rose-500/15',
     iconColor: 'text-rose-600 dark:text-rose-400',
     badgeBg: 'bg-rose-500',
-    badgeText: 'text-white',
+    badgeText: 'text-[var(--text-primary)]',
     pillBg: 'bg-rose-50 dark:bg-rose-500/10',
     pillText: 'text-rose-700 dark:text-rose-400',
     pillBorder: 'border-rose-200 dark:border-rose-500/25',
@@ -75,16 +75,16 @@ const stateConfig = {
   },
   SIDEWAYS: {
     icon: Minus,
-    gradient: 'from-blue-500/8 via-indigo-500/3 to-transparent',
-    darkGradient: 'dark:from-blue-500/10 dark:via-indigo-500/3 dark:to-transparent',
-    border: 'border-blue-500/20 dark:border-blue-500/25',
-    iconBg: 'bg-blue-50 dark:bg-blue-500/15',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    badgeBg: 'bg-blue-600',
-    badgeText: 'text-white',
-    pillBg: 'bg-blue-50 dark:bg-blue-500/10',
-    pillText: 'text-blue-700 dark:text-blue-400',
-    pillBorder: 'border-blue-200 dark:border-blue-500/25',
+    gradient: 'from-[var(--accent-blue)]/8 via-[var(--accent-blue)]/3 to-transparent',
+    darkGradient: 'dark:from-[var(--accent-blue)]/10 dark:via-[var(--accent-blue)]/3 dark:to-transparent',
+    border: 'border-[var(--accent-blue)]/20 dark:border-[var(--accent-blue)]/25',
+    iconBg: 'bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/15',
+    iconColor: 'text-[var(--accent-blue)] dark:text-[var(--accent-blue)]',
+    badgeBg: 'bg-[var(--accent-blue)]',
+    badgeText: 'text-[var(--text-primary)]',
+    pillBg: 'bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10',
+    pillText: 'text-[var(--accent-blue)] dark:text-[var(--accent-blue)]',
+    pillBorder: 'border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/25',
     accentRing: 'ring-blue-500/20',
   },
   NO_TRADE: {
@@ -95,7 +95,7 @@ const stateConfig = {
     iconBg: 'bg-orange-50 dark:bg-orange-500/15',
     iconColor: 'text-orange-600 dark:text-orange-400',
     badgeBg: 'bg-orange-500',
-    badgeText: 'text-white',
+    badgeText: 'text-[var(--text-primary)]',
     pillBg: 'bg-orange-50 dark:bg-orange-500/10',
     pillText: 'text-orange-700 dark:text-orange-400',
     pillBorder: 'border-orange-200 dark:border-orange-500/25',
@@ -103,16 +103,16 @@ const stateConfig = {
   },
   DATA_UNAVAILABLE: {
     icon: WifiOff,
-    gradient: 'from-slate-500/6 via-slate-500/2 to-transparent',
-    darkGradient: 'dark:from-slate-500/10 dark:via-slate-500/3 dark:to-transparent',
-    border: 'border-slate-300 dark:border-slate-600',
-    iconBg: 'bg-slate-100 dark:bg-slate-700',
-    iconColor: 'text-slate-500 dark:text-slate-400',
-    badgeBg: 'bg-slate-500',
-    badgeText: 'text-white',
-    pillBg: 'bg-slate-100 dark:bg-slate-700',
-    pillText: 'text-slate-600 dark:text-slate-400',
-    pillBorder: 'border-slate-300 dark:border-slate-600',
+    gradient: 'from-[var(--bg-surface)] via-[var(--bg-surface)] to-transparent',
+    darkGradient: 'dark:from-[var(--bg-surface)] dark:via-[var(--bg-surface)] dark:to-transparent',
+    border: 'border-[var(--border-subtle)] dark:border-[var(--border-subtle)]',
+    iconBg: 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)]',
+    iconColor: 'text-[var(--text-muted)] dark:text-[var(--text-secondary)]',
+    badgeBg: 'bg-[var(--bg-surface-elevated)]',
+    badgeText: 'text-[var(--text-primary)]',
+    pillBg: 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)]',
+    pillText: 'text-[var(--text-secondary)] dark:text-[var(--text-secondary)]',
+    pillBorder: 'border-[var(--border-subtle)] dark:border-[var(--border-subtle)]',
     accentRing: 'ring-slate-500/20',
   },
 };
@@ -139,7 +139,7 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${config.gradient} ${config.darkGradient} ${config.border} bg-white dark:bg-[var(--bg-surface)] transition-all duration-300 font-mono`}
+      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${config.gradient} ${config.darkGradient} ${config.border} bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] transition-all duration-300 tabular-nums`}
     >
       {/* Decorative glow */}
       <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-[0.04] blur-3xl pointer-events-none"
@@ -160,13 +160,13 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
                 <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                   {data.symbol} Market Regime
                 </span>
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${config.pillBg} ${config.pillText} border ${config.pillBorder}`}>
+                <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md ${config.pillBg} ${config.pillText} border ${config.pillBorder}`}>
                   {isStrictNoTrade ? 'NO TRADE' : (typeof state === 'string' ? state.replace(/_/g, ' ') : 'NO TRADE')}
                 </span>
               </div>
 
               {/* Headline */}
-              <h3 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] leading-tight tracking-tight">
+              <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)] leading-tight tracking-tight">
                 {headline}
               </h3>
             </div>
@@ -175,11 +175,11 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
           {/* Status Badge + Data Status */}
           <div className="flex items-center gap-3 shrink-0">
             {/* Prominent Status Badge */}
-            <div className={`px-4 py-2 rounded-xl ${isStrictNoTrade ? 'bg-orange-500 text-white' : config.badgeBg + ' ' + config.badgeText} font-extrabold text-sm tracking-wide flex items-center gap-2 shadow-lg`}>
+            <div className={`px-4 py-2 rounded-xl ${isStrictNoTrade ? 'bg-orange-500 text-[var(--text-primary)]' : config.badgeBg + ' ' + config.badgeText} font-semibold text-sm tracking-wide flex items-center gap-2 shadow-lg`}>
               {isStrictNoTrade && (
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/60" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white/90" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--bg-surface-elevated)]" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--bg-surface-elevated)]" />
                 </span>
               )}
               {isStrictNoTrade ? 'NO TRADE' : (data.statusBadge || 'SETUPS ARMED')}
@@ -188,7 +188,7 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
             {/* Live indicator */}
             <div className="hidden sm:flex flex-col items-end gap-0.5">
               <span className="text-[10px] font-medium text-[var(--text-muted)]">Feed</span>
-              <span className={`text-xs font-bold flex items-center gap-1 ${(data.dataStatus || 'LIVE') === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              <span className={`text-xs font-semibold flex items-center gap-1 ${(data.dataStatus || 'LIVE') === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                 <Radio className="w-3 h-3" />
                 {data.dataStatus || 'LIVE'}
               </span>
@@ -210,7 +210,7 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
             <div className="flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-orange-500" />
               <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                   Reason for No Trade
                 </span>
                 <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
@@ -306,10 +306,10 @@ function TriggerCard({
       label: 'text-rose-700 dark:text-rose-400',
     },
     indigo: {
-      iconColor: 'text-indigo-600 dark:text-indigo-400',
-      bg: 'bg-indigo-50/60 dark:bg-indigo-500/6',
-      border: 'border-indigo-200/60 dark:border-indigo-500/15',
-      label: 'text-indigo-700 dark:text-indigo-400',
+      iconColor: 'text-[var(--accent-blue)] dark:text-[var(--accent-blue)]',
+      bg: 'bg-[var(--accent-blue-bg)]/60 dark:bg-[var(--accent-blue)]/6',
+      border: 'border-[var(--accent-blue)]/60 dark:border-[var(--accent-blue)]/15',
+      label: 'text-[var(--accent-blue)] dark:text-[var(--accent-blue)]',
     },
   };
 
@@ -319,7 +319,7 @@ function TriggerCard({
     <div className={`p-3.5 rounded-xl ${c.bg} border ${c.border} transition-all hover:shadow-sm group`}>
       <div className={`flex items-center gap-1.5 mb-1.5 ${c.iconColor}`}>
         {icon}
-        <span className={`text-[11px] font-bold uppercase tracking-wide ${c.label}`}>{label}</span>
+        <span className={`text-[11px] font-semibold uppercase tracking-wide ${c.label}`}>{label}</span>
       </div>
       <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
         {description}

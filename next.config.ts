@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: "d:/ReactJs/aivolve-trading-ai",
+    root: process.cwd(),
   },
   async rewrites() {
     return [

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { OptionChainResponse, OptionStrikeRow } from '@/types/options';
-import { Layers, ShieldCheck, Filter, ArrowUpRight, ArrowDownRight, Info } from 'lucide-react';
-import { formatINR, formatNumberIN } from '@/lib/utils';
+import { OptionChainResponse } from '@/types/options';
+import { Layers, Info } from 'lucide-react';
+import { formatNumberIN } from '@/lib/utils';
 
 interface OptionChainTableProps {
   data: OptionChainResponse;
@@ -36,17 +36,17 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[var(--border-subtle)]">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Layers className="w-4 h-4 text-indigo-500" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center">
+              <Layers className="w-4 h-4 text-[var(--accent-blue)]" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[var(--text-primary)] font-mono flex items-center gap-2">
+              <h2 className="text-base font-semibold text-[var(--text-primary)] tabular-nums flex items-center gap-2">
                 <span>{data.symbol} Option Chain</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                <span className="text-[10px] tabular-nums px-2 py-0.5 rounded bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] dark:text-[var(--accent-blue)]">
                   Spot: ₹{data.underlyingPrice.toLocaleString('en-IN')}
                 </span>
               </h2>
-              <p className="text-xs text-[var(--text-muted)] font-mono">
+              <p className="text-xs text-[var(--text-muted)] tabular-nums">
                 Real-time strike distribution with institutional Black-Scholes Greeks
               </p>
             </div>
@@ -59,7 +59,7 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
           <select
             value={data.selectedExpiry}
             onChange={(e) => onExpiryChange(e.target.value)}
-            className="px-3 py-1.5 rounded-lg text-xs font-mono bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="px-3 py-1.5 rounded-lg text-xs tabular-nums bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
           >
             {data.availableExpiries.map((exp) => (
               <option key={exp} value={exp}>
@@ -72,9 +72,9 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
           <div className="inline-flex rounded-lg bg-[var(--bg-surface-elevated)] p-0.5 border border-[var(--border-subtle)]">
             <button
               onClick={() => onFilterChange('ATM')}
-              className={`px-2.5 py-1 text-xs font-mono rounded-md transition-all ${
+              className={`px-2.5 py-1 text-xs tabular-nums rounded-md transition-all ${
                 data.filterMode === 'ATM'
-                  ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] font-semibold shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -82,9 +82,9 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
             </button>
             <button
               onClick={() => onFilterChange('WIDE')}
-              className={`px-2.5 py-1 text-xs font-mono rounded-md transition-all ${
+              className={`px-2.5 py-1 text-xs tabular-nums rounded-md transition-all ${
                 data.filterMode === 'WIDE'
-                  ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] font-semibold shadow-xs'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -95,9 +95,9 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
           {/* Greeks Toggle */}
           <button
             onClick={() => setShowGreeks(!showGreeks)}
-            className={`px-2.5 py-1.5 text-xs font-mono rounded-lg border transition-all ${
+            className={`px-2.5 py-1.5 text-xs tabular-nums rounded-lg border transition-all ${
               showGreeks
-                ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                ? 'bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-[var(--accent-blue)]/30'
                 : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
             }`}
           >
@@ -110,8 +110,8 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* PCR */}
         <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-          <div className="text-[10px] uppercase font-mono text-[var(--text-muted)] font-semibold">Put-Call Ratio (OI)</div>
-          <div className="text-base font-bold font-mono text-[var(--text-primary)] flex items-center gap-1.5 mt-0.5">
+          <div className="text-[10px] uppercase tabular-nums text-[var(--text-muted)] font-semibold">Put-Call Ratio (OI)</div>
+          <div className="text-base font-semibold tabular-nums text-[var(--text-primary)] flex items-center gap-1.5 mt-0.5">
             <span>{data.pcr?.pcrOi}</span>
             <span
               className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
@@ -125,40 +125,40 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
               {data.pcr?.signal}
             </span>
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
+          <div className="text-[10px] text-[var(--text-muted)] tabular-nums mt-0.5">
             PE OI: {formatNumberIN(data.pcr?.putOiTotal || 0)}
           </div>
         </div>
 
         {/* Max Pain */}
         <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-          <div className="text-[10px] uppercase font-mono text-[var(--text-muted)] font-semibold">Option Max Pain</div>
-          <div className="text-base font-bold font-mono text-[var(--text-primary)] mt-0.5">
+          <div className="text-[10px] uppercase tabular-nums text-[var(--text-muted)] font-semibold">Option Max Pain</div>
+          <div className="text-base font-semibold tabular-nums text-[var(--text-primary)] mt-0.5">
             {maxPain ? `₹${maxPain.toLocaleString('en-IN')}` : 'Calculating...'}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
+          <div className="text-[10px] text-[var(--text-muted)] tabular-nums mt-0.5">
             Descriptive positioning
           </div>
         </div>
 
         {/* Call Wall */}
         <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-          <div className="text-[10px] uppercase font-mono text-rose-500 font-semibold">Call Wall (Resistance)</div>
-          <div className="text-base font-bold font-mono text-rose-500 mt-0.5">
+          <div className="text-[10px] uppercase tabular-nums text-rose-500 font-semibold">Call Wall (Resistance)</div>
+          <div className="text-base font-semibold tabular-nums text-rose-500 mt-0.5">
             {callWall ? `₹${callWall.toLocaleString('en-IN')}` : 'N/A'}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
+          <div className="text-[10px] text-[var(--text-muted)] tabular-nums mt-0.5">
             Highest CE OI Concentration
           </div>
         </div>
 
         {/* Put Wall */}
         <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-          <div className="text-[10px] uppercase font-mono text-emerald-500 font-semibold">Put Wall (Support)</div>
-          <div className="text-base font-bold font-mono text-emerald-500 mt-0.5">
+          <div className="text-[10px] uppercase tabular-nums text-emerald-500 font-semibold">Put Wall (Support)</div>
+          <div className="text-base font-semibold tabular-nums text-emerald-500 mt-0.5">
             {putWall ? `₹${putWall.toLocaleString('en-IN')}` : 'N/A'}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
+          <div className="text-[10px] text-[var(--text-muted)] tabular-nums mt-0.5">
             Highest PE OI Concentration
           </div>
         </div>
@@ -166,14 +166,14 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
 
       {/* Main Option Chain Table */}
       <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
-        <table className="w-full text-left font-mono text-xs border-collapse">
+        <table className="w-full text-left tabular-nums text-xs border-collapse">
           <thead>
             {/* Header Level 1 */}
             <tr className="bg-[var(--bg-surface-elevated)] border-b border-[var(--border-subtle)] text-[10px] uppercase font-semibold">
-              <th colSpan={showGreeks ? 7 : 4} className="text-center py-2 border-r border-[var(--border-subtle)] text-blue-600 dark:text-blue-400">
+              <th colSpan={showGreeks ? 7 : 4} className="text-center py-2 border-r border-[var(--border-subtle)] text-[var(--accent-blue)] dark:text-[var(--accent-blue)]">
                 CALL OPTIONS (CE)
               </th>
-              <th className="text-center py-2 px-4 bg-slate-200/50 dark:bg-slate-800/50 text-[var(--text-primary)]">
+              <th className="text-center py-2 px-4 bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)]">
                 STRIKE
               </th>
               <th colSpan={showGreeks ? 7 : 4} className="text-center py-2 border-l border-[var(--border-subtle)] text-amber-600 dark:text-amber-400">
@@ -188,15 +188,15 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
               <th className="p-2 text-right">Volume</th>
               <th className="p-2 text-right">Chg OI</th>
               <th className="p-2 text-right">OI</th>
-              <th className="p-2 text-right font-bold text-blue-600 dark:text-blue-400 border-r border-[var(--border-subtle)]">
+              <th className="p-2 text-right font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-r border-[var(--border-subtle)]">
                 LTP (₹)
               </th>
 
-              <th className="p-2 text-center font-bold bg-slate-100 dark:bg-slate-800 text-[var(--text-primary)] min-w-[90px]">
+              <th className="p-2 text-center font-semibold bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] min-w-[90px]">
                 Strike
               </th>
 
-              <th className="p-2 text-left font-bold text-amber-600 dark:text-amber-400 border-l border-[var(--border-subtle)]">
+              <th className="p-2 text-left font-semibold text-amber-600 dark:text-amber-400 border-l border-[var(--border-subtle)]">
                 LTP (₹)
               </th>
               <th className="p-2 text-left">OI</th>
@@ -218,7 +218,7 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
                 <tr
                   key={row.strike}
                   className={`border-b border-[var(--border-subtle)] text-[11px] transition-colors hover:bg-[var(--bg-surface-hover)] ${
-                    isAtm ? 'bg-blue-500/10 font-medium' : ''
+                    isAtm ? 'bg-[var(--accent-blue)]/10 font-medium' : ''
                   }`}
                 >
                   {/* CALLS */}
@@ -233,25 +233,25 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
                   >
                     {row.ce.changeInOi >= 0 ? `+${formatNumberIN(row.ce.changeInOi)}` : formatNumberIN(row.ce.changeInOi)}
                   </td>
-                  <td className={`p-2 text-right ${isCallWall ? 'text-rose-500 font-bold' : ''}`}>
+                  <td className={`p-2 text-right ${isCallWall ? 'text-rose-500 font-semibold' : ''}`}>
                     {formatNumberIN(row.ce.oi || 0)}
                     {isCallWall && <span className="ml-1 text-[9px] px-1 rounded bg-rose-500/15">Wall</span>}
                   </td>
-                  <td className="p-2 text-right font-bold text-blue-600 dark:text-blue-400 border-r border-[var(--border-subtle)]">
+                  <td className="p-2 text-right font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-r border-[var(--border-subtle)]">
                     ₹{row.ce.ltp != null ? Number(row.ce.ltp).toFixed(2) : '--'}
                   </td>
 
                   {/* STRIKE */}
-                  <td className="p-2 text-center font-bold bg-slate-100 dark:bg-slate-800 text-[var(--text-primary)]">
+                  <td className="p-2 text-center font-semibold bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)]">
                     <div className="flex items-center justify-center gap-1">
                       <span>{row.strike.toLocaleString('en-IN')}</span>
                       {isAtm && (
-                        <span className="text-[8px] px-1 py-0.2 rounded bg-blue-600 text-white font-bold">
+                        <span className="text-[8px] px-1 py-0.2 rounded bg-[var(--accent-blue)] text-[var(--accent-on)] font-semibold">
                           ATM
                         </span>
                       )}
                       {isMaxPain && (
-                        <span className="text-[8px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 font-bold">
+                        <span className="text-[8px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 font-semibold">
                           MP
                         </span>
                       )}
@@ -259,10 +259,10 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
                   </td>
 
                   {/* PUTS */}
-                  <td className="p-2 text-left font-bold text-amber-600 dark:text-amber-400 border-l border-[var(--border-subtle)]">
+                  <td className="p-2 text-left font-semibold text-amber-600 dark:text-amber-400 border-l border-[var(--border-subtle)]">
                     ₹{row.pe.ltp != null ? Number(row.pe.ltp).toFixed(2) : '--'}
                   </td>
-                  <td className={`p-2 text-left ${isPutWall ? 'text-emerald-500 font-bold' : ''}`}>
+                  <td className={`p-2 text-left ${isPutWall ? 'text-emerald-500 font-semibold' : ''}`}>
                     {formatNumberIN(row.pe.oi || 0)}
                     {isPutWall && <span className="ml-1 text-[9px] px-1 rounded bg-emerald-500/15">Wall</span>}
                   </td>
@@ -285,8 +285,8 @@ export const OptionChainTable: React.FC<OptionChainTableProps> = ({
       </div>
 
       {/* Descriptive Disclaimer Notice */}
-      <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)] flex items-start gap-2">
-        <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+      <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[11px] tabular-nums text-[var(--text-muted)] flex items-start gap-2">
+        <Info className="w-4 h-4 text-[var(--accent-blue)] shrink-0 mt-0.5" />
         <div>
           <span>{data.maxPain?.disclaimer}</span>
           <span className="block mt-0.5 text-[10px]">

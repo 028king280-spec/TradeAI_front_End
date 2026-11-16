@@ -29,15 +29,15 @@ export const AIMarketReportModal: React.FC<AIMarketReportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl max-h-[85vh] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl flex flex-col font-mono overflow-hidden">
+      <div className="relative w-full max-w-2xl max-h-[85vh] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl shadow-2xl flex flex-col tabular-nums overflow-hidden">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-[var(--accent-blue)]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[var(--text-primary)]">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 INSTITUTIONAL AI MARKET ANALYSIS
               </h3>
               <p className="text-[11px] text-[var(--text-muted)]">
@@ -73,9 +73,9 @@ export const AIMarketReportModal: React.FC<AIMarketReportModalProps> = ({
         </div>
 
         {/* Modal Content */}
-        <div className="p-5 overflow-y-auto space-y-4 text-xs leading-relaxed text-[var(--text-secondary)] whitespace-pre-wrap select-text selection:bg-indigo-500/20">
+        <div className="p-5 overflow-y-auto space-y-4 text-xs leading-relaxed text-[var(--text-secondary)] whitespace-pre-wrap select-text selection:bg-[var(--accent-blue)]/20">
           {reportText ? (
-            <div className="p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] font-mono text-[11px] text-[var(--text-primary)]">
+            <div className="p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] tabular-nums text-[11px] text-[var(--text-primary)]">
               {reportText}
             </div>
           ) : (
@@ -91,7 +91,7 @@ export const AIMarketReportModal: React.FC<AIMarketReportModalProps> = ({
           <span>Non-predictive quantitative analysis • Actual market prices</span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg font-bold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+            className="px-4 py-1.5 rounded-lg font-semibold bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] transition-colors"
           >
             Done
           </button>

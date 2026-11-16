@@ -1,30 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Search,
-  Gauge,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Sparkles,
-  ExternalLink,
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  RefreshCw,
-  X,
-  Newspaper,
-  Layers,
-  Crosshair,
-  BarChart2,
-  Database,
-  Filter,
-  Check,
-} from 'lucide-react';
-import { newsService, StockSentimentData, NewsItem } from '@/services/newsService';
+import { Search, Gauge, TrendingUp, Minus, Sparkles, ExternalLink, AlertTriangle, CheckCircle2, Clock, RefreshCw, X, Newspaper, Layers, Crosshair, Database, Filter, Check } from 'lucide-react';
+import { newsService, StockSentimentData } from '@/services/newsService';
 
 const POPULAR_STOCKS = [
   { symbol: 'RELIANCE', name: 'Reliance' },
@@ -91,7 +69,7 @@ export const StockSentimentCalculator: React.FC = () => {
           bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
           border: 'border-emerald-500/30',
           text: 'text-emerald-600 dark:text-emerald-400',
-          badgeBg: 'bg-emerald-600 text-white',
+          badgeBg: 'bg-emerald-600 text-[var(--text-primary)]',
           ring: 'ring-emerald-500/20',
         };
       case 'VERY BEARISH':
@@ -100,15 +78,15 @@ export const StockSentimentCalculator: React.FC = () => {
           bg: 'bg-rose-500/10 dark:bg-rose-500/15',
           border: 'border-rose-500/30',
           text: 'text-rose-600 dark:text-rose-400',
-          badgeBg: 'bg-rose-600 text-white',
+          badgeBg: 'bg-rose-600 text-[var(--text-primary)]',
           ring: 'ring-rose-500/20',
         };
       default:
         return {
-          bg: 'bg-blue-500/10 dark:bg-blue-500/15',
-          border: 'border-blue-500/30',
-          text: 'text-blue-600 dark:text-blue-400',
-          badgeBg: 'bg-blue-600 text-white',
+          bg: 'bg-[var(--accent-blue)]/10 dark:bg-[var(--accent-blue)]/15',
+          border: 'border-[var(--accent-blue)]/30',
+          text: 'text-[var(--accent-blue)] dark:text-[var(--accent-blue)]',
+          badgeBg: 'bg-[var(--accent-blue)] text-[var(--accent-on)]',
           ring: 'ring-blue-500/20',
         };
     }
@@ -128,16 +106,16 @@ export const StockSentimentCalculator: React.FC = () => {
     : [];
 
   return (
-    <div className="space-y-6 font-mono">
+    <div className="space-y-6 tabular-nums">
       {/* Search Header Card */}
       <div className="p-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center text-[var(--accent-blue)] dark:text-[var(--accent-blue)] shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
+              <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
                 Multi-Source Stock Sentiment Calculator
               </h2>
               <p className="text-xs text-[var(--text-muted)]">
@@ -152,7 +130,7 @@ export const StockSentimentCalculator: React.FC = () => {
               disabled={loading}
               className="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1.5 transition-colors disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-500' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[var(--accent-blue)]' : ''}`} />
               <span>Recalculate</span>
             </button>
           )}
@@ -168,7 +146,7 @@ export const StockSentimentCalculator: React.FC = () => {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search any stock (e.g. RELIANCE, TCS, Tata Motors, HDFC Bank, Zomato)..."
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-mono"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] transition-all tabular-nums"
             />
             {searchInput && (
               <button
@@ -183,11 +161,11 @@ export const StockSentimentCalculator: React.FC = () => {
           <button
             onClick={() => handleSearch()}
             disabled={loading || !searchInput.trim()}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shrink-0"
+            className="px-5 py-2.5 rounded-xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] active:bg-[var(--accent-blue)] disabled:opacity-50 text-[var(--accent-on)] font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed shrink-0"
           >
             {loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-[var(--border-subtle)] border-t-transparent rounded-full animate-spin" />
                 <span>Checking Sources...</span>
               </>
             ) : (
@@ -233,11 +211,11 @@ export const StockSentimentCalculator: React.FC = () => {
       {/* Loading State */}
       {loading && !sentimentData && (
         <div className="py-16 text-center space-y-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto animate-pulse">
-            <Newspaper className="w-6 h-6 text-indigo-500 animate-spin" />
+          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center mx-auto animate-pulse">
+            <Newspaper className="w-6 h-6 text-[var(--accent-blue)] animate-spin" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               Cross-Checking 10+ Financial Sources for {searchedSymbol}...
             </h3>
             <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
@@ -253,8 +231,8 @@ export const StockSentimentCalculator: React.FC = () => {
           {/* Sources Verified Banner */}
           {sentimentData.sourcesVerified && sentimentData.sourcesVerified.length > 0 && (
             <div className="p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-bold text-[var(--text-primary)] flex items-center gap-1.5 shrink-0">
-                <Database className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5 shrink-0">
+                <Database className="w-3.5 h-3.5 text-[var(--accent-blue)]" />
                 <span>{sentimentData.sourcesVerified.length} Sources Verified:</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -279,19 +257,19 @@ export const StockSentimentCalculator: React.FC = () => {
               {/* Left Column: Symbol & Scores */}
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="text-xl sm:text-2xl font-black text-[var(--text-primary)] tracking-tight">
+                  <span className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] tracking-tight">
                     {sentimentData.symbol}
                   </span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-md font-bold bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                  <span className="text-xs px-2.5 py-0.5 rounded-md font-semibold bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
                     {sentimentData.companyName}
                   </span>
-                  <span className={`text-xs px-3 py-1 rounded-full font-extrabold ${colors.badgeBg} shadow-xs`}>
+                  <span className={`text-xs px-3 py-1 rounded-full font-semibold ${colors.badgeBg} shadow-xs`}>
                     {sentimentData.overallSentiment} ({sentimentData.ratingLabel})
                   </span>
                   {sentimentData.priceMetrics && (
-                    <span className="text-base sm:text-lg font-black text-[var(--text-primary)] bg-[var(--bg-surface-elevated)] px-3 py-1 rounded-xl border border-[var(--border-subtle)] flex items-center gap-1.5 shadow-xs">
+                    <span className="text-base sm:text-lg font-semibold text-[var(--text-primary)] bg-[var(--bg-surface-elevated)] px-3 py-1 rounded-xl border border-[var(--border-subtle)] flex items-center gap-1.5 shadow-xs">
                       <span>₹{sentimentData.priceMetrics.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                      <span className={`text-xs font-extrabold ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      <span className={`text-xs font-semibold ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {sentimentData.priceMetrics.change >= 0 ? '+' : ''}{sentimentData.priceMetrics.changePercent.toFixed(2)}%
                       </span>
                     </span>
@@ -306,10 +284,10 @@ export const StockSentimentCalculator: React.FC = () => {
                         <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
                           Stock Price (LTP)
                         </span>
-                        <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">
+                        <span className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)]">
                           ₹{sentimentData.priceMetrics.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </span>
-                        <span className={`text-xs font-bold block mt-0.5 ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        <span className={`text-xs font-semibold block mt-0.5 ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                           {sentimentData.priceMetrics.change >= 0 ? '+' : ''}{sentimentData.priceMetrics.change.toFixed(2)} ({sentimentData.priceMetrics.changePercent >= 0 ? '+' : ''}{sentimentData.priceMetrics.changePercent.toFixed(2)}%)
                         </span>
                       </div>
@@ -322,7 +300,7 @@ export const StockSentimentCalculator: React.FC = () => {
                     <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
                       Overall Sentiment Score
                     </span>
-                    <span className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">
+                    <span className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)]">
                       {sentimentData.sentimentScore}
                       <span className="text-sm font-normal text-[var(--text-muted)]"> / 100</span>
                     </span>
@@ -334,7 +312,7 @@ export const StockSentimentCalculator: React.FC = () => {
                     <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
                       Net Polarity
                     </span>
-                    <span className={`text-2xl font-bold ${colors.text}`}>
+                    <span className={`text-2xl font-semibold ${colors.text}`}>
                       {sentimentData.polarityScore > 0 ? `+${sentimentData.polarityScore}` : sentimentData.polarityScore}
                     </span>
                   </div>
@@ -345,7 +323,7 @@ export const StockSentimentCalculator: React.FC = () => {
                     <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
                       Confidence
                     </span>
-                    <span className="text-sm font-bold text-[var(--text-primary)]">
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
                       {sentimentData.confidence} ({sentimentData.totalArticles} articles analyzed)
                     </span>
                   </div>
@@ -357,7 +335,7 @@ export const StockSentimentCalculator: React.FC = () => {
                     <span className="text-emerald-600 dark:text-emerald-400">
                       Bullish: {sentimentData.bullishCount} ({sentimentData.bullishRatio}%)
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-[var(--text-muted)]">
                       Neutral: {sentimentData.neutralCount} ({sentimentData.neutralRatio}%)
                     </span>
                     <span className="text-rose-600 dark:text-rose-400">
@@ -366,7 +344,7 @@ export const StockSentimentCalculator: React.FC = () => {
                   </div>
                   <div className="h-2 w-full rounded-full bg-[var(--bg-surface-elevated)] overflow-hidden flex">
                     <div style={{ width: `${sentimentData.bullishRatio}%` }} className="bg-emerald-500 h-full" />
-                    <div style={{ width: `${sentimentData.neutralRatio}%` }} className="bg-slate-400 h-full" />
+                    <div style={{ width: `${sentimentData.neutralRatio}%` }} className="bg-[var(--bg-surface-elevated)] h-full" />
                     <div style={{ width: `${sentimentData.bearishRatio}%` }} className="bg-rose-500 h-full" />
                   </div>
                 </div>
@@ -377,17 +355,17 @@ export const StockSentimentCalculator: React.FC = () => {
                 {/* 1. Market Quote Snapshot */}
                 {sentimentData.priceMetrics && (
                   <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] min-w-[210px] space-y-2">
-                    <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
                       <span>NSE Spot Quote</span>
-                      <span className="text-emerald-500 font-bold">• {sentimentData.priceMetrics.exchange}</span>
+                      <span className="text-emerald-500 font-semibold">• {sentimentData.priceMetrics.exchange}</span>
                     </div>
                     <div>
-                      <span className="text-xl font-bold text-[var(--text-primary)]">
+                      <span className="text-xl font-semibold text-[var(--text-primary)]">
                         ₹{sentimentData.priceMetrics.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span
-                          className={`text-xs font-bold flex items-center ${
+                          className={`text-xs font-semibold flex items-center ${
                             sentimentData.priceMetrics.change >= 0
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-rose-600 dark:text-rose-400'
@@ -410,23 +388,23 @@ export const StockSentimentCalculator: React.FC = () => {
                 {/* 2. Options & F&O Derivatives Flow Snapshot */}
                 {sentimentData.optionsMetrics && (
                   <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] min-w-[210px] space-y-2">
-                    <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Layers className="w-3 h-3 text-indigo-500" />
+                        <Layers className="w-3 h-3 text-[var(--accent-blue)]" />
                         <span>F&O Derivatives Flow</span>
                       </span>
-                      <span className="text-indigo-600 dark:text-indigo-400 font-bold text-[9px] bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                      <span className="text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold text-[9px] bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 px-1.5 py-0.5 rounded">
                         NSE NFO
                       </span>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">Expiry:</span>
-                        <span className="font-bold text-[var(--text-primary)]">{sentimentData.optionsMetrics.nearestExpiry}</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{sentimentData.optionsMetrics.nearestExpiry}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">ATM Strike:</span>
-                        <span className="font-bold text-[var(--text-primary)]">₹{sentimentData.optionsMetrics.atmStrike}</span>
+                        <span className="font-semibold text-[var(--text-primary)]">₹{sentimentData.optionsMetrics.atmStrike}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">Est. PCR:</span>
@@ -435,7 +413,7 @@ export const StockSentimentCalculator: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="pt-1.5 border-t border-[var(--border-subtle)] text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                    <div className="pt-1.5 border-t border-[var(--border-subtle)] text-[10px] text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold">
                       {sentimentData.optionsMetrics.derivativesBias}
                     </div>
                   </div>
@@ -444,12 +422,12 @@ export const StockSentimentCalculator: React.FC = () => {
                 {/* 3. Smart Money Concepts (SMC) Dealing Range & Order Flow Snapshot */}
                 {sentimentData.smcMetrics && (
                   <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] min-w-[210px] space-y-2">
-                    <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Crosshair className="w-3 h-3 text-blue-500" />
+                        <Crosshair className="w-3 h-3 text-[var(--accent-blue)]" />
                         <span>SMC Order Flow</span>
                       </span>
-                      <span className={`font-bold text-[9px] px-1.5 py-0.5 rounded ${
+                      <span className={`font-semibold text-[9px] px-1.5 py-0.5 rounded ${
                         sentimentData.smcMetrics.regime === 'DISCOUNT'
                           ? 'bg-emerald-500/10 text-emerald-500'
                           : sentimentData.smcMetrics.regime === 'PREMIUM'
@@ -462,15 +440,15 @@ export const StockSentimentCalculator: React.FC = () => {
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">50% Equilibrium:</span>
-                        <span className="font-bold text-[var(--text-primary)]">₹{sentimentData.smcMetrics.equilibrium50}</span>
+                        <span className="font-semibold text-[var(--text-primary)]">₹{sentimentData.smcMetrics.equilibrium50}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">Range Pos:</span>
-                        <span className="font-bold text-blue-500">{sentimentData.smcMetrics.positionPct}%</span>
+                        <span className="font-semibold text-[var(--accent-blue)]">{sentimentData.smcMetrics.positionPct}%</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-[var(--text-muted)]">SMC Model:</span>
-                        <span className="font-bold text-[var(--text-primary)] text-[10px] truncate max-w-[110px]" title={sentimentData.smcMetrics.modelAlignment}>
+                        <span className="font-semibold text-[var(--text-primary)] text-[10px] truncate max-w-[110px]" title={sentimentData.smcMetrics.modelAlignment}>
                           {sentimentData.smcMetrics.modelAlignment}
                         </span>
                       </div>
@@ -486,7 +464,7 @@ export const StockSentimentCalculator: React.FC = () => {
             {/* Confluence Verdict Banner */}
             <div className="mt-5 pt-4 border-t border-[var(--border-subtle)]">
               <p className="text-xs sm:text-sm text-[var(--text-primary)] font-medium leading-relaxed">
-                <strong className="text-indigo-600 dark:text-indigo-400 font-bold">Multi-Source Confluence: </strong>
+                <strong className="text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold">Multi-Source Confluence: </strong>
                 {sentimentData.confluenceVerdict}
               </p>
             </div>
@@ -500,7 +478,7 @@ export const StockSentimentCalculator: React.FC = () => {
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                   <TrendingUp className="w-4 h-4" />
                 </div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-primary)]">
                   Positive Catalysts & Drivers
                 </h3>
               </div>
@@ -520,7 +498,7 @@ export const StockSentimentCalculator: React.FC = () => {
                 <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-primary)]">
                   Risk Factors & Headwinds
                 </h3>
               </div>
@@ -539,8 +517,8 @@ export const StockSentimentCalculator: React.FC = () => {
           <div className="p-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <Newspaper className="w-4 h-4 text-indigo-500" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                <Newspaper className="w-4 h-4 text-[var(--accent-blue)]" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
                   Verified News Articles ({filteredArticles.length} / {sentimentData.articles.length})
                 </h3>
               </div>
@@ -548,14 +526,14 @@ export const StockSentimentCalculator: React.FC = () => {
               {/* Source Filter Chips */}
               {availableSources.length > 1 && (
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase mr-1 flex items-center gap-1">
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase mr-1 flex items-center gap-1">
                     <Filter className="w-3 h-3" /> Filter:
                   </span>
                   <button
                     onClick={() => setSelectedSourceFilter('ALL')}
                     className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
                       selectedSourceFilter === 'ALL'
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-[var(--accent-blue)] text-[var(--accent-on)]'
                         : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -567,7 +545,7 @@ export const StockSentimentCalculator: React.FC = () => {
                       onClick={() => setSelectedSourceFilter(src)}
                       className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
                         selectedSourceFilter === src
-                          ? 'bg-indigo-600 text-white'
+                          ? 'bg-[var(--accent-blue)] text-[var(--accent-on)]'
                           : 'bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                       }`}
                     >
@@ -591,17 +569,17 @@ export const StockSentimentCalculator: React.FC = () => {
                   >
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)] uppercase tracking-wider bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 px-2 py-0.5 rounded">
                           {item.source}
                         </span>
                         <div className="flex items-center gap-1.5">
                           <span
-                            className={`text-[9px] px-2 py-0.5 rounded font-extrabold uppercase ${
+                            className={`text-[9px] px-2 py-0.5 rounded font-semibold uppercase ${
                               item.sentiment === 'BULLISH'
                                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                                 : item.sentiment === 'BEARISH'
                                 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                                : 'bg-slate-500/15 text-slate-600 dark:text-slate-400'
+                                : 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)]'
                             }`}
                           >
                             {item.sentiment}
@@ -612,7 +590,7 @@ export const StockSentimentCalculator: React.FC = () => {
                         </div>
                       </div>
 
-                      <h4 className="text-xs font-semibold text-[var(--text-primary)] leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      <h4 className="text-xs font-semibold text-[var(--text-primary)] leading-snug line-clamp-2 group-hover:text-[var(--accent-blue)] dark:group-hover:text-[var(--accent-blue)] transition-colors">
                         {item.headline}
                       </h4>
                     </div>
@@ -627,7 +605,7 @@ export const StockSentimentCalculator: React.FC = () => {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-500 hover:text-indigo-600 flex items-center gap-1 font-semibold hover:underline"
+                          className="text-[var(--accent-blue)] hover:text-[var(--accent-blue)] flex items-center gap-1 font-semibold hover:underline"
                         >
                           <span>Read Source</span>
                           <ExternalLink className="w-3 h-3" />
@@ -645,11 +623,11 @@ export const StockSentimentCalculator: React.FC = () => {
       {/* Initial Empty State (Before Search) */}
       {!sentimentData && !loading && !error && (
         <div className="py-12 text-center space-y-3 rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-500">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center mx-auto text-[var(--accent-blue)]">
             <Search className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               Cross-Check Live Sentiment from 10+ Institutional Sources
             </h3>
             <p className="text-xs text-[var(--text-muted)] max-w-lg mx-auto leading-relaxed">

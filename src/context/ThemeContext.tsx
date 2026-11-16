@@ -15,7 +15,7 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('dark');
 
   const applyTheme = (t: Theme) => {
     if (typeof document === 'undefined') return;
@@ -33,8 +33,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('aivolve-theme') as Theme;
-    const initialTheme: Theme = saved === 'dark' ? 'dark' : 'light';
+    let saved: string | null = null;
+    try { saved = localStorage.getItem('aivolve-theme'); } catch { /* Theme still works with storage disabled. */ }
+    const initialTheme: Theme = saved === 'light' ? 'light' : 'dark';
     queueMicrotask(() => {
       setTheme(initialTheme);
     });
@@ -45,7 +46,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     setTheme((prev) => {
       const next: Theme = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('aivolve-theme', next);
+      try { localStorage.setItem('aivolve-theme', next); } catch { /* Keep the in-memory preference. */ }
       applyTheme(next);
       return next;
     });

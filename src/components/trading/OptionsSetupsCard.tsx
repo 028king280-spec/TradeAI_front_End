@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { TodayOptionsSetupsResult, OptionTradeSetup } from '@/types/options';
-import { Zap, ShieldCheck, AlertCircle, ArrowUpRight, ArrowDownRight, Target, Clock, Info, TrendingUp, TrendingDown, Layers, Gamepad2, CheckCircle2 } from 'lucide-react';
+import { Zap, AlertCircle, TrendingUp, TrendingDown, Layers, Gamepad2, CheckCircle2 } from 'lucide-react';
 import { paperTradingManager } from '@/services/paperTradingService';
-import { formatINR } from '@/lib/utils';
+
 
 interface OptionsSetupsCardProps {
   data: TodayOptionsSetupsResult;
@@ -22,10 +22,10 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
 
   if (!data || !data.hasQualifiedSetups || !data.setups || data.setups.length === 0) {
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-3 font-mono">
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-3 tabular-nums">
         <div className="flex items-center gap-2.5 text-amber-600 dark:text-amber-400">
           <AlertCircle className="w-5 h-5 shrink-0" />
-          <h3 className="text-sm font-bold tracking-tight">
+          <h3 className="text-sm font-semibold tracking-tight">
             NO QUALIFIED SETUP — WAIT FOR BETTER CONDITIONS
           </h3>
         </div>
@@ -52,15 +52,15 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
   });
 
   return (
-    <div className="space-y-4 font-mono">
+    <div className="space-y-4 tabular-nums">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="p-3 rounded-xl bg-indigo-600 text-white text-xs font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+        <div className="p-3 rounded-xl bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
             <span>{toastMessage}</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-white/80 hover:text-white text-xs">
+          <button onClick={() => setToastMessage(null)} className="text-[var(--text-primary)]/80 hover:text-[var(--text-primary)] text-xs">
             ✕
           </button>
         </div>
@@ -73,7 +73,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
             <Zap className="w-4 h-4 text-emerald-500" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
               TODAY'S QUALIFIED OPTIONS SETUPS
             </h3>
             <span className="text-[10px] text-[var(--text-muted)]">
@@ -88,7 +88,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
             onClick={() => setFilter('ALL')}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
               filter === 'ALL'
-                ? 'bg-blue-600 text-white shadow-sm'
+                ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-sm'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
@@ -99,7 +99,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
             onClick={() => setFilter('CE')}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
               filter === 'CE'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-[var(--text-primary)] shadow-sm'
                 : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
             }`}
           >
@@ -110,7 +110,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
             onClick={() => setFilter('PE')}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
               filter === 'PE'
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? 'bg-rose-600 text-[var(--text-primary)] shadow-sm'
                 : 'text-rose-600 dark:text-rose-400 hover:bg-rose-500/10'
             }`}
           >
@@ -140,15 +140,15 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                 <div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-xs px-2.5 py-0.5 rounded-md font-extrabold tracking-wider ${
+                      className={`text-xs px-2.5 py-0.5 rounded-md font-semibold tracking-wider ${
                         isCall
-                          ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
-                          : 'bg-rose-500 text-white shadow-sm shadow-rose-500/30'
+                          ? 'bg-emerald-500 text-[var(--text-primary)] shadow-sm shadow-emerald-500/30'
+                          : 'bg-rose-500 text-[var(--text-primary)] shadow-sm shadow-rose-500/30'
                       }`}
                     >
                       {setup.bias}
                     </span>
-                    <span className="text-xs font-bold text-[var(--text-primary)]">
+                    <span className="text-xs font-semibold text-[var(--text-primary)]">
                       {setup.contractSymbol}
                     </span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] font-semibold">
@@ -160,7 +160,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                   </div>
                   {setup.smcModel && (
                     <div className="mt-1.5 flex items-center gap-1">
-                      <span className="text-[9.5px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-bold">
+                      <span className="text-[9.5px] px-2 py-0.5 rounded bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border border-[var(--accent-blue)]/20 font-semibold">
                         SMC: {setup.smcModel}
                       </span>
                     </div>
@@ -169,7 +169,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
 
                 <div className="text-right">
                   <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">LTP</div>
-                  <div className={`text-lg font-black ${isCall ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  <div className={`text-lg font-semibold ${isCall ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     ₹{setup.currentPremium.toFixed(2)}
                   </div>
                 </div>
@@ -180,11 +180,11 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="p-2 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                     <span className="text-[10px] text-[var(--text-muted)] block">Entry Range:</span>
-                    <span className="font-bold text-[var(--text-primary)]">{setup.entryRange}</span>
+                    <span className="font-semibold text-[var(--text-primary)]">{setup.entryRange}</span>
                   </div>
                   <div className="p-2 rounded-lg bg-rose-500/5 border border-rose-500/20">
                     <span className="text-[10px] text-rose-500 block">Stop-Loss (Premium):</span>
-                    <span className="font-bold text-rose-500">₹{setup.stopLoss}</span>
+                    <span className="font-semibold text-rose-500">₹{setup.stopLoss}</span>
                   </div>
                 </div>
 
@@ -193,14 +193,14 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                   {/* Target 1 */}
                   <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">
                         Target 1 (+{setup.t1GainPct || 30}%)
                       </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">
                         {setup.t1Probability || 82}% High Chance
                       </span>
                     </div>
-                    <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                    <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                       ₹{setup.target1}
                     </div>
                     <span className="text-[9.5px] text-[var(--text-muted)] mt-1">
@@ -211,14 +211,14 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                   {/* Target 2 */}
                   <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold uppercase">
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold uppercase">
                         Target 2 (+{setup.t2GainPct || 55}%)
                       </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold bg-amber-500/20 text-amber-500 border border-amber-500/30">
                         {setup.t2Probability || 54}% Moderate
                       </span>
                     </div>
-                    <div className="text-sm font-black text-amber-600 dark:text-amber-400">
+                    <div className="text-sm font-semibold text-amber-600 dark:text-amber-400">
                       ₹{setup.target2}
                     </div>
                     <span className="text-[9.5px] text-[var(--text-muted)] mt-1">
@@ -227,16 +227,16 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                   </div>
 
                   {/* Target 3 */}
-                  <div className="p-2.5 rounded-lg bg-slate-800/40 border border-slate-700/60 flex flex-col justify-between">
+                  <div className="p-2.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">
+                      <span className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase">
                         Target 3 (+{setup.t3GainPct || 85}%)
                       </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
                         {setup.t3Probability || 24}% Low Chance
                       </span>
                     </div>
-                    <div className="text-sm font-black text-slate-200">
+                    <div className="text-sm font-semibold text-[var(--text-primary)]">
                       ₹{setup.target3}
                     </div>
                     <span className="text-[9.5px] text-rose-400/80 mt-1">
@@ -257,7 +257,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
               {/* Underlying Triggers & Invalidation */}
               <div className="pt-3 space-y-2 text-[11px]">
                 <div className="p-2 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-                  <span className="text-[10px] text-[var(--text-primary)] block font-bold uppercase mb-0.5">
+                  <span className="text-[10px] text-[var(--text-primary)] block font-semibold uppercase mb-0.5">
                     Underlying Trigger:
                   </span>
                   <p className="text-[var(--text-secondary)] leading-relaxed text-[10.5px]">
@@ -265,7 +265,7 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
                   </p>
                 </div>
                 <div className="p-2 rounded-lg bg-rose-500/[0.04] border border-rose-500/15">
-                  <span className="text-[10px] text-rose-500 block font-bold uppercase mb-0.5">
+                  <span className="text-[10px] text-rose-500 block font-semibold uppercase mb-0.5">
                     Invalidation Level:
                   </span>
                   <p className="text-[var(--text-muted)] leading-relaxed text-[10.5px]">
@@ -286,10 +286,10 @@ export const OptionsSetupsCard: React.FC<OptionsSetupsCardProps> = ({ data }) =>
               <div className="mt-3 pt-2.5 border-t border-[var(--border-subtle)]">
                 <button
                   onClick={() => handleExecutePaperTrade(setup)}
-                  className={`w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer ${
+                  className={`w-full py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer ${
                     isCall
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-rose-600 hover:bg-rose-700 text-white'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-[var(--text-primary)]'
+                      : 'bg-rose-600 hover:bg-rose-700 text-[var(--text-primary)]'
                   }`}
                   title="Execute 1 Lot Virtual Paper Trade at Market Price"
                 >

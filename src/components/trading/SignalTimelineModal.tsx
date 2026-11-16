@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  X,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  TrendingUp,
-  RefreshCw,
-  Layers,
-} from 'lucide-react';
+import { X, Clock, RefreshCw } from 'lucide-react';
 
 interface SignalTimelineModalProps {
   signalId: string | null;
@@ -30,7 +21,7 @@ export const SignalTimelineModal: React.FC<SignalTimelineModalProps> = ({
     let isMounted = true;
     setLoading(true);
 
-    fetch(`http://localhost:8000/api/signals/${signalId}/timeline`)
+    fetch(`/api/signals/${signalId}/timeline`)
       .then((res) => res.json())
       .then((json) => {
         if (isMounted && json.success) {
@@ -55,11 +46,11 @@ export const SignalTimelineModal: React.FC<SignalTimelineModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-500">
+            <div className="w-10 h-10 rounded-xl bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center text-[var(--accent-blue)]">
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
                 Signal Audit & Event Timeline
               </h3>
               <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -78,7 +69,7 @@ export const SignalTimelineModal: React.FC<SignalTimelineModalProps> = ({
 
         {loading ? (
           <div className="py-12 text-center space-y-3">
-            <RefreshCw className="w-6 h-6 text-indigo-500 animate-spin mx-auto" />
+            <RefreshCw className="w-6 h-6 text-[var(--accent-blue)] animate-spin mx-auto" />
             <p className="text-xs text-[var(--text-muted)]">Loading audit trail...</p>
           </div>
         ) : !data ? (
@@ -90,11 +81,11 @@ export const SignalTimelineModal: React.FC<SignalTimelineModalProps> = ({
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] flex items-center justify-between text-xs">
               <div>
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Contract Symbol</span>
-                <span className="font-bold text-[var(--text-primary)] text-sm font-mono">{data.contractSymbol}</span>
+                <span className="font-semibold text-[var(--text-primary)] text-sm tabular-nums">{data.contractSymbol}</span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Current State</span>
-                <span className="font-bold text-indigo-600 dark:text-indigo-400 uppercase">{data.currentStatus}</span>
+                <span className="font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)] uppercase">{data.currentStatus}</span>
               </div>
             </div>
 
@@ -111,18 +102,18 @@ export const SignalTimelineModal: React.FC<SignalTimelineModalProps> = ({
                     <div
                       className={`absolute -left-6 top-1 w-3 h-3 rounded-full border-2 ${
                         isT
-                          ? 'bg-emerald-500 border-white dark:border-slate-900 shadow-sm'
+                          ? 'bg-emerald-500 border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm'
                           : isSL
-                          ? 'bg-rose-500 border-white dark:border-slate-900 shadow-sm'
+                          ? 'bg-rose-500 border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm'
                           : isKey
-                          ? 'bg-indigo-500 border-white dark:border-slate-900 shadow-sm'
-                          : 'bg-slate-400 border-white dark:border-slate-900'
+                          ? 'bg-[var(--accent-blue)] border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm'
+                          : 'bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] dark:border-[var(--border-subtle)]'
                       }`}
                     />
 
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[var(--text-primary)]">{item.title}</span>
-                      <span className="text-[10px] text-[var(--text-muted)] font-mono">{item.timestamp}</span>
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">{item.title}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] tabular-nums">{item.timestamp}</span>
                     </div>
 
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{item.description}</p>

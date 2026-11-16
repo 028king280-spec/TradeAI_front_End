@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DetectedChartPattern } from '@/types/options';
-import { GitMerge, CheckCircle2, AlertTriangle, Clock, ShieldCheck } from 'lucide-react';
+import { GitMerge, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface ChartPatternsCardProps {
   patterns: DetectedChartPattern[];
@@ -11,7 +11,7 @@ interface ChartPatternsCardProps {
 export const ChartPatternsCard: React.FC<ChartPatternsCardProps> = ({ patterns }) => {
   if (!patterns || patterns.length === 0) {
     return (
-      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 text-center font-mono text-xs text-[var(--text-muted)] space-y-1">
+      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 text-center tabular-nums text-xs text-[var(--text-muted)] space-y-1">
         <GitMerge className="w-5 h-5 mx-auto text-[var(--text-muted)] opacity-50" />
         <div>No distinct chart or candlestick pattern currently meeting confirmation criteria.</div>
       </div>
@@ -19,14 +19,14 @@ export const ChartPatternsCard: React.FC<ChartPatternsCardProps> = ({ patterns }
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-3 font-mono">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-3 tabular-nums">
       <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-            <GitMerge className="w-4 h-4 text-indigo-500" />
+          <div className="w-7 h-7 rounded-lg bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center">
+            <GitMerge className="w-4 h-4 text-[var(--accent-blue)]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               Detected Candlestick & Price-Action Patterns
             </h3>
             <span className="text-[10px] text-[var(--text-muted)]">
@@ -34,7 +34,7 @@ export const ChartPatternsCard: React.FC<ChartPatternsCardProps> = ({ patterns }
             </span>
           </div>
         </div>
-        <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold">
+        <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold">
           {patterns.length} Pattern(s) Active
         </span>
       </div>

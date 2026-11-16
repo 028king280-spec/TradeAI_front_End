@@ -1,21 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Activity,
-  CheckCircle2,
-  AlertOctagon,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  Info,
-  Layers,
-  ChevronRight,
-  FileText,
-  Shield,
-  Zap,
-} from 'lucide-react';
+import { Activity, Clock, ChevronRight, FileText } from 'lucide-react';
 
 export interface TrackedSignalItem {
   id: string;
@@ -57,7 +43,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
   if (!signals || signals.length === 0) {
     return (
       <div className="p-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-center space-y-2.5 shadow-sm">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center mx-auto text-blue-500">
+        <div className="w-10 h-10 rounded-xl bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center mx-auto text-[var(--accent-blue)]">
           <Activity className="w-5 h-5" />
         </div>
         <h4 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -74,11 +60,11 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-500">
+          <div className="w-7 h-7 rounded-lg bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center text-[var(--accent-blue)]">
             <Activity className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
               Actively Tracked Paper Setups ({signals.length})
             </h3>
             <span className="text-[10px] text-[var(--text-muted)]">
@@ -107,7 +93,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-xs px-2.5 py-1 rounded-md font-bold tracking-wider ${
+                    className={`text-xs px-2.5 py-1 rounded-md font-semibold tracking-wider ${
                       isCall
                         ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
                         : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
@@ -116,7 +102,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
                     {sig.optionType}
                   </span>
                   <div>
-                    <span className="text-sm font-bold text-[var(--text-primary)]">
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
                       {sig.contractSymbol}
                     </span>
                     <span className="text-[11px] text-[var(--text-muted)] ml-2">
@@ -132,7 +118,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
                       sig.status === 'WAITING_FOR_ENTRY'
                         ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
                         : sig.status === 'ACTIVE'
-                        ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 animate-pulse'
+                        ? 'bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 animate-pulse'
                         : sig.status.includes('TARGET')
                         ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
                         : sig.status === 'STOP_LOSS_HIT'
@@ -146,7 +132,7 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
                   {/* Net P&L */}
                   <div className="text-right">
                     <span
-                      className={`text-sm font-bold font-mono ${
+                      className={`text-sm font-semibold tabular-nums ${
                         isProfit
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : isLoss
@@ -167,35 +153,35 @@ export const ActiveSignalTracker: React.FC<ActiveSignalTrackerProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs pt-1">
                 <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                   <span className="text-[10px] text-[var(--text-muted)] block font-medium">Approved Entry</span>
-                  <span className="text-[var(--text-primary)] font-bold font-mono">
+                  <span className="text-[var(--text-primary)] font-semibold tabular-nums">
                     ₹{sig.entryZoneMin} - ₹{sig.entryZoneMax}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                   <span className="text-[10px] text-[var(--text-muted)] block font-medium">Actual Entry Fill</span>
-                  <span className="text-blue-600 dark:text-blue-400 font-bold font-mono">
+                  <span className="text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold tabular-nums">
                     {sig.entryObservedPrice ? `₹${sig.entryObservedPrice.toFixed(2)}` : 'Pending'}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-rose-50/50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/20">
                   <span className="text-[10px] text-rose-600 dark:text-rose-400 block font-medium">Stop-Loss</span>
-                  <span className="text-rose-600 dark:text-rose-400 font-bold font-mono">
+                  <span className="text-rose-600 dark:text-rose-400 font-semibold tabular-nums">
                     ₹{sig.stopLossPremium.toFixed(1)}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20">
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-medium">Target 1 (50%)</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
                     ₹{sig.target1Premium.toFixed(1)}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20">
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-medium">Target 2 / 3</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
                     ₹{sig.target2Premium.toFixed(1)} / ₹{sig.target3Premium.toFixed(1)}
                   </span>
                 </div>

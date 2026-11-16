@@ -1,37 +1,13 @@
 'use client';
+import { PageHeading } from "@/components/shared/PageHeading";
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import {
-  Share2,
-  Bookmark,
-  BookmarkCheck,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  TrendingDown,
-  Maximize2,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  Check,
-  MessageSquare,
-  BarChart3,
-  SlidersHorizontal,
-  Info,
-} from 'lucide-react';
+import { Share2, Bookmark, BookmarkCheck, Maximize2, ChevronDown, ChevronUp, Plus, Check, MessageSquare, BarChart3 } from 'lucide-react';
 import { marketDataService } from '@/services/marketDataService';
 import { StockAnalysis } from '@/types/market';
 import { formatINR, formatPercent } from '@/lib/utils';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-} from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, ReferenceLine } from 'recharts';
 
 interface PageProps {
   params: Promise<{ symbol: string }>;
@@ -100,8 +76,8 @@ export default function StockAnalysisPage({ params }: PageProps) {
   if (loading || !analysis) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[65vh] space-y-3">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-mono text-[var(--text-muted)]">Loading financial terminal for {symbol}...</p>
+        <div className="w-8 h-8 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs tabular-nums text-[var(--text-muted)]">Loading financial terminal for {symbol}...</p>
       </div>
     );
   }
@@ -179,18 +155,18 @@ export default function StockAnalysisPage({ params }: PageProps) {
         {/* Watchlist Header */}
         <div className="card-terminal p-3">
           <div className="flex items-center justify-between pb-2.5 border-b border-[var(--border-subtle)]">
-            <div className="flex items-center gap-1 font-bold text-xs text-[var(--text-primary)] cursor-pointer">
+            <div className="flex items-center gap-1 font-semibold text-xs text-[var(--text-primary)] cursor-pointer">
               <span>My watchlist</span>
               <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />
             </div>
-            <button className="text-[11px] text-blue-600 dark:text-blue-400 font-medium hover:underline flex items-center gap-1">
+            <button className="text-[11px] text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-medium hover:underline flex items-center gap-1">
               Manage ⚙
             </button>
           </div>
 
           {/* Begin Investing Banner */}
           <div className="my-2.5 p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-emerald-500 text-[11px] text-[var(--text-secondary)]">
-            <div className="font-bold text-emerald-700 dark:text-emerald-400 text-[10px] tracking-wider uppercase mb-0.5">
+            <div className="font-semibold text-emerald-700 dark:text-emerald-400 text-[10px] tracking-wider uppercase mb-0.5">
               BEGIN YOUR INVESTING JOURNEY
             </div>
             <p className="leading-snug text-[10px] text-[var(--text-muted)]">
@@ -200,7 +176,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
 
           {/* Suggested For You List */}
           <div className="pt-1">
-            <div className="text-[11px] font-bold text-[var(--text-primary)] mb-2">
+            <div className="text-[11px] font-semibold text-[var(--text-primary)] mb-2">
               Suggested for you
             </div>
             <div className="divide-y divide-[var(--border-subtle)]">
@@ -214,10 +190,10 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     className="py-2 flex items-center justify-between hover:bg-[var(--bg-surface-hover)] px-1.5 rounded transition-colors group"
                   >
                     <Link href={`/stocks/${item.symbol}`} className="flex-1 min-w-0 pr-2">
-                      <div className="font-medium text-xs text-[var(--text-primary)] group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                      <div className="font-medium text-xs text-[var(--text-primary)] group-hover:text-[var(--accent-blue)] dark:group-hover:text-[var(--accent-blue)] truncate">
                         {item.name}
                       </div>
-                      <div className="text-[10px] font-mono text-[var(--text-muted)]">
+                      <div className="text-[10px] tabular-nums text-[var(--text-muted)]">
                         {item.symbol}
                       </div>
                     </Link>
@@ -244,7 +220,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     </div>
 
                     {/* Price & Change */}
-                    <div className="text-right shrink-0 min-w-[54px] font-mono text-[11px]">
+                    <div className="text-right shrink-0 min-w-[54px] tabular-nums text-[11px]">
                       <div className="font-semibold text-[var(--text-primary)]">
                         {item.price > 1000 ? formatINR(item.price) : `₹${item.price.toFixed(2)}`}
                       </div>
@@ -257,7 +233,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     <button
                       onClick={() => toggleWatchlist(item.symbol)}
                       aria-label="Add to watchlist"
-                      className="ml-2 p-1 rounded-full text-[var(--text-muted)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                      className="ml-2 p-1 rounded-full text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue-bg)] dark:hover:bg-[var(--accent-blue)]/30 transition-colors"
                     >
                       {inWatchlist ? (
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -279,7 +255,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
       <main className="flex-1 min-w-0 space-y-4">
         {/* Breadcrumb Info Bar */}
         <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">
-          <span className="text-[var(--text-primary)] font-bold">{symbol}</span>
+          <span className="text-[var(--text-primary)] font-semibold">{symbol}</span>
           <span>•</span>
           <span>NATIONAL STOCK EXCHANGE OF INDIA</span>
           <span>•</span>
@@ -291,21 +267,13 @@ export default function StockAnalysisPage({ params }: PageProps) {
         </div>
 
         {/* Stock Title & Action Strip */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
-              <span>{analysis.companyName}</span>
-              <span className="text-sm font-semibold text-[var(--text-muted)]">({symbol})</span>
-            </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
+        <PageHeading title={analysis.companyName} description="Company context, price action and quantitative evidence for your research." actions={<><div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setIsWatchlisted(!isWatchlisted)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
                 isWatchlisted
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'bg-emerald-600 text-[var(--text-primary)] hover:bg-emerald-700'
+                  : 'bg-[var(--accent-blue)] text-[var(--accent-on)] hover:bg-[var(--accent-blue)]'
               }`}
             >
               {isWatchlisted ? (
@@ -338,19 +306,18 @@ export default function StockAnalysisPage({ params }: PageProps) {
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Join discussion</span>
             </button>
-          </div>
-        </div>
+          </div></>}/>
 
         {/* Price & Change Banner */}
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] font-mono tracking-tight">
+          <span className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] tabular-nums tracking-tight">
             ₹{currentPrice.toFixed(2)}
           </span>
           <span className="text-xs font-semibold uppercase text-[var(--text-muted)]">
             AT CLOSE
           </span>
           <span
-            className={`text-sm font-semibold font-mono px-2 py-0.5 rounded ${
+            className={`text-sm font-semibold tabular-nums px-2 py-0.5 rounded ${
               isPos
                 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                 : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
@@ -358,7 +325,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
           >
             {isPos ? '+' : ''}{analysis.change.toFixed(2)} ({formatPercent(analysis.changePercent)})
           </span>
-          <span className="text-xs text-[var(--text-muted)] font-mono">
+          <span className="text-xs text-[var(--text-muted)] tabular-nums">
             AS OF {analysis.analysisTimestamp || 'TODAY, 04:30 PM IST'}
           </span>
         </div>
@@ -371,7 +338,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
                 activeTab === tab
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] font-semibold shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
@@ -394,9 +361,9 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     <button
                       key={tf}
                       onClick={() => setTimeframe(tf)}
-                      className={`px-2.5 py-1 rounded text-[11px] font-semibold font-mono transition-all ${
+                      className={`px-2.5 py-1 rounded text-[11px] font-semibold tabular-nums transition-all ${
                         timeframe === tf
-                          ? 'bg-blue-600 text-white shadow-sm'
+                          ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-sm'
                           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
@@ -478,7 +445,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
             <div className="pt-3 border-t border-[var(--border-subtle)] mt-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-                  <span className="text-[11px] font-bold text-[var(--text-muted)] shrink-0">
+                  <span className="text-[11px] font-semibold text-[var(--text-muted)] shrink-0">
                     Quick Compare
                   </span>
                   {PEER_STOCKS.map((peer) => {
@@ -487,10 +454,10 @@ export default function StockAnalysisPage({ params }: PageProps) {
                       <Link
                         key={peer.symbol}
                         href={`/stocks/${peer.symbol}`}
-                        className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-blue-500 text-xs font-mono flex items-center gap-1.5 shrink-0 transition-colors"
+                        className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] hover:border-[var(--accent-blue)] text-xs tabular-nums flex items-center gap-1.5 shrink-0 transition-colors"
                       >
                         <span className="font-medium text-[var(--text-primary)]">{peer.name.slice(0, 12)}...</span>
-                        <span className="font-bold text-[var(--text-primary)]">₹{peer.price.toFixed(2)}</span>
+                        <span className="font-semibold text-[var(--text-primary)]">₹{peer.price.toFixed(2)}</span>
                         <span className={`text-[10px] font-semibold ${peerPos ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {peerPos ? '+' : ''}{peer.change.toFixed(2)}%
                         </span>
@@ -499,12 +466,12 @@ export default function StockAnalysisPage({ params }: PageProps) {
                   })}
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0 text-xs font-mono">
+                <div className="flex items-center gap-1 shrink-0 text-xs tabular-nums">
                   <button
                     onClick={() => setShow200MA(!show200MA)}
                     className={`px-2 py-1 rounded text-[10px] border transition-colors ${
                       show200MA
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] border-[var(--accent-blue)]'
                         : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -514,7 +481,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     onClick={() => setShow50MA(!show50MA)}
                     className={`px-2 py-1 rounded text-[10px] border transition-colors ${
                       show50MA
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] border-[var(--accent-blue)]'
                         : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -531,12 +498,12 @@ export default function StockAnalysisPage({ params }: PageProps) {
             <div>
               <div className="flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] mb-1">
                 <span>Day Range</span>
-                <span className="text-[10px] text-[var(--text-muted)] font-mono">Open: ₹{openPrice.toFixed(2)}</span>
+                <span className="text-[10px] text-[var(--text-muted)] tabular-nums">Open: ₹{openPrice.toFixed(2)}</span>
               </div>
               <div className="range-track my-2">
                 <div className="range-marker" style={{ left: `${currentDayPos}%` }} />
               </div>
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs tabular-nums font-semibold text-[var(--text-primary)]">
                 <span>₹{dayLow.toFixed(2)}</span>
                 <span>₹{dayHigh.toFixed(2)}</span>
               </div>
@@ -550,7 +517,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
               <div className="range-track my-2">
                 <div className="range-marker" style={{ left: `${currentWeek52Pos}%` }} />
               </div>
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs tabular-nums font-semibold text-[var(--text-primary)]">
                 <span>₹{week52Low.toFixed(2)}</span>
                 <span>₹{week52High.toFixed(2)}</span>
               </div>
@@ -560,35 +527,35 @@ export default function StockAnalysisPage({ params }: PageProps) {
             <div className="pt-2 border-t border-[var(--border-subtle)] divide-y divide-[var(--border-subtle)] text-xs">
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Previous Close</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">₹{prevClose.toFixed(2)}</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">₹{prevClose.toFixed(2)}</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Average Volume</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">{analysis.volumeAnalysis?.averageVolume || '4.2M'}</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">{analysis.volumeAnalysis?.averageVolume || '4.2M'}</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Market Cap</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">₹{(currentPrice * 1.8).toFixed(1)}B</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">₹{(currentPrice * 1.8).toFixed(1)}B</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Shares Outstanding</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">2.39B</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">2.39B</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">EPS (TTM)</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">0.91</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">0.91</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">P/E (TTM)</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">16.22</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">16.22</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Dynamic VWAP</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">₹{analysis.technicalIndicators?.vwap?.currentValue ? Number(analysis.technicalIndicators.vwap.currentValue).toFixed(2) : currentPrice.toFixed(2)}</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">₹{analysis.technicalIndicators?.vwap?.currentValue ? Number(analysis.technicalIndicators.vwap.currentValue).toFixed(2) : currentPrice.toFixed(2)}</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">Average True Range (ATR)</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">₹{analysis.technicalIndicators?.atr?.currentValue ? Number(analysis.technicalIndicators.atr.currentValue).toFixed(2) : '18.40'}</span>
+                <span className="tabular-nums font-semibold text-[var(--text-primary)]">₹{analysis.technicalIndicators?.atr?.currentValue ? Number(analysis.technicalIndicators.atr.currentValue).toFixed(2) : '18.40'}</span>
               </div>
             </div>
           </div>
@@ -601,13 +568,13 @@ export default function StockAnalysisPage({ params }: PageProps) {
           {/* AI Insights & Radar Chart (xl:col-span-8) */}
           <div className="xl:col-span-8 card-terminal p-4 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-              <h2 className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
+              <h2 className="font-semibold text-sm text-[var(--text-primary)] flex items-center gap-2">
                 <span>AI Insights</span>
-                <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-mono">
+                <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-[var(--accent-blue-bg)] text-[var(--accent-blue)] dark:bg-[var(--accent-blue)]/30 dark:text-[var(--accent-blue)] tabular-nums">
                   Grounded Quant Model
                 </span>
               </h2>
-              <span className="text-xs text-[var(--text-muted)] font-mono">
+              <span className="text-xs text-[var(--text-muted)] tabular-nums">
                 Institutional Factor Confluence
               </span>
             </div>
@@ -665,7 +632,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
 
                 <button
                   onClick={() => setShowMoreInsights(!showMoreInsights)}
-                  className="text-blue-600 dark:text-blue-400 font-medium hover:underline text-xs flex items-center gap-1 pt-1"
+                  className="text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-medium hover:underline text-xs flex items-center gap-1 pt-1"
                 >
                   <span>{showMoreInsights ? 'See less' : 'See more'}</span>
                   {showMoreInsights ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -728,7 +695,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
                         fontSize="9"
                         fontWeight="600"
                         fill="var(--text-secondary)"
-                        className="font-mono"
+                        className="tabular-nums"
                       >
                         {p.label}
                       </text>
@@ -739,7 +706,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
                         dominantBaseline="central"
                         fontSize="8"
                         fill="var(--text-muted)"
-                        className="font-mono"
+                        className="tabular-nums"
                       >
                         {p.score}/{p.max}
                       </text>
@@ -754,7 +721,7 @@ export default function StockAnalysisPage({ params }: PageProps) {
           <div className="xl:col-span-4 grid grid-cols-2 gap-3">
             {/* Analyst Consensus Gauge Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Analyst &gt;</span>
               </div>
               <div className="my-2 text-center">
@@ -775,21 +742,21 @@ export default function StockAnalysisPage({ params }: PageProps) {
                     strokeLinecap="round"
                   />
                 </svg>
-                <div className="text-xs font-bold text-emerald-600 mt-1">Strong Buy</div>
+                <div className="text-xs font-semibold text-emerald-600 mt-1">Strong Buy</div>
                 <div className="text-[10px] text-[var(--text-muted)]">3 Quantitative Analysts</div>
               </div>
             </div>
 
             {/* Target Price Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Target Price</span>
               </div>
               <div className="my-2">
-                <div className="text-xl font-bold font-mono text-[var(--text-primary)]">
+                <div className="text-xl font-semibold tabular-nums text-[var(--text-primary)]">
                   ₹{analysis.expectedHigh?.max.toFixed(0)}
                 </div>
-                <div className="text-[10px] text-emerald-600 font-semibold font-mono">
+                <div className="text-[10px] text-emerald-600 font-semibold tabular-nums">
                   +{formatPercent(((analysis.expectedHigh?.max - currentPrice) / currentPrice) * 100)} Upside
                 </div>
                 <div className="text-[9px] text-[var(--text-muted)] mt-1">
@@ -800,36 +767,36 @@ export default function StockAnalysisPage({ params }: PageProps) {
 
             {/* Earnings Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Earnings &gt;</span>
               </div>
               <div className="my-1">
                 <div className="text-[10px] text-[var(--text-muted)]">EPS Reported</div>
-                <div className="text-xs font-bold text-[var(--text-primary)] mt-0.5">Inline</div>
+                <div className="text-xs font-semibold text-[var(--text-primary)] mt-0.5">Inline</div>
                 <div className="text-[10px] text-[var(--text-muted)] mt-1">Surprise: +0.0%</div>
               </div>
             </div>
 
             {/* Valuation Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Financials &gt;</span>
               </div>
               <div className="my-1">
                 <div className="text-[10px] text-[var(--text-muted)]">Valuation</div>
-                <div className="text-xs font-bold text-emerald-600 mt-0.5">Fair Value</div>
-                <div className="text-[10px] text-[var(--text-muted)] font-mono mt-1">P/E 16.22x</div>
+                <div className="text-xs font-semibold text-emerald-600 mt-0.5">Fair Value</div>
+                <div className="text-[10px] text-[var(--text-muted)] tabular-nums mt-1">P/E 16.22x</div>
               </div>
             </div>
 
             {/* Trading Volume Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Trading &gt;</span>
               </div>
               <div className="my-1">
                 <div className="text-[10px] text-[var(--text-muted)]">Volume Ratio</div>
-                <div className="text-xs font-bold text-emerald-600 mt-0.5">
+                <div className="text-xs font-semibold text-emerald-600 mt-0.5">
                   {analysis.technicalIndicators?.volume?.currentValue || '1.2x'}
                 </div>
                 <div className="text-[10px] text-[var(--text-muted)] mt-1">Above 20 SMA</div>
@@ -838,12 +805,12 @@ export default function StockAnalysisPage({ params }: PageProps) {
 
             {/* Profitability Card */}
             <div className="card-terminal p-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-primary)]">
                 <span>Profitability &gt;</span>
               </div>
               <div className="my-1">
                 <div className="text-[10px] text-[var(--text-muted)]">Return on Capital</div>
-                <div className="text-xs font-bold text-[var(--text-primary)] mt-0.5">14.8% ROCE</div>
+                <div className="text-xs font-semibold text-[var(--text-primary)] mt-0.5">14.8% ROCE</div>
                 <div className="text-[10px] text-emerald-600 font-semibold mt-1">Healthy</div>
               </div>
             </div>

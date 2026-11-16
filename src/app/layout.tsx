@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="light">
-      <body className={`${inter.className} ${inter.variable} antialiased selection:bg-blue-500/20 selection:text-blue-700`}>
+    <html lang="en" suppressHydrationWarning className="dark">
+      <body className={`${inter.className} ${inter.variable} antialiased selection:bg-[var(--accent-blue)]/20 selection:text-[var(--accent-blue)]`}>
         <ThemeProvider>
           <PaperTradingProvider>
             <AppShell>{children}</AppShell>

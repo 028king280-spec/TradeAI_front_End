@@ -1,42 +1,44 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
+import { MarketFeedBar } from './MarketFeedBar';
 import { DisclaimerBanner } from '../shared/DisclaimerBanner';
+import { MarketFeedProvider } from '@/context/MarketFeedContext';
+import { useTheme } from '@/context/ThemeContext';
+import styles from './Workspace.module.css';
 
-interface AppShellProps {
-  children: React.ReactNode;
-}
-
-export const AppShell: React.FC<AppShellProps> = ({ children }) => {
+function LiveWorkspace({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme } = useTheme();
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 761px)');
+    const onResize = () => { if (media.matches) setMobileOpen(false); };
+    media.addEventListener('change', onResize);
+    return () => media.removeEventListener('change', onResize);
+  }, []);
 
-  return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] flex transition-colors duration-200">
-      {/* Fixed Desktop Sidebar & Mobile Drawer */}
-      <Sidebar mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
-
-      {/* Backdrop for mobile drawer */}
-      {mobileOpen && (
-        <div
-          onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
-        />
-      )}
-
-      {/* Main Content Area (Offset by sidebar on md+) */}
-      <div className="flex-1 flex flex-col min-w-0 md:pl-64">
-        <TopHeader onToggleMobile={() => setMobileOpen(!mobileOpen)} />
-
-        {/* Dynamic Page Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 max-w-7xl w-full mx-auto">
-          {children}
-        </main>
-
-        {/* Global Regulatory Disclaimer */}
-        <DisclaimerBanner />
+  return <MarketFeedProvider>
+    <div className={`${styles.workspace} ${theme === 'light' ? styles.light : ''}`}>
+      <a className="workspace-skip-link" href="#workspace-main">Skip to content</a>
+      <Sidebar mobileOpen={mobileOpen} onCloseMobile={closeMobile}/>
+      {mobileOpen && <button className={styles.backdrop} aria-label="Close navigation" onClick={closeMobile}/>}
+      <div className={styles.main} inert={mobileOpen || undefined}>
+        <TopHeader key={pathname} mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen(value => !value)}/>
+        <MarketFeedBar/>
+        <main id="workspace-main" className={`${styles.content} workspace-content`} tabIndex={-1}>{children}</main>
+        <DisclaimerBanner/>
       </div>
     </div>
-  );
-};
+  </MarketFeedProvider>;
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  if (pathname === '/design-preview') return <>{children}</>;
+  return <LiveWorkspace>{children}</LiveWorkspace>;
+}

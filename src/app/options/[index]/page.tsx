@@ -1,19 +1,9 @@
 'use client';
+import { PageHeading } from "@/components/shared/PageHeading";
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import {
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  ShieldCheck,
-  Zap,
-  Layers,
-  RefreshCw,
-  ChevronRight,
-  BarChart3,
-  Loader2,
-} from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, ShieldCheck, Layers, RefreshCw, ChevronRight, BarChart3, Loader2 } from 'lucide-react';
 import { optionsService } from '@/services/optionsService';
 import { IndexAnalysisFullResponse } from '@/types/options';
 import { OptionsCandlestickChart } from '@/components/trading/OptionsCandlestickChart';
@@ -164,47 +154,12 @@ export default function IndexAnalysisPage({ params }: PageProps) {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[var(--border-subtle)]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                {indexSymbol} Options Terminal
-              </h1>
-              <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold border ${
-                analysis?.dataStatus === 'LIVE'
-                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
-                  : analysis?.dataStatus === 'MARKET_CLOSED'
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
-                  : analysis?.dataStatus === 'DATA_OFFLINE' || analysis?.dataStatus === 'DATA_UNAVAILABLE'
-                  ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20'
-                  : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
-              }`}>
-                {analysis?.dataStatus === 'LIVE'
-                  ? 'VERIFIED LIVE'
-                  : analysis?.dataStatus === 'MARKET_CLOSED'
-                  ? 'MARKET CLOSED (EOD)'
-                  : analysis?.dataStatus === 'DATA_OFFLINE'
-                  ? 'DATA OFFLINE'
-                  : analysis?.dataStatus || 'CONNECTING'}
-              </span>
-            </div>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Audit-compliant option outcome tracking • Angel One Verified Feed
-            </p>
-          </div>
-        </div>
-
-        {/* Index Metrics + Actions */}
-        <div className="flex items-center gap-3 flex-wrap">
+      <PageHeading title={`${indexSymbol} terminal`} description="Price action, structure and evidence in one focused workspace." actions={<><span className="workspace-pill">{analysis?.dataStatus || 'Checking data'}</span><div className="flex items-center gap-3 flex-wrap">
           {analysis?.quote && (
             <div className="flex items-center gap-4 bg-[var(--bg-surface-elevated)] px-4 py-2.5 rounded-xl border border-[var(--border-subtle)]">
               <div>
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Spot LTP</span>
-                <span className="text-base font-extrabold text-[var(--text-primary)] font-mono">
+                <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums">
                   ₹{currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -212,7 +167,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               <div>
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Change</span>
                 <span
-                  className={`text-base font-extrabold flex items-center gap-1 font-mono ${
+                  className={`text-base font-semibold flex items-center gap-1 tabular-nums ${
                     Number(analysis.quote.change) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                   }`}
                 >
@@ -230,7 +185,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
           <Link
             href="/performance"
-            className="px-3.5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md hover:shadow-lg"
+            className="px-3.5 py-2.5 rounded-xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md hover:shadow-lg"
             title="View Daily Accuracy Audit & Signal History"
           >
             <BarChart3 className="w-4 h-4" />
@@ -249,16 +204,15 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               <RefreshCw className="w-4 h-4" />
             )}
           </button>
-        </div>
-      </div>
+        </div></>}/>
 
       {/* Institutional Market Closed Banner (Decision 3) */}
       {isMarketClosed && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-700 dark:text-blue-300 text-xs">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/25 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] text-xs">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-blue)] shrink-0" />
             <div>
-              <span className="font-bold uppercase tracking-wider text-[11px] block">
+              <span className="font-semibold uppercase tracking-wider text-[11px] block">
                 MARKET CLOSED — Verified End-Of-Day (EOD) Snapshot
               </span>
               <span className="text-[11px] opacity-90">
@@ -266,7 +220,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               </span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-md bg-blue-500/15 font-mono text-[10px] font-semibold shrink-0">
+          <span className="px-2.5 py-1 rounded-md bg-[var(--accent-blue)]/15 tabular-nums text-[10px] font-semibold shrink-0">
             STAGE 1 PRE-MARKET
           </span>
         </div>
@@ -278,7 +232,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
             <div>
-              <span className="font-bold uppercase tracking-wider text-[11px] block">
+              <span className="font-semibold uppercase tracking-wider text-[11px] block">
                 DATA INTEGRITY WARNING — FEED {analysis?.dataStatus}
               </span>
               <span className="text-[11px] opacity-90">
@@ -286,7 +240,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               </span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-md bg-rose-500/20 font-mono text-[10px] font-bold text-rose-600 dark:text-rose-400 shrink-0">
+          <span className="px-2.5 py-1 rounded-md bg-rose-500/20 tabular-nums text-[10px] font-semibold text-rose-600 dark:text-rose-400 shrink-0">
             SIGNALS GATED
           </span>
         </div>
@@ -294,8 +248,8 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
       {loading && !analysis ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-[var(--accent-blue)] animate-spin" />
           </div>
           <div className="text-center space-y-1">
             <p className="text-sm font-semibold text-[var(--text-primary)]">Computing {indexSymbol} Models</p>
@@ -384,8 +338,8 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               />
 
               {/* Quick Option Chain Link */}
-              <div className="p-5 rounded-2xl border border-indigo-200 dark:border-indigo-500/20 bg-gradient-to-br from-indigo-50/80 via-purple-50/30 to-transparent dark:from-indigo-500/8 dark:via-purple-500/4 dark:to-transparent space-y-3">
-                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider">
+              <div className="p-5 rounded-2xl border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 bg-gradient-to-br from-[var(--accent-blue)]/80 via-purple-50/30 to-transparent dark:from-[var(--accent-blue)]/8 dark:via-purple-500/4 dark:to-transparent space-y-3">
+                <div className="flex items-center gap-2 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold text-xs uppercase tracking-wider">
                   <Layers className="w-4 h-4" />
                   <span>Option Chain</span>
                 </div>
@@ -394,7 +348,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
                 </p>
                 <Link
                   href={`/option-chain?symbol=${encodeURIComponent(indexSymbol)}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-500 text-white text-xs font-semibold hover:bg-indigo-600 transition-colors shadow-md hover:shadow-lg"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold hover:bg-[var(--accent-blue)] transition-colors shadow-md hover:shadow-lg"
                 >
                   <span>Open {indexSymbol} Option Chain</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -407,7 +361,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
       {/* Mandate Disclaimer */}
       <div className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-[11px] text-[var(--text-muted)] flex items-start gap-2.5">
-        <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+        <ShieldCheck className="w-4 h-4 text-[var(--accent-blue)] shrink-0 mt-0.5" />
         <p className="leading-relaxed">
           {indexSymbol} options analysis is generated from real OHLCV market feeds and Python quantitative models.
           This terminal does NOT execute trades or orders. All targets and ranges are probabilistic estimates.

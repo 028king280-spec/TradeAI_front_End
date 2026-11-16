@@ -1,24 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  BarChart3,
-  Calendar,
-  Filter,
-  Download,
-  CheckCircle2,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  Shield,
-  Layers,
-  Percent,
-  RefreshCw,
-  Info,
-  DollarSign,
-  ChevronRight,
-} from 'lucide-react';
+import { BarChart3, Calendar, Download, RefreshCw } from 'lucide-react';
 
 export const DailyPerformanceDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -36,14 +19,14 @@ export const DailyPerformanceDashboard: React.FC = () => {
     try {
       const symParam = selectedSymbol !== 'ALL' ? `&symbol=${encodeURIComponent(selectedSymbol)}` : '';
       const typeParam = selectedType !== 'ALL' ? `&option_type=${selectedType}` : '';
-      const res = await fetch(`http://localhost:8000/api/performance/daily?date=${selectedDate}${symParam}${typeParam}`);
+      const res = await fetch(`/api/performance/daily?date=${selectedDate}${symParam}${typeParam}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
       }
 
       // Also fetch history summary
-      const histRes = await fetch(`http://localhost:8000/api/performance/history?days=30`);
+      const histRes = await fetch(`/api/performance/history?days=30`);
       const histJson = await histRes.json();
       if (histJson.success) {
         setHistoryList(histJson.data.history || []);
@@ -60,7 +43,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
   }, [selectedDate, selectedSymbol, selectedType]);
 
   const handleExportCSV = () => {
-    window.open(`http://localhost:8000/api/performance/export?date=${selectedDate}`, '_blank');
+    window.open(`/api/performance/export?date=${selectedDate}`, '_blank');
   };
 
   return (
@@ -68,11 +51,11 @@ export const DailyPerformanceDashboard: React.FC = () => {
       {/* Top Filter Bar */}
       <div className="p-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-500">
+          <div className="w-10 h-10 rounded-xl bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center text-[var(--accent-blue)]">
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
               Daily Signal Performance & Audit Engine
             </h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -120,7 +103,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
           {/* Export CSV Button */}
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             title="Download full daily audit to CSV"
           >
             <Download className="w-3.5 h-3.5" />
@@ -131,7 +114,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
 
       {loading && !data ? (
         <div className="py-20 text-center space-y-3">
-          <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto" />
+          <RefreshCw className="w-8 h-8 text-[var(--accent-blue)] animate-spin mx-auto" />
           <p className="text-xs text-[var(--text-muted)]">Loading daily signal performance audit...</p>
         </div>
       ) : !data ? (
@@ -150,7 +133,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                   Triggered / Eligible
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">
+              <div className="text-2xl font-semibold tabular-nums text-[var(--accent-blue)] dark:text-[var(--accent-blue)]">
                 {data.counts.totalSignals === 0 ? 'Insufficient data' : `${data.metricsWithDenominators.entryTriggerRate.rate}%`}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -166,7 +149,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                   T1 Hits / Entries
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              <div className="text-2xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {data.counts.triggeredEntries === 0 ? 'Insufficient data' : `${data.metricsWithDenominators.target1HitRate.rate}%`}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -182,7 +165,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                   Profitable / Resolved
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              <div className="text-2xl font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {data.counts.totalResolved === 0 ? 'Insufficient data' : `${data.metricsWithDenominators.finalWinRate.rate}%`}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -198,7 +181,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                   SL / Entries
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-rose-600 dark:text-rose-400">
+              <div className="text-2xl font-semibold tabular-nums text-rose-600 dark:text-rose-400">
                 {data.counts.triggeredEntries === 0 ? 'Insufficient data' : `${data.metricsWithDenominators.stopLossRate.rate}%`}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -214,7 +197,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                   Target In Horizon
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-indigo-600 dark:text-indigo-400">
+              <div className="text-2xl font-semibold tabular-nums text-[var(--accent-blue)] dark:text-[var(--accent-blue)]">
                 {data.counts.triggeredEntries === 0 ? 'Insufficient data' : `${data.metricsWithDenominators.directionalAccuracy.rate}%`}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -231,7 +214,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
                 </span>
               </div>
               <div
-                className={`text-2xl font-bold font-mono ${
+                className={`text-2xl font-semibold tabular-nums ${
                   data.counts.triggeredEntries === 0
                     ? 'text-[var(--text-muted)]'
                     : data.metricsWithDenominators.netPaperExpectancy.inr >= 0
@@ -253,7 +236,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Total Generated</span>
-              <span className="text-base font-bold text-[var(--text-primary)] font-mono block">{data.counts.totalSignals}</span>
+              <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums block">{data.counts.totalSignals}</span>
               <span className="text-[10px] text-[var(--text-muted)] block">
                 {data.counts.callSignals} CE / {data.counts.putSignals} PE
               </span>
@@ -261,7 +244,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
 
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Triggered / Missed</span>
-              <span className="text-base font-bold text-[var(--text-primary)] font-mono block">
+              <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums block">
                 {data.counts.triggeredEntries} / {data.counts.missedSetups}
               </span>
               <span className="text-[10px] text-[var(--text-muted)] block">
@@ -271,13 +254,13 @@ export const DailyPerformanceDashboard: React.FC = () => {
 
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Avg Time to T1</span>
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono block">{data.timings.avgTimeToT1}</span>
+              <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums block">{data.timings.avgTimeToT1}</span>
               <span className="text-[10px] text-[var(--text-muted)] block">Median: {data.timings.medianTimeToT1}</span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Avg Time to SL</span>
-              <span className="text-base font-bold text-rose-600 dark:text-rose-400 font-mono block">
+              <span className="text-base font-semibold text-rose-600 dark:text-rose-400 tabular-nums block">
                 {data.timings.avgTimeToStopLoss}
               </span>
               <span className="text-[10px] text-[var(--text-muted)] block">Capital saved</span>
@@ -285,7 +268,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
 
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Gross Paper Points</span>
-              <span className="text-base font-bold text-[var(--text-primary)] font-mono block">
+              <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums block">
                 {data.financialPerformance.grossPaperPnLPoints} pts
               </span>
               <span className="text-[10px] text-[var(--text-muted)] block">1 lot basis</span>
@@ -294,7 +277,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
             <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
               <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase block">Net Paper P&L</span>
               <span
-                className={`text-base font-bold font-mono block ${
+                className={`text-base font-semibold tabular-nums block ${
                   data.financialPerformance.netPaperPnLINR >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                 }`}
               >
@@ -308,10 +291,10 @@ export const DailyPerformanceDashboard: React.FC = () => {
           <div className="space-y-3 pt-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                <div className="w-7 h-7 rounded-lg bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 flex items-center justify-center text-[var(--accent-blue)]">
                   <Calendar className="w-4 h-4" />
                 </div>
-                <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
                   Historical Trading Sessions (Last 30 Days)
                 </h3>
               </div>
@@ -320,7 +303,7 @@ export const DailyPerformanceDashboard: React.FC = () => {
 
             <div className="overflow-x-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-sm">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border-b border-[var(--border-subtle)] font-bold">
+                <thead className="bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border-b border-[var(--border-subtle)] font-semibold">
                   <tr>
                     <th className="p-3.5">Trading Date</th>
                     <th className="p-3.5">Total Setups</th>
@@ -339,18 +322,18 @@ export const DailyPerformanceDashboard: React.FC = () => {
                       key={idx}
                       onClick={() => setSelectedDate(row.date)}
                       className={`hover:bg-[var(--bg-surface-elevated)] cursor-pointer transition-colors ${
-                        row.date === selectedDate ? 'bg-indigo-50/60 dark:bg-indigo-500/10 border-l-2 border-indigo-500' : ''
+                        row.date === selectedDate ? 'bg-[var(--accent-blue-bg)]/60 dark:bg-[var(--accent-blue)]/10 border-l-2 border-[var(--accent-blue)]' : ''
                       }`}
                     >
-                      <td className="p-3.5 font-bold text-[var(--text-primary)] font-mono">{row.date}</td>
-                      <td className="p-3.5 text-[var(--text-secondary)] font-mono font-medium">{row.totalSignals}</td>
-                      <td className="p-3.5 text-[var(--text-secondary)] font-mono font-medium">{row.triggeredEntries}</td>
-                      <td className="p-3.5 text-emerald-600 dark:text-emerald-400 font-mono font-bold">{row.t1Hits}</td>
-                      <td className="p-3.5 text-rose-600 dark:text-rose-400 font-mono font-bold">{row.slHits}</td>
-                      <td className="p-3.5 font-bold font-mono text-emerald-600 dark:text-emerald-400">{row.t1HitRate}</td>
-                      <td className="p-3.5 font-bold font-mono text-emerald-600 dark:text-emerald-400">{row.finalWinRate}</td>
+                      <td className="p-3.5 font-semibold text-[var(--text-primary)] tabular-nums">{row.date}</td>
+                      <td className="p-3.5 text-[var(--text-secondary)] tabular-nums font-medium">{row.totalSignals}</td>
+                      <td className="p-3.5 text-[var(--text-secondary)] tabular-nums font-medium">{row.triggeredEntries}</td>
+                      <td className="p-3.5 text-emerald-600 dark:text-emerald-400 tabular-nums font-semibold">{row.t1Hits}</td>
+                      <td className="p-3.5 text-rose-600 dark:text-rose-400 tabular-nums font-semibold">{row.slHits}</td>
+                      <td className="p-3.5 font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{row.t1HitRate}</td>
+                      <td className="p-3.5 font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{row.finalWinRate}</td>
                       <td
-                        className={`p-3.5 font-bold font-mono ${
+                        className={`p-3.5 font-semibold tabular-nums ${
                           row.netPaperPnLINR >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}
                       >

@@ -2,24 +2,8 @@
 
 import React from 'react';
 import { NextSessionRecommendation, QualifiedNextSessionSetup } from '@/types/options';
-import {
-  ShieldAlert,
-  ShieldCheck,
-  Zap,
-  Target,
-  Clock,
-  AlertOctagon,
-  TrendingUp,
-  TrendingDown,
-  Info,
-  CheckCircle,
-  Activity,
-  Layers,
-  BarChart3,
-  Flame,
-  ArrowRight,
-} from 'lucide-react';
-import { formatINR } from '@/lib/utils';
+import { ShieldAlert, ShieldCheck, Zap, AlertOctagon, Info, CheckCircle, Activity, BarChart3 } from 'lucide-react';
+
 
 interface NextSessionRecommendationCardProps {
   data: NextSessionRecommendation;
@@ -46,11 +30,11 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">
                 NEXT-SESSION OPTIONS RECOMMENDATION
               </h3>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded-md font-bold border ${
+                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${
                   hasQualified
                     ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
                     : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
@@ -71,7 +55,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               onClick={onOpenBacktest}
               className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5 transition-colors shadow-sm"
             >
-              <BarChart3 className="w-3.5 h-3.5 text-indigo-500" />
+              <BarChart3 className="w-3.5 h-3.5 text-[var(--accent-blue)]" />
               <span>Historical Backtest</span>
             </button>
           )}
@@ -80,8 +64,8 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
           <div
             className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5 ${
               isLiveStage
-                ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
-                : 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                ? 'bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 text-[var(--accent-blue)] dark:text-[var(--accent-blue)]'
+                : 'bg-[var(--accent-blue-bg)] dark:bg-[var(--accent-blue)]/10 border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 text-[var(--accent-blue)] dark:text-[var(--accent-blue)]'
             }`}
           >
             <Activity className="w-3 h-3 shrink-0" />
@@ -92,7 +76,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
       {/* STAGE DESCRIPTION BANNER */}
       <div className="rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] p-3 text-xs text-[var(--text-secondary)] flex items-start gap-2.5">
-        <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+        <Info className="w-4 h-4 text-[var(--accent-blue)] shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           {isLiveStage ? (
             <span>
@@ -117,7 +101,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                   NO TRADE — PRESERVE CAPITAL
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 font-semibold border border-amber-200 dark:border-amber-500/30">
@@ -133,7 +117,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
           {/* List of reasons */}
           <div className="rounded-xl bg-[var(--bg-surface)] border border-amber-200/80 dark:border-amber-500/20 p-4 space-y-2.5">
-            <span className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <AlertOctagon className="w-3.5 h-3.5 text-amber-500" />
               Technical Reasons Behind NO-TRADE Decision:
             </span>
@@ -141,13 +125,13 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {data.reasonsForNoTrade && data.reasonsForNoTrade.length > 0 ? (
                 data.reasonsForNoTrade.map((reason, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-amber-500 font-bold">•</span>
+                    <span className="text-amber-500 font-semibold">•</span>
                     <span>{reason}</span>
                   </li>
                 ))
               ) : (
                 <li className="flex items-start gap-2">
-                  <span className="text-amber-500 font-bold">•</span>
+                  <span className="text-amber-500 font-semibold">•</span>
                   <span>Market regime is in neutral compression or chop. Directional option buying has negative expectancy due to overnight theta decay.</span>
                 </li>
               )}
@@ -158,7 +142,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs text-[var(--text-muted)]">
             <div className="p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
               <span className="font-semibold text-[var(--text-primary)] block mb-0.5">Capital Deployment</span>
-              <span className="font-mono text-[var(--text-secondary)]">₹0.00 (Zero risk allocated)</span>
+              <span className="tabular-nums text-[var(--text-secondary)]">₹0.00 (Zero risk allocated)</span>
             </div>
             <div className="p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
               <span className="font-semibold text-[var(--text-primary)] block mb-0.5">Re-analysis Trigger</span>
@@ -185,13 +169,13 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2.5">
                 <span
-                  className={`text-xs px-2.5 py-1 rounded-md font-bold text-white shadow-sm ${
+                  className={`text-xs px-2.5 py-1 rounded-md font-semibold text-[var(--text-primary)] shadow-sm ${
                     rec.optionType === 'CE' ? 'bg-emerald-600' : 'bg-rose-600'
                   }`}
                 >
                   {rec.optionType} ({rec.optionType === 'CE' ? 'CALL' : 'PUT'})
                 </span>
-                <span className="text-sm font-bold text-[var(--text-primary)] font-mono">
+                <span className="text-sm font-semibold text-[var(--text-primary)] tabular-nums">
                   {rec.contractSymbol}
                 </span>
                 <span className="text-xs text-[var(--text-muted)]">
@@ -200,10 +184,10 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-semibold font-mono">
+                <span className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-semibold tabular-nums">
                   R:R {rec.riskRewardRatio}
                 </span>
-                <span className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-semibold font-mono">
+                <span className="px-2.5 py-1 rounded-md bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] font-semibold tabular-nums">
                   Delta: {rec.greeks?.delta?.toFixed(2) || '0.50'}
                 </span>
               </div>
@@ -214,16 +198,16 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {/* Last Verified Premium */}
               <div className="p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Last Verified</span>
-                <span className="text-base font-bold text-[var(--text-primary)] font-mono">
+                <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums">
                   ₹{rec.lastVerifiedPremium?.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-[var(--text-muted)] block">Observed close</span>
               </div>
 
               {/* Suggested Entry Range */}
-              <div className="p-3 rounded-xl border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/10">
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold block">Suggested Entry</span>
-                <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300 font-mono">
+              <div className="p-3 rounded-xl border border-[var(--accent-blue)] dark:border-[var(--accent-blue)]/20 bg-[var(--accent-blue-bg)]/50 dark:bg-[var(--accent-blue)]/10">
+                <span className="text-[10px] text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold block">Suggested Entry</span>
+                <span className="text-sm font-semibold text-[var(--accent-blue)] dark:text-[var(--accent-blue)] tabular-nums">
                   {rec.suggestedEntryRange}
                 </span>
                 <span className="text-[10px] text-[var(--text-muted)] block">Planned bracket</span>
@@ -232,7 +216,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {/* Stop Loss */}
               <div className="p-3 rounded-xl border border-rose-200 dark:border-rose-500/20 bg-rose-50/50 dark:bg-rose-500/10">
                 <span className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold block">Stop-Loss (SL)</span>
-                <span className="text-base font-bold text-rose-700 dark:text-rose-400 font-mono">
+                <span className="text-base font-semibold text-rose-700 dark:text-rose-400 tabular-nums">
                   ₹{rec.stopLossPremium?.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-rose-500 block">Strict invalidation</span>
@@ -241,7 +225,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {/* Target 1 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 1 (1.2R)</span>
-                <span className="text-base font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target1Premium?.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Book 50% lot</span>
@@ -250,7 +234,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {/* Target 2 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 2 (1.85R)</span>
-                <span className="text-base font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target2Premium?.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Runner target</span>
@@ -259,7 +243,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               {/* Target 3 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 3 (2.5R)</span>
-                <span className="text-base font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target3Premium?.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">Trend stretch</span>
@@ -271,7 +255,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
               <AlertOctagon className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <span className="font-bold">DO-NOT-CHASE THRESHOLD: </span>
-                <span className="font-mono">{rec.doNotChaseThreshold}</span>
+                <span className="tabular-nums">{rec.doNotChaseThreshold}</span>
               </div>
             </div>
 
@@ -279,7 +263,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
               {/* Entry Confirmation Condition */}
               <div className="space-y-2 p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
                   Entry Confirmation Condition
                 </div>
@@ -293,7 +277,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
               {/* Invalidation Condition */}
               <div className="space-y-2 p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                   <AlertOctagon className="w-4 h-4 text-rose-500" />
                   Invalidating Condition (Immediate Exit)
                 </div>
@@ -301,7 +285,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
                   {rec.invalidationCondition}
                 </p>
                 <div className="text-[11px] text-[var(--text-muted)] pt-2 border-t border-[var(--border-subtle)]">
-                  Underlying Trigger: <span className="font-mono text-[var(--text-secondary)]">{rec.underlyingTrigger}</span>
+                  Underlying Trigger: <span className="tabular-nums text-[var(--text-secondary)]">{rec.underlyingTrigger}</span>
                 </div>
               </div>
             </div>
@@ -310,25 +294,25 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 text-xs">
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Contract Liquidity</span>
-                <span className="font-bold text-[var(--text-primary)]">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {rec.liquidityAssessment} ({rec.contractOpenInterest?.toLocaleString('en-IN') || '—'} OI)
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Theta Decay</span>
-                <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
+                <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
                   {rec.greeks?.thetaPerDay?.toFixed(1) || '-12.5'} ₹/day
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Max Risk / Lot ({rec.financialImpact?.lotSize || 25} qty)</span>
-                <span className="font-bold text-rose-600 dark:text-rose-400 font-mono">
+                <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
                   ₹{rec.financialImpact?.maxRiskINR?.toLocaleString('en-IN') || '—'}
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Potential Gain / Lot (Target 2)</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
                   ₹{rec.financialImpact?.potentialRewardINR?.toLocaleString('en-IN') || '—'}
                 </span>
               </div>
@@ -337,13 +321,13 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             {/* Reasons for Selection */}
             {rec.reasonsForSelection && rec.reasonsForSelection.length > 0 && (
               <div className="space-y-2 pt-3">
-                <span className="text-xs font-bold text-[var(--text-primary)] block">
+                <span className="text-xs font-semibold text-[var(--text-primary)] block">
                   Institutional Selection Criteria Met:
                 </span>
                 <ul className="space-y-1">
                   {rec.reasonsForSelection.map((r, i) => (
                     <li key={i} className="text-xs text-[var(--text-secondary)] flex items-start gap-2">
-                      <span className="text-emerald-500 font-bold">•</span>
+                      <span className="text-emerald-500 font-semibold">•</span>
                       <span>{r}</span>
                     </li>
                   ))}
@@ -356,8 +340,8 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
       {/* Clear Distinction Banner (Crucial Requirement C) */}
       <div className="rounded-xl bg-[var(--bg-surface-elevated)] p-4 border border-[var(--border-subtle)] space-y-2 text-xs text-[var(--text-muted)]">
-        <div className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-indigo-500" />
+        <div className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-[var(--accent-blue)]" />
           Execution Distinction & Compliance Notice
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-[11px] leading-relaxed">

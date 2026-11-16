@@ -1,11 +1,12 @@
 'use client';
+import { PageHeading } from "@/components/shared/PageHeading";
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { optionsService } from '@/services/optionsService';
 import { OptionChainResponse } from '@/types/options';
 import { OptionChainTable } from '@/components/trading/OptionChainTable';
-import { Layers, Activity, RefreshCw, ShieldCheck } from 'lucide-react';
+import { RefreshCw, ShieldCheck } from 'lucide-react';
 
 function OptionChainContent() {
   const searchParams = useSearchParams();
@@ -40,27 +41,9 @@ function OptionChainContent() {
   const indexList = ['NIFTY 50', 'SENSEX', 'BANK NIFTY'];
 
   return (
-    <div className="space-y-6 pb-12 font-mono">
+    <div className="space-y-6 pb-12 tabular-nums">
       {/* Index Switcher & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--border-subtle)]">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Layers className="w-4 h-4 text-indigo-500" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                Index Option Chain Terminal
-              </h1>
-              <p className="text-xs text-[var(--text-muted)]">
-                Verified open interest, IV skew, and analytical Black-Scholes Greeks
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Index Selector Buttons */}
-        <div className="flex items-center gap-2">
+      <PageHeading title="Option chain" description="Understand positioning across strikes before choosing a contract." actions={<><div className="flex items-center gap-2">
           <div className="inline-flex rounded-lg bg-[var(--bg-surface-elevated)] p-0.5 border border-[var(--border-subtle)] text-xs">
             {indexList.map((idx) => (
               <button
@@ -71,7 +54,7 @@ function OptionChainContent() {
                 }}
                 className={`px-3 py-1.5 rounded-md transition-all font-semibold ${
                   symbol.toUpperCase() === idx.toUpperCase()
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-xs'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
@@ -87,13 +70,12 @@ function OptionChainContent() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-        </div>
-      </div>
+        </div></>}/>
 
       {/* Main Table */}
       {loading && !chainData ? (
         <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-3">
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
           <p className="text-xs text-[var(--text-muted)]">Loading {symbol} option chain & Greeks...</p>
         </div>
       ) : chainData ? (
@@ -110,7 +92,7 @@ function OptionChainContent() {
 
       {/* Mandate Disclaimer */}
       <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] flex items-center gap-2">
-        <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+        <ShieldCheck className="w-3.5 h-3.5 text-[var(--accent-blue)] shrink-0" />
         <span>
           Options analytics and Greeks computed using Python mathematical models (Black-Scholes).
           Platform does NOT execute trades or orders.
@@ -125,7 +107,7 @@ export default function OptionChainPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

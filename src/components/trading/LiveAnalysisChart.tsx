@@ -1,36 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ReferenceLine,
-  ReferenceArea,
-  Area,
-} from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  Radio,
-  Wifi,
-  WifiOff,
-  TrendingUp,
-  TrendingDown,
-  Zap,
-  BarChart3,
-  Clock,
-  Signal,
-  CircleDot,
-} from 'lucide-react';
-import { useLiveTick, useLiveStreamConnection, useLiveCandles } from '@/hooks/useLiveMarket';
+import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ReferenceArea } from 'recharts';
+import { motion } from 'framer-motion';
+import { Activity, ArrowUpRight, ArrowDownRight, Radio, Wifi, WifiOff, TrendingUp, TrendingDown, Zap, BarChart3, Clock, Signal, CircleDot } from 'lucide-react';
+import { useLiveTick, useLiveCandles } from '@/hooks/useLiveMarket';
 import { optionsService } from '@/services/optionsService';
 
 interface LiveChartProps {
@@ -237,19 +211,19 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-[var(--text-primary)] font-mono">{symbol}</h2>
+                <h2 className="text-base font-semibold text-[var(--text-primary)] tabular-nums">{symbol}</h2>
                 <motion.span
                   key={livePrice}
                   initial={{ scale: 1.15, opacity: 0.7 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className={`text-lg font-bold font-mono tabular-nums ${
+                  className={`text-lg font-semibold tabular-nums tabular-nums ${
                     isUp ? 'text-emerald-500' : 'text-rose-500'
                   }`}
                 >
                   ₹{livePrice.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                 </motion.span>
               </div>
-              <div className="flex items-center gap-2 text-xs font-mono">
+              <div className="flex items-center gap-2 text-xs tabular-nums">
                 <span
                   className={`flex items-center gap-0.5 font-semibold ${
                     isUp ? 'text-emerald-500' : 'text-rose-500'
@@ -276,9 +250,9 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2.5 py-1 text-xs font-mono font-medium rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-xs tabular-nums font-medium rounded-md transition-all ${
                     timeframe === tf
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-sm'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                   }`}
                 >
@@ -290,7 +264,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
             <div className="flex gap-1">
               <button
                 onClick={() => setShowVwap(!showVwap)}
-                className={`px-2 py-1 text-[11px] font-mono rounded-md border transition-all ${
+                className={`px-2 py-1 text-[11px] tabular-nums rounded-md border transition-all ${
                   showVwap
                     ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                     : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
@@ -300,9 +274,9 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               </button>
               <button
                 onClick={() => setShowEma(!showEma)}
-                className={`px-2 py-1 text-[11px] font-mono rounded-md border transition-all ${
+                className={`px-2 py-1 text-[11px] tabular-nums rounded-md border transition-all ${
                   showEma
-                    ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                    ? 'bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-[var(--accent-blue)]/30'
                     : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
                 }`}
               >
@@ -310,9 +284,9 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               </button>
               <button
                 onClick={() => setShowVolume(!showVolume)}
-                className={`px-2 py-1 text-[11px] font-mono rounded-md border transition-all ${
+                className={`px-2 py-1 text-[11px] tabular-nums rounded-md border transition-all ${
                   showVolume
-                    ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                    ? 'bg-[var(--accent-blue)]/15 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-[var(--accent-blue)]/30'
                     : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
                 }`}
               >
@@ -320,9 +294,9 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               </button>
               <button
                 onClick={() => setShowSmc(!showSmc)}
-                className={`px-2 py-1 text-[11px] font-mono rounded-md border transition-all ${
+                className={`px-2 py-1 text-[11px] tabular-nums rounded-md border transition-all ${
                   showSmc
-                    ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 font-bold'
+                    ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 font-semibold'
                     : 'bg-[var(--bg-surface-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]'
                 }`}
               >
@@ -337,7 +311,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
           {/* RSI Badge */}
           {rsi !== null && (
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium border ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] tabular-nums font-medium border ${
                 rsi > 70
                   ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                   : rsi < 30
@@ -356,7 +330,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
           {/* VWAP Position */}
           {lastVwap && priceAboveVwap !== null && (
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium border ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] tabular-nums font-medium border ${
                 priceAboveVwap
                   ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                   : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
@@ -370,7 +344,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
 
           {/* Day Range Position */}
           {tick?.high && tick?.low && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] tabular-nums font-medium bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
               <BarChart3 className="w-3 h-3" />
               Range: ₹{tick.low.toLocaleString('en-IN')} — ₹{tick.high.toLocaleString('en-IN')}
             </div>
@@ -378,7 +352,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
 
           {/* Volume */}
           {tick?.volume && tick.volume > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] tabular-nums font-medium bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
               <Zap className="w-3 h-3" />
               Vol: {(tick.volume / 100000).toFixed(2)}L
             </div>
@@ -386,7 +360,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
 
           {/* Feed Status */}
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium border ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] tabular-nums font-medium border ${
               tick?.dataStatus === 'LIVE'
                 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                 : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
@@ -404,8 +378,8 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
         {loading && (
           <div className="absolute inset-0 z-10 bg-[var(--bg-surface)]/80 backdrop-blur-xs flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-mono text-[var(--text-muted)]">Loading {timeframe} candles...</span>
+              <div className="w-6 h-6 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs tabular-nums text-[var(--text-muted)]">Loading {timeframe} candles...</span>
             </div>
           </div>
         )}
@@ -445,7 +419,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
                   const d = payload[0].payload;
                   const isBullish = d.close >= d.open;
                   return (
-                    <div className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] shadow-xl font-mono text-xs space-y-1 backdrop-blur-sm">
+                    <div className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] shadow-xl tabular-nums text-xs space-y-1 backdrop-blur-sm">
                       <div className="text-[var(--text-muted)] text-[10px] pb-1 border-b border-[var(--border-subtle)] flex items-center gap-1.5">
                         <Radio className="w-3 h-3 text-emerald-500" />
                         {symbol} • {d.time} IST
@@ -477,8 +451,8 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
                         )}
                         {d.ema20 && (
                           <>
-                            <span className="text-indigo-400">EMA 20:</span>
-                            <span className="text-right text-indigo-400">
+                            <span className="text-[var(--accent-blue)]">EMA 20:</span>
+                            <span className="text-right text-[var(--accent-blue)]">
                               {d.ema20?.toLocaleString('en-IN')}
                             </span>
                           </>
@@ -691,7 +665,7 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
       </div>
 
       {/* ═══ FOOTER LEGEND ═══ */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 text-[11px] font-mono text-[var(--text-muted)] border-t border-[var(--border-subtle)]">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3 text-[11px] tabular-nums text-[var(--text-muted)] border-t border-[var(--border-subtle)]">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /> Bullish
@@ -706,8 +680,8 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
           )}
           {showEma && (
             <>
-              <span className="flex items-center gap-1.5 text-indigo-400">
-                <span className="w-3 h-0.5 bg-indigo-400" /> EMA20
+              <span className="flex items-center gap-1.5 text-[var(--accent-blue)]">
+                <span className="w-3 h-0.5 bg-[var(--accent-blue)]" /> EMA20
               </span>
               <span className="flex items-center gap-1.5 text-purple-400">
                 <span className="w-3 h-0.5 bg-purple-400 opacity-60" /> EMA50
@@ -722,8 +696,8 @@ export const LiveAnalysisChart: React.FC<LiveChartProps> = ({
               <span className="flex items-center gap-1.5 text-rose-400">
                 <span className="w-2.5 h-2.5 rounded-xs bg-rose-500/30 border border-rose-500" /> Bear OB
               </span>
-              <span className="flex items-center gap-1.5 text-blue-400">
-                <span className="w-2.5 h-2.5 rounded-xs bg-blue-500/30 border border-blue-500" /> FVG
+              <span className="flex items-center gap-1.5 text-[var(--accent-blue)]">
+                <span className="w-2.5 h-2.5 rounded-xs bg-[var(--accent-blue)]/30 border border-[var(--accent-blue)]" /> FVG
               </span>
             </>
           )}

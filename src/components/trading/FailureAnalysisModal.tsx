@@ -1,17 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  X,
-  AlertTriangle,
-  FileText,
-  TrendingDown,
-  TrendingUp,
-  Activity,
-  CheckCircle2,
-  RefreshCw,
-  ShieldAlert,
-} from 'lucide-react';
+import { X, Activity, RefreshCw, ShieldAlert } from 'lucide-react';
 
 interface FailureAnalysisModalProps {
   signalId: string | null;
@@ -31,7 +21,7 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
     let isMounted = true;
     setLoading(true);
 
-    fetch(`http://localhost:8000/api/signals/${signalId}/failure-analysis`)
+    fetch(`/api/signals/${signalId}/failure-analysis`)
       .then((res) => res.json())
       .then((json) => {
         if (isMounted && json.success) {
@@ -60,7 +50,7 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base font-semibold text-[var(--text-primary)] tracking-tight">
                 Factual Signal Failure Diagnostic
               </h3>
               <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -90,10 +80,10 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
           <div className="space-y-4">
             {/* Primary Outcome Banner */}
             <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 space-y-1.5">
-              <span className="text-[10px] text-rose-700 dark:text-rose-300 font-bold uppercase tracking-wider">
+              <span className="text-[10px] text-rose-700 dark:text-rose-300 font-semibold uppercase tracking-wider">
                 Primary Observed Outcome
               </span>
-              <div className="text-lg font-bold text-rose-600 dark:text-rose-400">
+              <div className="text-lg font-semibold text-rose-600 dark:text-rose-400">
                 {data.primaryOutcome.replace(/_/g, ' ')}
               </div>
               <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
@@ -104,7 +94,7 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
             {/* Contributing Factors */}
             {data.contributingFactors && data.contributingFactors.length > 0 && (
               <div className="space-y-2">
-                <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">
+                <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                   Verified Contributing Factors
                 </span>
                 <div className="space-y-1.5">
@@ -113,7 +103,7 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
                       key={idx}
                       className="p-3 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] flex items-start gap-2.5"
                     >
-                      <span className="text-rose-500 font-bold">•</span>
+                      <span className="text-rose-500 font-semibold">•</span>
                       <span>{factor}</span>
                     </div>
                   ))}
@@ -124,8 +114,8 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
             {/* Market Reversal Evidence */}
             {data.reversalEvidence && (
               <div className="p-4 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] space-y-3">
-                <span className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wide flex items-center gap-1.5">
-                  <Activity className="w-4 h-4 text-indigo-500" />
+                <span className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-[var(--accent-blue)]" />
                   Market Reversal Audit
                 </span>
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -137,15 +127,15 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
                   </div>
                   <div>
                     <span className="text-[10px] text-[var(--text-muted)] block font-medium">Reversal Classification</span>
-                    <span className="font-bold text-[var(--text-primary)]">{data.reversalEvidence.reversalType}</span>
+                    <span className="font-semibold text-[var(--text-primary)]">{data.reversalEvidence.reversalType}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-[var(--text-muted)] block font-medium">Trigger Level</span>
-                    <span className="font-bold font-mono text-[var(--text-primary)]">{data.reversalEvidence.reversalTrigger}</span>
+                    <span className="font-semibold tabular-nums text-[var(--text-primary)]">{data.reversalEvidence.reversalTrigger}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-[var(--text-muted)] block font-medium">Confirmed Before SL Hit</span>
-                    <span className="font-bold text-[var(--text-primary)]">
+                    <span className="font-semibold text-[var(--text-primary)]">
                       {data.reversalEvidence.confirmedBeforeSL ? 'Confirmed Before SL' : 'Post-Exit Observation'}
                     </span>
                   </div>
@@ -154,7 +144,7 @@ export const FailureAnalysisModal: React.FC<FailureAnalysisModalProps> = ({
             )}
 
             {/* Diagnostic Metadata Footer */}
-            <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)] font-mono">
+            <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)] tabular-nums">
               <span>Strategy: {data.strategyVersion}</span>
               <span>Confidence: {data.confidence}</span>
               <span>Audit Time: {data.timestamp}</span>

@@ -1,35 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ReferenceLine,
-  ReferenceArea,
-} from 'recharts';
+import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ReferenceArea } from 'recharts';
 import { optionsService } from '@/services/optionsService';
-import { formatINR } from '@/lib/utils';
-import {
-  Activity,
-  Layers,
-  Sparkles,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  Crosshair,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2
-} from 'lucide-react';
+
+import { Activity, Target, Crosshair, ZoomIn, ZoomOut, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CandleData {
   time: string;
@@ -259,7 +234,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               onClick={() => setChartMode('spot')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 chartMode === 'spot'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-sm'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -270,7 +245,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               onClick={() => setChartMode('premium')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 chartMode === 'premium'
-                  ? 'bg-amber-600 text-white shadow-sm'
+                  ? 'bg-amber-600 text-[var(--text-primary)] shadow-sm'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -286,9 +261,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               <div className="inline-flex rounded-lg bg-[var(--bg-surface-elevated)] p-0.5 border border-[var(--border-subtle)]">
                 <button
                   onClick={() => setOptionType('CE')}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     optionType === 'CE'
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-emerald-600 text-[var(--text-primary)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-emerald-500'
                   }`}
                 >
@@ -296,9 +271,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
                 </button>
                 <button
                   onClick={() => setOptionType('PE')}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                     optionType === 'PE'
-                      ? 'bg-rose-600 text-white shadow-xs'
+                      ? 'bg-rose-600 text-[var(--text-primary)] shadow-xs'
                       : 'text-[var(--text-muted)] hover:text-rose-500'
                   }`}
                 >
@@ -311,7 +286,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
                 <select
                   value={selectedStrike || ''}
                   onChange={(e) => setSelectedStrike(Number(e.target.value))}
-                  className="px-2.5 py-1 text-xs font-mono font-semibold rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  className="px-2.5 py-1 text-xs tabular-nums font-semibold rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] cursor-pointer"
                 >
                   {availableStrikes.map((stk) => (
                     <option key={stk} value={stk}>
@@ -332,9 +307,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               <button
                 key={tf.id}
                 onClick={() => setTimeframe(tf.id)}
-                className={`px-2.5 py-1 text-xs font-mono font-semibold rounded-md transition-all ${
+                className={`px-2.5 py-1 text-xs tabular-nums font-semibold rounded-md transition-all ${
                   timeframe === tf.id
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-xs'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
@@ -347,9 +322,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
           <div className="inline-flex rounded-lg bg-[var(--bg-surface-elevated)] p-0.5 border border-[var(--border-subtle)]">
             <button
               onClick={() => setShowVwap(!showVwap)}
-              className={`px-2 py-1 text-xs font-mono rounded transition-all ${
+              className={`px-2 py-1 text-xs tabular-nums rounded transition-all ${
                 showVwap
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-semibold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -357,9 +332,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
             </button>
             <button
               onClick={() => setShowEma(!showEma)}
-              className={`px-2 py-1 text-xs font-mono rounded transition-all ${
+              className={`px-2 py-1 text-xs tabular-nums rounded transition-all ${
                 showEma
-                  ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
+                  ? 'bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -367,9 +342,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
             </button>
             <button
               onClick={() => setShowSmc(!showSmc)}
-              className={`px-2 py-1 text-xs font-mono rounded transition-all flex items-center gap-1 ${
+              className={`px-2 py-1 text-xs tabular-nums rounded transition-all flex items-center gap-1 ${
                 showSmc
-                  ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold'
+                  ? 'bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
               title="Toggle Smart Money Concepts (Order Blocks, FVGs, Equilibrium)"
@@ -396,13 +371,13 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               onClick={handleZoomIn}
               title="Zoom In"
               disabled={zoomLevel >= 4}
-              className="p-1 rounded text-[var(--text-muted)] hover:text-blue-500 hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
 
             {/* Zoom Level Indicator */}
-            <span className="px-1.5 text-[10px] font-mono font-bold text-[var(--text-primary)] min-w-[34px] text-center">
+            <span className="px-1.5 text-[10px] tabular-nums font-semibold text-[var(--text-primary)] min-w-[34px] text-center">
               {Math.round(zoomLevel * 100)}%
             </span>
 
@@ -411,7 +386,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
               onClick={handleZoomOut}
               title="Zoom Out"
               disabled={zoomLevel <= 1}
-              className="p-1 rounded text-[var(--text-muted)] hover:text-blue-500 hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--bg-surface)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
@@ -439,16 +414,16 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
       </div>
 
       {/* Sub-header Bar: Active Instrument & Live Greek stats */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs font-mono">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs tabular-nums">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-sm text-[var(--text-primary)]">
+          <span className="font-semibold text-sm text-[var(--text-primary)]">
             {chartMode === 'spot' ? `${symbol} Spot` : contractSymbol || `${symbol} ${selectedStrike} ${optionType}`}
           </span>
-          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border border-[var(--accent-blue)]/20">
             {timeframe.toUpperCase()} Candles
           </span>
           {chartMode === 'premium' && (
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
               Option Premium LTP: ₹{activeLtp?.toFixed(2)}
             </span>
           )}
@@ -480,8 +455,8 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
         {loading && (
           <div className="absolute inset-0 z-10 bg-[var(--bg-surface)]/80 backdrop-blur-xs flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-mono text-[var(--text-muted)]">
+              <div className="w-6 h-6 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs tabular-nums text-[var(--text-muted)]">
                 Loading {chartMode === 'spot' ? symbol : contractSymbol} ({timeframe}) candles...
               </span>
             </div>
@@ -520,9 +495,9 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
                   const d = payload[0].payload as CandleData;
                   const isUp = d.close >= d.open;
                   return (
-                    <div className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] shadow-lg font-mono text-xs space-y-1">
+                    <div className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] shadow-lg tabular-nums text-xs space-y-1">
                       <div className="text-[var(--text-muted)] text-[10px] pb-1 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4">
-                        <span className="font-bold text-[var(--text-primary)]">
+                        <span className="font-semibold text-[var(--text-primary)]">
                           {chartMode === 'spot' ? symbol : contractSymbol}
                         </span>
                         <span>{d.time} IST</span>
@@ -548,8 +523,8 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
                         )}
                         {d.ema20 && (
                           <>
-                            <span className="text-indigo-400">EMA 20:</span>
-                            <span className="text-right text-indigo-400">₹{d.ema20?.toFixed(2)}</span>
+                            <span className="text-[var(--accent-blue)]">EMA 20:</span>
+                            <span className="text-right text-[var(--accent-blue)]">₹{d.ema20?.toFixed(2)}</span>
                           </>
                         )}
                       </div>
@@ -715,7 +690,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
       </div>
 
       {/* Legend & Summary Footer */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] font-mono text-[var(--text-muted)] border-t border-[var(--border-subtle)]">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] tabular-nums text-[var(--text-muted)] border-t border-[var(--border-subtle)]">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500"></span> Bullish
@@ -729,8 +704,8 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
             </span>
           )}
           {showEma && (
-            <span className="flex items-center gap-1.5 text-indigo-400">
-              <span className="w-3 h-0.5 bg-indigo-400"></span> EMA 20/50
+            <span className="flex items-center gap-1.5 text-[var(--accent-blue)]">
+              <span className="w-3 h-0.5 bg-[var(--accent-blue)]"></span> EMA 20/50
             </span>
           )}
         </div>
@@ -740,7 +715,7 @@ export const OptionsCandlestickChart: React.FC<OptionsCandlestickChartProps> = (
           </span>
           <div>
             {chartMode === 'spot' ? 'Index Spot:' : 'Contract LTP:'}{' '}
-            <span className="text-[var(--text-primary)] font-bold">
+            <span className="text-[var(--text-primary)] font-semibold">
               ₹{activeLtp?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>

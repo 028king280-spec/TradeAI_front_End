@@ -1,19 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Newspaper,
-  ExternalLink,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  RefreshCw,
-  Clock,
-  Search,
-  Filter,
-  Radio,
-  CheckCircle2,
-} from 'lucide-react';
+import { Newspaper, ExternalLink, TrendingUp, TrendingDown, Minus, RefreshCw, Clock, Search, Radio } from 'lucide-react';
 import { newsService, NewsItem } from '@/services/newsService';
 
 interface MarketNewsCardProps {
@@ -70,7 +58,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
   });
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-4 font-mono">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-4 tabular-nums">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5">
@@ -79,10 +67,10 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[var(--text-primary)]">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 Live Indian Market News Feed
               </h3>
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 <Radio className="w-3 h-3 animate-pulse" />
                 <span>LIVE FEED</span>
               </span>
@@ -103,7 +91,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
           <button
             onClick={() => setRefreshCount((c) => c + 1)}
             disabled={loading}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:bg-slate-100 dark:hover:bg-slate-800 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-elevated)] dark:hover:bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
             title="Refresh news"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -127,7 +115,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
                     ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/40'
                     : mode === 'NEUTRAL'
                     ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40'
-                    : 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                    : 'bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border border-[var(--accent-blue)]/40'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-elevated)]'
               }`}
             >
@@ -144,7 +132,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
             placeholder="Search stock news (e.g. RELIANCE, TCS)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-3 py-1 text-xs rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-64"
+            className="pl-8 pr-3 py-1 text-xs rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] w-full sm:w-64"
           />
         </div>
       </div>
@@ -153,7 +141,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
       <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
         {loading && news.length === 0 ? (
           <div className="p-8 text-center text-xs text-[var(--text-muted)] space-y-2">
-            <RefreshCw className="w-5 h-5 mx-auto animate-spin text-blue-500" />
+            <RefreshCw className="w-5 h-5 mx-auto animate-spin text-[var(--accent-blue)]" />
             <p>Fetching real-time Indian stock market headlines...</p>
           </div>
         ) : filteredNews.length === 0 ? (
@@ -168,12 +156,12 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
             return (
               <div
                 key={item.id}
-                className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:border-slate-400 dark:hover:border-slate-600 transition-all space-y-2 group"
+                className="p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:border-[var(--border-subtle)] dark:hover:border-[var(--border-subtle)] transition-all space-y-2 group"
               >
                 {/* Meta row: Source, Time, Sentiment, Impact */}
                 <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] flex-wrap gap-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[var(--text-primary)] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">
+                    <span className="font-semibold text-[var(--text-primary)] px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)]">
                       {item.source}
                     </span>
                     <span className="flex items-center gap-1">
@@ -188,7 +176,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
                       className={`px-1.5 py-0.2 rounded font-semibold text-[9px] ${
                         item.impact === 'HIGH'
                           ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
-                          : 'bg-slate-500/15 text-slate-600 dark:text-slate-400'
+                          : 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)]'
                       }`}
                     >
                       {item.impact} IMPACT
@@ -196,7 +184,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
 
                     {/* Sentiment */}
                     <span
-                      className={`flex items-center gap-1 px-1.5 py-0.2 rounded font-bold text-[9px] ${
+                      className={`flex items-center gap-1 px-1.5 py-0.2 rounded font-semibold text-[9px] ${
                         isBull
                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                           : isBear
@@ -222,7 +210,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-semibold text-[var(--text-primary)] hover:text-blue-500 dark:hover:text-blue-400 transition-colors leading-snug"
+                    className="text-xs font-semibold text-[var(--text-primary)] hover:text-[var(--accent-blue)] dark:hover:text-[var(--accent-blue)] transition-colors leading-snug"
                   >
                     {item.headline}
                   </a>
@@ -230,7 +218,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded group-hover:text-blue-500"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded group-hover:text-[var(--accent-blue)]"
                     title="Read full article on original publisher"
                   >
                     <ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -244,7 +232,7 @@ export const MarketNewsCard: React.FC<MarketNewsCardProps> = ({ initialSymbol })
                     {item.relatedSymbols.map((sym) => (
                       <span
                         key={sym}
-                        className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold"
+                        className="px-1.5 py-0.2 rounded bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] font-semibold"
                       >
                         {sym}
                       </span>

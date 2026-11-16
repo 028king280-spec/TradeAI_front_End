@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { OptionsMarketSentiment } from '@/types/options';
-import { Gauge, CheckCircle2, AlertTriangle, ShieldAlert, ArrowUpRight, ArrowDownRight, Info } from 'lucide-react';
+import { Gauge, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 interface MarketSentimentPanelProps {
   sentiment: OptionsMarketSentiment;
@@ -15,15 +15,15 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
   const isBearish = sentiment.overallSentiment === 'BEARISH';
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-4 font-mono">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-sm space-y-4 tabular-nums">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <Gauge className="w-4 h-4 text-blue-500" />
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center">
+            <Gauge className="w-4 h-4 text-[var(--accent-blue)]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
               Multi-Factor Market Sentiment Engine
             </h3>
             <span className="text-[10px] text-[var(--text-muted)]">
@@ -35,7 +35,7 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
         {/* Sentiment Badge */}
         <div className="flex items-center gap-2">
           <span
-            className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider ${
               isBullish
                 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                 : isBearish
@@ -57,9 +57,9 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
         <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] space-y-2">
           <div className="flex justify-between text-[11px]">
             <span className="text-[var(--text-muted)]">Sentiment Calibration</span>
-            <span className="font-bold text-[var(--text-primary)]">{sentiment.sentimentScore}%</span>
+            <span className="font-semibold text-[var(--text-primary)]">{sentiment.sentimentScore}%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex">
+          <div className="w-full h-2 rounded-full bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] overflow-hidden flex">
             <div
               className="h-full bg-emerald-500 transition-all duration-500"
               style={{ width: `${sentiment.bullishEvidenceScore}%` }}
@@ -82,11 +82,11 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
           </div>
           <div className="flex justify-between text-[11px] pt-0.5">
             <span className="text-[var(--text-muted)]">Bullish Trigger:</span>
-            <span className="font-bold text-emerald-500">₹{sentiment.importantPriceTriggers.bullishConfirmation?.toLocaleString('en-IN')}</span>
+            <span className="font-semibold text-emerald-500">₹{sentiment.importantPriceTriggers.bullishConfirmation?.toLocaleString('en-IN')}</span>
           </div>
           <div className="flex justify-between text-[11px]">
             <span className="text-[var(--text-muted)]">Bearish Trigger:</span>
-            <span className="font-bold text-rose-500">₹{sentiment.importantPriceTriggers.bearishConfirmation?.toLocaleString('en-IN')}</span>
+            <span className="font-semibold text-rose-500">₹{sentiment.importantPriceTriggers.bearishConfirmation?.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -105,13 +105,13 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
         {/* Supporting Factors */}
         <div className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 space-y-2">
-          <div className="text-[11px] font-bold text-emerald-500 flex items-center gap-1.5 uppercase">
+          <div className="text-[11px] font-semibold text-emerald-500 flex items-center gap-1.5 uppercase">
             <CheckCircle2 className="w-3.5 h-3.5" /> Supporting Signals ({sentiment.supportingFactors.length})
           </div>
           <ul className="space-y-1.5 text-[11px] text-[var(--text-secondary)]">
             {sentiment.supportingFactors.map((factor, i) => (
               <li key={i} className="flex items-start gap-1.5 leading-snug">
-                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">•</span>
+                <span className="text-emerald-500 font-semibold shrink-0 mt-0.5">•</span>
                 <span>{factor}</span>
               </li>
             ))}
@@ -120,13 +120,13 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
 
         {/* Conflicting / Risk Factors */}
         <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-2">
-          <div className="text-[11px] font-bold text-amber-500 flex items-center gap-1.5 uppercase">
+          <div className="text-[11px] font-semibold text-amber-500 flex items-center gap-1.5 uppercase">
             <AlertTriangle className="w-3.5 h-3.5" /> Conflicting Signals & Warnings ({sentiment.conflictingFactors.length + sentiment.reasonsToAvoidTrade.length})
           </div>
           <ul className="space-y-1.5 text-[11px] text-[var(--text-secondary)]">
             {sentiment.conflictingFactors.map((factor, i) => (
               <li key={i} className="flex items-start gap-1.5 leading-snug">
-                <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
+                <span className="text-amber-500 font-semibold shrink-0 mt-0.5">•</span>
                 <span>{factor}</span>
               </li>
             ))}
@@ -145,7 +145,7 @@ export const MarketSentimentPanel: React.FC<MarketSentimentPanelProps> = ({ sent
 
       {/* Derivative Notice */}
       <div className="p-2.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] flex items-start gap-1.5">
-        <Info className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+        <Info className="w-3.5 h-3.5 text-[var(--accent-blue)] shrink-0 mt-0.5" />
         <span>{sentiment.criticalDerivativeNotice}</span>
       </div>
     </div>

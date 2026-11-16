@@ -14,7 +14,7 @@ export const SignalBadge: React.FC<SignalBadgeProps> = ({ type, size = 'md', cla
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5 font-medium',
     md: 'text-xs px-2.5 py-1 font-semibold',
-    lg: 'text-sm px-3.5 py-1.5 font-bold',
+    lg: 'text-sm px-3.5 py-1.5 font-semibold',
   };
 
   const colorClasses = isBullish
@@ -25,7 +25,7 @@ export const SignalBadge: React.FC<SignalBadgeProps> = ({ type, size = 'md', cla
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md uppercase tracking-wider font-mono ${sizeClasses[size]} ${colorClasses} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-md uppercase tracking-wider tabular-nums ${sizeClasses[size]} ${colorClasses} ${className}`}
     >
       {isBullish && <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />}
       {isBearish && <ArrowDownRight className="w-3.5 h-3.5 stroke-[2.5]" />}

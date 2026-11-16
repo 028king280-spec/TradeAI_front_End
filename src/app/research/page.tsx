@@ -1,28 +1,10 @@
 'use client';
+import { PageHeading } from "@/components/shared/PageHeading";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  Newspaper,
-  UploadCloud,
-  FileText,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
-  Database,
-  Compass,
-  Zap,
-  Target,
-  Clock,
-  ShieldCheck,
-  Radio,
-  ExternalLink,
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sparkles, UploadCloud, FileText, ArrowRight, CheckCircle2, AlertTriangle, RefreshCw, Database, Target } from 'lucide-react';
 import { SignalBadge } from '@/components/shared/SignalBadge';
 import { formatINR } from '@/lib/utils';
 import { newsService, NewsItem, MarketNewsSentiment } from '@/services/newsService';
@@ -264,7 +246,7 @@ export default function ResearchIntelligencePage() {
     try {
       const textToAnalyze = pastedText.trim() || analysisResult?.fullText || '';
       // Call Arcee AI backend endpoint
-      const res = await fetch('http://127.0.0.1:8000/api/ai/arcee/analyze', {
+      const res = await fetch('/api/ai/arcee/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textToAnalyze }),
@@ -303,7 +285,7 @@ export default function ResearchIntelligencePage() {
         const formData = new FormData();
         formData.append('file', uploadedFile);
         formData.append('category', analysisResult?.category || 'Market Research');
-        await fetch('http://127.0.0.1:8000/api/v1/knowledge/upload', {
+        await fetch('/api/v1/knowledge/upload', {
           method: 'POST',
           body: formData,
         }).catch(() => null);
@@ -316,43 +298,23 @@ export default function ResearchIntelligencePage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.07]">
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 flex items-center justify-center">
-              <Newspaper className="w-4 h-4 text-amber-600 dark:text-[#dfa759]" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-mono">
-              AI Article & Research Studio
-            </h1>
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-[10px] font-mono text-emerald-700 dark:text-emerald-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Arcee AI Active (Trinity-Large)</span>
-            </div>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Powered by Arcee AI (trinity-large-thinking) & Grounded Quant RAG to extract instant trading impact and affected stocks.
-          </p>
-        </div>
-
-        <Link
+      <PageHeading title="Research studio" description="Turn market news and your trading library into actionable research context." actions={<><Link
           href="/"
-          className="self-start md:self-auto text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] shadow-sm transition-colors"
+          className="self-start md:self-auto text-xs tabular-nums text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)] px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] dark:bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm transition-colors"
         >
           ← Return to Terminal
-        </Link>
-      </div>
+        </Link></>}/>
 
       {/* Input Stage: Tabs for Presets / Paste / Upload */}
-      <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0c1017]/90 p-4 sm:p-5 space-y-4 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.06] pb-3">
+      <div className="rounded-xl border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] p-4 sm:p-5 space-y-4 shadow-sm">
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] dark:border-[var(--border-subtle)] pb-3">
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => setActiveTab('LIVE_FEED')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs tabular-nums font-medium transition-all ${
                 activeTab === 'LIVE_FEED'
-                  ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white border border-slate-200 dark:border-white/[0.12] font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] dark:text-[var(--text-primary)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] font-semibold shadow-sm'
+                  : 'text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)]'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -362,30 +324,30 @@ export default function ResearchIntelligencePage() {
             </button>
             <button
               onClick={() => setActiveTab('PRESETS')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs tabular-nums font-medium transition-all ${
                 activeTab === 'PRESETS'
-                  ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white border border-slate-200 dark:border-white/[0.12] font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] dark:text-[var(--text-primary)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] font-semibold shadow-sm'
+                  : 'text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)]'
               }`}
             >
               1-Click Market Events
             </button>
             <button
               onClick={() => setActiveTab('PASTE')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs tabular-nums font-medium transition-all ${
                 activeTab === 'PASTE'
-                  ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white border border-slate-200 dark:border-white/[0.12] font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] dark:text-[var(--text-primary)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] font-semibold shadow-sm'
+                  : 'text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)]'
               }`}
             >
               Paste News Text
             </button>
             <button
               onClick={() => setActiveTab('UPLOAD')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs tabular-nums font-medium transition-all ${
                 activeTab === 'UPLOAD'
-                  ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white border border-slate-200 dark:border-white/[0.12] font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-primary)] dark:text-[var(--text-primary)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] font-semibold shadow-sm'
+                  : 'text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-primary)]'
               }`}
             >
               Upload PDF / Report
@@ -395,7 +357,7 @@ export default function ResearchIntelligencePage() {
           <button
             onClick={handleAnalyze}
             disabled={isAnalyzing}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white dark:text-black dark:from-[#dfa759] dark:to-[#c89242] text-xs font-mono font-bold shadow-sm transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-[var(--text-primary)] dark:text-black dark:from-[#dfa759] dark:to-[#c89242] text-xs tabular-nums font-semibold shadow-sm transition-all disabled:opacity-50"
           >
             {isAnalyzing ? (
               <>
@@ -416,8 +378,8 @@ export default function ResearchIntelligencePage() {
           <div className="space-y-3.5">
             {/* Live Indian Sentiment Overview Banner with 1 to 10 Rating */}
             {marketSentiment && (
-              <div className="rounded-xl p-4 border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-black/40 space-y-3 shadow-sm">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs font-mono">
+              <div className="rounded-xl p-4 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] bg-[var(--bg-surface)] dark:bg-black/40 space-y-3 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs tabular-nums">
                   {/* Rating Box */}
                   <div className="flex items-center gap-3">
                     <div
@@ -429,11 +391,11 @@ export default function ResearchIntelligencePage() {
                           : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                       }`}
                     >
-                      <span className="text-sm font-extrabold">{marketSentiment.sentimentRating} / 10</span>
+                      <span className="text-sm font-semibold">{marketSentiment.sentimentRating} / 10</span>
                       <span className="text-xs uppercase tracking-wide">({marketSentiment.ratingLabel || marketSentiment.overallSentiment})</span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{marketSentiment.bullishCount} Bullish</span>
                       <span>•</span>
                       <span className="text-rose-600 dark:text-rose-400 font-semibold">{marketSentiment.bearishCount} Bearish</span>
@@ -443,17 +405,17 @@ export default function ResearchIntelligencePage() {
                   </div>
 
                   {/* Sources Tag */}
-                  <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-                    <span className="text-slate-400">Connected Sources:</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Moneycontrol</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Economic Times</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 font-semibold">Livemint</span>
+                  <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
+                    <span className="text-[var(--text-secondary)]">Connected Sources:</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] font-semibold">Moneycontrol</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] font-semibold">Economic Times</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] font-semibold">Livemint</span>
                   </div>
                 </div>
 
                 {/* 1 to 10 Visual Gradient Bar */}
                 <div className="space-y-1">
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-white/[0.06] relative overflow-hidden flex">
+                  <div className="h-2 w-full rounded-full bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] relative overflow-hidden flex">
                     <div
                       className={`h-full transition-all duration-700 rounded-full ${
                         marketSentiment.sentimentRating >= 6.5
@@ -465,7 +427,7 @@ export default function ResearchIntelligencePage() {
                       style={{ width: `${(marketSentiment.sentimentRating / 10) * 100}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                  <div className="flex justify-between text-[9px] tabular-nums text-[var(--text-secondary)]">
                     <span>1.0 (Extreme Bearish)</span>
                     <span>5.5 (Neutral)</span>
                     <span>10.0 (Extreme Bullish)</span>
@@ -473,7 +435,7 @@ export default function ResearchIntelligencePage() {
                 </div>
 
                 {marketSentiment.ratingExplanation && (
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-mono">
+                  <p className="text-[11px] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] tabular-nums">
                     {marketSentiment.ratingExplanation}
                   </p>
                 )}
@@ -481,7 +443,7 @@ export default function ResearchIntelligencePage() {
             )}
 
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            <div className="flex items-center justify-between text-[11px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
               <span className="uppercase tracking-wider">
                 Click any live headline to extract instant trading impact and affected stocks:
               </span>
@@ -490,12 +452,12 @@ export default function ResearchIntelligencePage() {
 
 
             {loadingLiveNews ? (
-              <div className="p-8 text-center text-xs text-slate-500 font-mono flex items-center justify-center gap-2">
+              <div className="p-8 text-center text-xs text-[var(--text-muted)] tabular-nums flex items-center justify-center gap-2">
                 <RefreshCw className="w-4 h-4 animate-spin text-amber-500" />
                 <span>Fetching live Indian stock market headlines...</span>
               </div>
             ) : liveNews.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500 font-mono">
+              <div className="p-8 text-center text-xs text-[var(--text-muted)] tabular-nums">
                 No articles retrieved. Check network connection or use 1-Click Market Events.
               </div>
             ) : (
@@ -512,13 +474,13 @@ export default function ResearchIntelligencePage() {
                       onClick={() => handleSelectLiveNews(item)}
                       className={`p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-[#dfa759]/50 shadow-sm'
-                          : 'bg-white hover:bg-slate-50 dark:bg-black/30 border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/[0.14] shadow-sm'
+                          ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-[var(--border-subtle)] shadow-sm'
+                          : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] dark:bg-black/30 border-[var(--border-subtle)] dark:border-[var(--border-subtle)] hover:border-[var(--border-subtle)] dark:hover:border-[var(--border-subtle)] shadow-sm'
                       }`}
                     >
                       <div>
-                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">{item.source}</span>
+                        <div className="flex items-center justify-between text-[10px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
+                          <span className="font-semibold text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">{item.source}</span>
                           <span
                             className={`font-bold ${
                               isBull
@@ -531,12 +493,12 @@ export default function ResearchIntelligencePage() {
                             {item.sentiment} ({item.impact})
                           </span>
                         </div>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-white font-mono mt-1.5 leading-snug line-clamp-2">
+                        <h4 className="text-xs font-semibold text-[var(--text-primary)] dark:text-[var(--text-primary)] tabular-nums mt-1.5 leading-snug line-clamp-2">
                           {item.headline}
                         </h4>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[10px] font-mono text-slate-600 dark:text-slate-400">
+                      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] dark:border-[var(--border-subtle)] flex items-center justify-between text-[10px] tabular-nums text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
                         <span className="truncate max-w-[150px]">
                           {item.relatedSymbols?.join(', ') || 'NIFTY / Sensex'}
                         </span>
@@ -555,7 +517,7 @@ export default function ResearchIntelligencePage() {
         {/* Tab Content 1: 1-Click Presets */}
         {activeTab === 'PRESETS' && (
           <div className="space-y-2.5">
-            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+            <span className="text-[11px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase tracking-wider block">
               Select an Indian Market Event to inspect instant stock impact:
             </span>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -568,12 +530,12 @@ export default function ResearchIntelligencePage() {
                     onClick={() => handleSelectPreset(preset)}
                     className={`p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-[#dfa759]/50 shadow-sm'
-                        : 'bg-white hover:bg-slate-50 dark:bg-black/30 border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/[0.14] shadow-sm'
+                        ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-[var(--border-subtle)] shadow-sm'
+                        : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-elevated)] dark:bg-black/30 border-[var(--border-subtle)] dark:border-[var(--border-subtle)] hover:border-[var(--border-subtle)] dark:hover:border-[var(--border-subtle)] shadow-sm'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center justify-between text-[10px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
                         <span>{preset.category}</span>
                         <span
                           className={`font-bold ${
@@ -583,15 +545,15 @@ export default function ResearchIntelligencePage() {
                           {preset.sentiment}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white font-mono mt-1 leading-snug">
+                      <h4 className="text-xs font-semibold text-[var(--text-primary)] dark:text-[var(--text-primary)] tabular-nums mt-1 leading-snug">
                         {preset.title}
                       </h4>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 line-clamp-2">
+                      <p className="text-[11px] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] mt-1.5 line-clamp-2">
                         {preset.snippet}
                       </p>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[10px] font-mono text-slate-600 dark:text-slate-300">
+                    <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] dark:border-[var(--border-subtle)] flex items-center justify-between text-[10px] tabular-nums text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
                       <span>{preset.impactedStocks.length} Stock Setup</span>
                       <span className="text-amber-700 dark:text-[#dfa759] font-medium">Ready to Analyze →</span>
                     </div>
@@ -605,7 +567,7 @@ export default function ResearchIntelligencePage() {
         {/* Tab Content 2: Paste News Text */}
         {activeTab === 'PASTE' && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
+            <div className="flex items-center justify-between text-xs tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
               <span>Paste article text, Economic Times / Moneycontrol news, or earnings transcript:</span>
               <span>{pastedText.length} characters</span>
             </div>
@@ -614,19 +576,19 @@ export default function ResearchIntelligencePage() {
               value={pastedText}
               onChange={(e) => setPastedText(e.target.value)}
               placeholder="e.g. State Bank of India reports strong Q3 results with loan growth of 16% and asset quality improvement..."
-              className="w-full p-3 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] focus:border-amber-500 rounded-xl text-xs font-mono text-slate-900 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none transition-colors"
+              className="w-full p-3 bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] focus:border-amber-500 rounded-xl text-xs tabular-nums text-[var(--text-primary)] dark:text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none transition-colors"
             />
           </div>
         )}
 
         {/* Tab Content 3: File Upload */}
         {activeTab === 'UPLOAD' && (
-          <div className="border-2 border-dashed border-slate-300 dark:border-white/[0.1] rounded-xl p-6 text-center space-y-2 bg-slate-50/50 dark:bg-black/20 hover:border-amber-500/50 transition-colors">
-            <UploadCloud className="w-8 h-8 text-slate-400 mx-auto opacity-80" />
+          <div className="border-2 border-dashed border-[var(--border-subtle)] dark:border-[var(--border-subtle)] rounded-xl p-6 text-center space-y-2 bg-[var(--bg-surface-elevated)] dark:bg-black/20 hover:border-amber-500/50 transition-colors">
+            <UploadCloud className="w-8 h-8 text-[var(--text-secondary)] mx-auto opacity-80" />
             <div>
               <label
                 htmlFor="file-upload"
-                className="cursor-pointer text-xs font-mono font-bold text-amber-700 dark:text-[#dfa759] hover:underline"
+                className="cursor-pointer text-xs tabular-nums font-semibold text-amber-700 dark:text-[#dfa759] hover:underline"
               >
                 Click to browse research PDF or TXT
               </label>
@@ -641,12 +603,12 @@ export default function ResearchIntelligencePage() {
                 }}
                 className="hidden"
               />
-              <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-[11px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)] mt-1">
                 Supports brokerage equity research, SEBI notifications, annual reports
               </p>
             </div>
             {uploadedFile && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-mono">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs tabular-nums">
                 <FileText className="w-3.5 h-3.5" />
                 <span>{uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(1)} KB)</span>
               </div>
@@ -664,23 +626,23 @@ export default function ResearchIntelligencePage() {
           className="space-y-5"
         >
           {/* Executive Overview Box */}
-          <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0c1017]/90 p-5 space-y-4 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+          <div className="rounded-xl border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] p-5 space-y-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)] dark:border-[var(--border-subtle)]">
               <div>
-                <span className="text-[10px] font-mono uppercase text-amber-700 dark:text-[#dfa759] tracking-wider block font-bold">
+                <span className="text-[10px] tabular-nums uppercase text-amber-700 dark:text-[#dfa759] tracking-wider block font-semibold">
                   AI Research Synthesis
                 </span>
-                <h3 className="text-base sm:text-lg font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                <h3 className="text-base sm:text-lg font-semibold tabular-nums text-[var(--text-primary)] dark:text-[var(--text-primary)] mt-0.5">
                   {analysisResult.title}
                 </h3>
               </div>
 
               {/* Sentiment Score Badge */}
               <div className="flex items-center gap-3">
-                <div className="px-3 py-1 rounded-lg bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-right font-mono">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Impact Bias</span>
+                <div className="px-3 py-1 rounded-lg bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-right tabular-nums">
+                  <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Impact Bias</span>
                   <span
-                    className={`text-xs font-bold ${
+                    className={`text-xs font-semibold ${
                       analysisResult.sentimentScore > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     }`}
                   >
@@ -693,10 +655,10 @@ export default function ResearchIntelligencePage() {
                   type="button"
                   onClick={handleSaveToRAG}
                   disabled={savedToRAG}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs tabular-nums font-medium border transition-all ${
                     savedToRAG
                       ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
-                      : 'bg-slate-50 hover:bg-slate-100 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-200'
+                      : 'bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] dark:hover:bg-[var(--bg-surface-elevated)] border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-[var(--text-secondary)] dark:text-[var(--text-primary)]'
                   }`}
                 >
                   <Database className="w-3.5 h-3.5" />
@@ -706,21 +668,21 @@ export default function ResearchIntelligencePage() {
             </div>
 
             {/* Quick Summary Pill & Sectors */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-              <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.05] space-y-1">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Executive Takeaway</span>
-                <p className="text-slate-800 dark:text-slate-200 text-xs leading-relaxed">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs tabular-nums">
+              <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] space-y-1">
+                <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Executive Takeaway</span>
+                <p className="text-[var(--text-primary)] dark:text-[var(--text-primary)] text-xs leading-relaxed">
                   {analysisResult.executiveSummary}
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.05] space-y-1">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Affected Sectors</span>
+              <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] space-y-1">
+                <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Affected Sectors</span>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {analysisResult.affectedSectors.map((sec) => (
                     <span
                       key={sec}
-                      className="px-2 py-0.5 rounded bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 text-[11px]"
+                      className="px-2 py-0.5 rounded bg-[var(--bg-surface)] dark:bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] text-[11px]"
                     >
                       {sec}
                     </span>
@@ -728,8 +690,8 @@ export default function ResearchIntelligencePage() {
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.05] space-y-1">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Strategic Guidance</span>
+              <div className="p-3 rounded-lg bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] space-y-1">
+                <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Strategic Guidance</span>
                 <p className="text-amber-800 dark:text-[#dfa759] text-xs font-medium leading-relaxed">
                   {analysisResult.recommendedAction}
                 </p>
@@ -742,11 +704,11 @@ export default function ResearchIntelligencePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-amber-600 dark:text-[#dfa759]" />
-                <h3 className="text-sm font-bold font-mono text-slate-900 dark:text-white uppercase tracking-wider">
+                <h3 className="text-sm font-semibold tabular-nums text-[var(--text-primary)] dark:text-[var(--text-primary)] uppercase tracking-wider">
                   Directly Impacted Stocks & Actionable Signals
                 </h3>
               </div>
-              <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+              <span className="text-xs tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
                 {analysisResult.impactedStocks.length} Qualified Trade Setups
               </span>
             </div>
@@ -757,39 +719,39 @@ export default function ResearchIntelligencePage() {
                 return (
                   <div
                     key={stock.symbol}
-                    className="p-4 rounded-xl bg-white dark:bg-[#0c1017]/90 border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] shadow-sm transition-all space-y-3"
+                    className="p-4 rounded-xl bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] hover:border-[var(--border-subtle)] dark:hover:border-[var(--border-subtle)] shadow-sm transition-all space-y-3"
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/stocks/${stock.symbol}`}
-                            className="text-base font-bold font-mono text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-[#dfa759] transition-colors"
+                            className="text-base font-semibold tabular-nums text-[var(--text-primary)] dark:text-[var(--text-primary)] hover:text-[var(--accent-blue)] dark:hover:text-[#dfa759] transition-colors"
                           >
                             {stock.symbol}
                           </Link>
                           <SignalBadge type={stock.signal} size="sm" />
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-transparent">
+                          <span className="text-[10px] tabular-nums px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] border border-[var(--border-subtle)] dark:border-transparent">
                             {stock.horizon}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{stock.name}</p>
+                        <p className="text-xs text-[var(--text-muted)] dark:text-[var(--text-secondary)]">{stock.name}</p>
                       </div>
 
-                      <div className="text-right font-mono">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase">Confidence</span>
-                        <span className="text-xs font-bold text-amber-700 dark:text-[#dfa759]">{stock.confidence}%</span>
+                      <div className="text-right tabular-nums">
+                        <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] block uppercase">Confidence</span>
+                        <span className="text-xs font-semibold text-amber-700 dark:text-[#dfa759]">{stock.confidence}%</span>
                       </div>
                     </div>
 
                     {/* Price & Target Row */}
-                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.05] text-xs font-mono">
+                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-[var(--bg-surface-elevated)] dark:bg-black/40 border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] text-xs tabular-nums">
                       <div>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Current CMP</span>
-                        <span className="text-slate-900 dark:text-slate-200 font-bold">{formatINR(stock.currentPrice)}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Current CMP</span>
+                        <span className="text-[var(--text-primary)] dark:text-[var(--text-primary)] font-semibold">{formatINR(stock.currentPrice)}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">AI Target</span>
+                        <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">AI Target</span>
                         <span
                           className={`font-bold ${isCall ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
                         >
@@ -797,7 +759,7 @@ export default function ResearchIntelligencePage() {
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block">Expected Move</span>
+                        <span className="text-[10px] text-[var(--text-muted)] dark:text-[var(--text-secondary)] uppercase block">Expected Move</span>
                         <span
                           className={`font-bold ${isCall ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
                         >
@@ -808,18 +770,18 @@ export default function ResearchIntelligencePage() {
                     </div>
 
                     {/* Impact Rationale */}
-                    <p className="text-[11px] text-slate-700 dark:text-slate-300 font-mono leading-relaxed bg-slate-50 dark:bg-white/[0.02] p-2.5 rounded-lg border border-slate-200 dark:border-white/[0.04]">
-                      <span className="text-slate-500 dark:text-slate-400">Setup Catalyst: </span>
+                    <p className="text-[11px] text-[var(--text-secondary)] dark:text-[var(--text-secondary)] tabular-nums leading-relaxed bg-[var(--bg-surface-elevated)] dark:bg-[var(--bg-surface-elevated)] p-2.5 rounded-lg border border-[var(--border-subtle)] dark:border-[var(--border-subtle)]">
+                      <span className="text-[var(--text-muted)] dark:text-[var(--text-secondary)]">Setup Catalyst: </span>
                       {stock.impactReason}
                     </p>
 
-                    <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05] flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                    <div className="pt-2 border-t border-[var(--border-subtle)] dark:border-[var(--border-subtle)] flex items-center justify-between">
+                      <span className="text-[10px] tabular-nums text-[var(--text-muted)] dark:text-[var(--text-secondary)]">
                         Signal: {isCall ? 'Bullish Accumulation' : 'Bearish Distribution'}
                       </span>
                       <Link
                         href={`/stocks/${stock.symbol}`}
-                        className="inline-flex items-center gap-1 text-xs font-mono text-blue-600 dark:text-[#dfa759] hover:underline font-semibold"
+                        className="inline-flex items-center gap-1 text-xs tabular-nums text-[var(--accent-blue)] dark:text-[#dfa759] hover:underline font-semibold"
                       >
                         <span>Open Terminal</span>
                         <ArrowRight className="w-3 h-3" />
@@ -833,24 +795,24 @@ export default function ResearchIntelligencePage() {
 
           {/* Section: Catalysts & Risk Triggers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-white dark:bg-[#0c1017]/90 border border-slate-200 dark:border-white/[0.08] shadow-sm space-y-2 font-mono">
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="p-4 rounded-xl bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm space-y-2 tabular-nums">
+              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Primary Catalysts</span>
               </div>
-              <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1.5 pl-4 list-disc">
+              <ul className="text-xs text-[var(--text-secondary)] dark:text-[var(--text-secondary)] space-y-1.5 pl-4 list-disc">
                 {analysisResult.tradingCatalysts.map((c, i) => (
                   <li key={i}>{c}</li>
                 ))}
               </ul>
             </div>
 
-            <div className="p-4 rounded-xl bg-white dark:bg-[#0c1017]/90 border border-slate-200 dark:border-white/[0.08] shadow-sm space-y-2 font-mono">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+            <div className="p-4 rounded-xl bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm space-y-2 tabular-nums">
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
                 <AlertTriangle className="w-4 h-4" />
                 <span>Risk & Invalidation Triggers</span>
               </div>
-              <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1.5 pl-4 list-disc">
+              <ul className="text-xs text-[var(--text-secondary)] dark:text-[var(--text-secondary)] space-y-1.5 pl-4 list-disc">
                 {analysisResult.riskTriggers.map((r, i) => (
                   <li key={i}>{r}</li>
                 ))}

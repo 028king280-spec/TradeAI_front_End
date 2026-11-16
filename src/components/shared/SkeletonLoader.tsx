@@ -3,7 +3,7 @@ import React from 'react';
 export const SkeletonBox: React.FC<{ className?: string }> = ({ className = 'h-4 w-full' }) => {
   return (
     <div
-      className={`animate-pulse rounded bg-slate-800/60 relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.8s_infinite] before:bg-gradient-to-r before:from-transparent before:via-slate-700/30 before:to-transparent ${className}`}
+      className={`animate-pulse rounded bg-[var(--bg-surface-elevated)] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.8s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[var(--bg-surface)] before:to-transparent ${className}`}
     />
   );
 };
@@ -12,7 +12,7 @@ export const DashboardSkeleton: React.FC = () => {
   return (
     <div className="space-y-8 pb-10">
       {/* Top Header Skeleton */}
-      <div className="flex justify-between items-center pb-4 border-b border-[#1e283d]">
+      <div className="flex justify-between items-center pb-4 border-b border-[var(--border-subtle)]">
         <div className="space-y-2">
           <SkeletonBox className="h-7 w-64" />
           <SkeletonBox className="h-4 w-48" />
@@ -33,7 +33,7 @@ export const DashboardSkeleton: React.FC = () => {
             </div>
             <SkeletonBox className="h-8 w-36" />
             <SkeletonBox className="h-10 w-full" />
-            <div className="flex justify-between pt-2 border-t border-[#1e283d]">
+            <div className="flex justify-between pt-2 border-t border-[var(--border-subtle)]">
               <SkeletonBox className="h-3 w-16" />
               <SkeletonBox className="h-3 w-16" />
             </div>

@@ -2,33 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  ShieldCheck,
-  Zap,
-  Layers,
-  Radio,
-  ChevronRight,
-  Sparkles,
-  RefreshCw,
-  Compass,
-  Gauge,
-  GitMerge,
-  Info,
-  BarChart3,
-  Eye,
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BrainCircuit, Layers, RefreshCw, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
 import { optionsService } from '@/services/optionsService';
 import {
   OptionsOverviewResponse,
   IndexAnalysisFullResponse,
-  IndexQuoteCard,
 } from '@/types/options';
-import { formatINR, formatNumberIN } from '@/lib/utils';
-import { OptionsCandlestickChart } from '@/components/trading/OptionsCandlestickChart';
 import { LiveAnalysisChart } from '@/components/trading/LiveAnalysisChart';
 import { OptionsSetupsCard } from '@/components/trading/OptionsSetupsCard';
 import { SmartMoneyConceptsCard } from '@/components/trading/SmartMoneyConceptsCard';
@@ -48,10 +27,16 @@ import { SignalTimelineModal } from '@/components/trading/SignalTimelineModal';
 import { FailureAnalysisModal } from '@/components/trading/FailureAnalysisModal';
 import { MLStrategyLearnerPanel } from '@/components/trading/MLStrategyLearnerPanel';
 
+import { PageHeading } from '@/components/shared/PageHeading';
+import { WorkspaceTabs } from '@/components/shared/WorkspaceTabs';
+import { MarketQuoteCard } from '@/components/shared/MarketQuoteCard';
+import { feedLabel } from '@/context/MarketFeedContext';
+
 export default function OptionsDashboardPage() {
+  const [view, setView] = useState('Overview');
   const [overview, setOverview] = useState<OptionsOverviewResponse | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<string>('NIFTY 50');
-  const [analysis, setAnalysis] = useState<IndexAnalysisFullResponse | null>(null);
+  const [analysisData, setAnalysis] = useState<IndexAnalysisFullResponse | null>(null);
   const [loadingOverview, setLoadingOverview] = useState<boolean>(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState<boolean>(true);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
@@ -61,16 +46,19 @@ export default function OptionsDashboardPage() {
   const [selectedFailureSignalId, setSelectedFailureSignalId] = useState<string | null>(null);
   const [selectedSignalBias, setSelectedSignalBias] = useState<'CE' | 'PE' | 'AUTO'>('AUTO');
 
+  const canonical = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^NIFTY$/, 'NIFTY50').replace(/^NIFTYBANK$/, 'BANKNIFTY');
+  const analysis = analysisData && canonical(analysisData.symbol) === canonical(selectedIndex) ? analysisData : null;
+
   // 1. Load Overview Data (Index Cards + Overall Sentiment)
   useEffect(() => {
     let isCancelled = false;
     async function loadOverview() {
       setLoadingOverview(true);
       const data = await optionsService.getOverview();
-      if (!isCancelled && data) {
-        setOverview(data);
+      if (!isCancelled) {
+        if (data) setOverview(data);
+        setLoadingOverview(false);
       }
-      setLoadingOverview(false);
     }
     loadOverview();
     return () => {
@@ -84,10 +72,10 @@ export default function OptionsDashboardPage() {
     async function loadAnalysis() {
       setLoadingAnalysis(true);
       const data = await optionsService.getIndexAnalysis(selectedIndex);
-      if (!isCancelled && data) {
-        setAnalysis(data);
+      if (!isCancelled) {
+        if (data) setAnalysis(data);
+        setLoadingAnalysis(false);
       }
-      setLoadingAnalysis(false);
     }
     loadAnalysis();
     return () => {
@@ -117,11 +105,9 @@ export default function OptionsDashboardPage() {
     };
   }, [refreshTrigger]);
 
-  const activeQuote = overview?.indices?.find(
-    (idx) => idx.symbol.toUpperCase() === selectedIndex.toUpperCase() || idx.name.toUpperCase().includes(selectedIndex.toUpperCase())
-  ) || overview?.indices?.[0];
+  const activeQuote = overview?.indices?.find(quote => canonical(quote.symbol) === canonical(selectedIndex));
 
-  const currentPrice = activeQuote?.currentValue || 23820.00;
+  const currentPrice = activeQuote?.currentValue || 0;
 
   // Build SignalActivationData
   const activeSignalData: SignalActivationData | null = React.useMemo(() => {
@@ -222,263 +208,67 @@ export default function OptionsDashboardPage() {
     };
   }, [analysis, selectedIndex, currentPrice, selectedSignalBias]);
 
-  return (
-    <div className="space-y-6 pb-12 font-mono">
-      {/* Top Notification / Platform Mandate Bar */}
-      <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5 text-[var(--text-primary)]">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          <span className="font-bold">AIVOLVE LIVE OPTIONS INTELLIGENCE</span>
-          <span className="text-[var(--text-muted)] hidden md:inline">• Indian Derivatives (NSE / BSE)</span>
-        </div>
-        <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
-          <Link
-            href="/sentiment"
-            className="flex items-center gap-1.5 px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-wide transition-all shadow-[0_0_12px_rgba(37,99,235,0.3)]"
-          >
-            <Gauge className="w-3.5 h-3.5" />
-            <span>Market Sentiment</span>
-          </Link>
-          <Link
-            href="/performance"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-colors"
-          >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Audit Dashboard</span>
-          </Link>
-          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-            <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
-            Provider: {overview?.provider ? overview.provider.toUpperCase() : 'ANGEL ONE'}
-          </span>
-          <span>Feed: {overview?.dataStatus || 'CONNECTING'}</span>
-        </div>
-      </div>
+  const displayIndices = overview?.indices?.length ? overview.indices : ['NIFTY 50', 'BANK NIFTY', 'FINNIFTY', 'SENSEX'].map(symbol => ({ symbol, currentValue: null, change: null, changePercent: null, sparkline: [], dataStatus: 'UNAVAILABLE' }));
+  const marketState = analysis?.marketState;
+  const refresh = () => setRefreshTrigger(value => value + 1);
+  const contextLabel = loadingAnalysis ? 'Reading the market…' : marketState?.headline || 'Waiting for market evidence';
 
-      {/* SECTION 1: LIVE INDEX BENCHMARK SELECTOR CARDS */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-500" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
-              Core Indian Indices
-            </h2>
-          </div>
-          <button
-            onClick={() => setRefreshTrigger((prev) => prev + 1)}
-            className="text-xs flex items-center gap-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1 rounded"
-            title="Refresh All Quotes"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh</span>
-          </button>
-        </div>
+  return <div className="space-y-6 pb-8">
+    <PageHeading title="Market overview" description="A clearer view of the market. A more deliberate next move." actions={<>
+      <span className="workspace-pill"><ShieldCheck size={13}/> Paper mode</span>
+      <button className="workspace-secondary-button" onClick={refresh} disabled={loadingOverview || loadingAnalysis}><RefreshCw size={14} className={loadingOverview || loadingAnalysis ? 'animate-spin' : ''}/> Refresh data</button>
+    </>}/>
 
-        {/* Index Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {(overview?.indices || [
-            { symbol: 'NIFTY 50', name: 'NIFTY 50', currentValue: 23820.0, change: 14.2, changePercent: 0.06, trend: 'Bullish' },
-            { symbol: 'SENSEX', name: 'BSE SENSEX', currentValue: 76950.0, change: 30.4, changePercent: 0.04, trend: 'Bullish' },
-            { symbol: 'BANK NIFTY', name: 'NIFTY BANK', currentValue: 55600.0, change: 56.5, changePercent: 0.10, trend: 'Bullish' },
-            { symbol: 'INDIA VIX', name: 'INDIA VIX', currentValue: 15.7, change: -0.02, changePercent: -0.13, trend: 'Bearish' },
-          ]).map((idx) => {
-            const isSelected = selectedIndex.toUpperCase() === idx.symbol.toUpperCase() || (idx.symbol === 'NIFTY' && selectedIndex === 'NIFTY 50');
-            const isUp = (idx.change || 0) >= 0;
-
-            return (
-              <div
-                key={idx.symbol}
-                onClick={() => {
-                  if (idx.symbol !== 'INDIA VIX') {
-                    setSelectedIndex(idx.symbol === 'NIFTY' ? 'NIFTY 50' : idx.symbol);
-                  }
-                }}
-                className={`p-4 rounded-xl border transition-all cursor-pointer relative overflow-hidden ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-500/10 shadow-md ring-1 ring-blue-500'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:border-[var(--border-strong)]'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[var(--text-primary)]">{idx.name}</span>
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                      idx.symbol === 'INDIA VIX'
-                        ? 'bg-amber-500/15 text-amber-500'
-                        : isUp
-                        ? 'bg-emerald-500/15 text-emerald-500'
-                        : 'bg-rose-500/15 text-rose-500'
-                    }`}
-                  >
-                    {idx.trend}
-                  </span>
-                </div>
-
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-xl font-black text-[var(--text-primary)]">
-                    ₹{idx.currentValue ? idx.currentValue.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '--'}
-                  </span>
-                  <span
-                    className={`text-xs font-bold flex items-center gap-0.5 ${
-                      isUp ? 'text-emerald-500' : 'text-rose-500'
-                    }`}
-                  >
-                    {isUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                    {isUp ? '+' : ''}
-                    {idx.change?.toFixed(2)} ({idx.changePercent?.toFixed(2)}%)
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* REQUIREMENT 1: Clear No-Trade Zone & Market State */}
-      {analysis?.marketState && (
-        <MarketStatePanel data={analysis.marketState} />
-      )}
-
-      {/* REQUIREMENT 2: CALL/PUT Signal Activation */}
-      <SignalActivationPanel
-        data={activeSignalData}
-        selectedBias={selectedSignalBias}
-        onSelectBias={setSelectedSignalBias}
-        onOpenTimeline={() => {
-          if (trackedSignals.length > 0) {
-            setSelectedTimelineSignalId(trackedSignals[0].id);
-          }
-        }}
-      />
-
-      {/* REQUIREMENT 2 & 3: Active Signal Tracker & Outcome Monitoring */}
-      <ActiveSignalTracker
-        signals={trackedSignals}
-        onSelectSignalTimeline={(id) => setSelectedTimelineSignalId(id)}
-        onSelectFailureAnalysis={(id) => setSelectedFailureSignalId(id)}
-      />
-
-      {/* Machine Learning Strategy Learner & Adaptive Accuracy Scorecard */}
-      <MLStrategyLearnerPanel indexSymbol={selectedIndex} />
-
-      {/* CRITICAL FEATURE: NEXT-SESSION OPTIONS RECOMMENDATION ENGINE */}
-      {(analysis?.nextSessionRecommendation || overview?.nextSessionRecommendation) && (
-        <NextSessionRecommendationCard
-          data={analysis?.nextSessionRecommendation || overview?.nextSessionRecommendation!}
-          onOpenBacktest={() => setIsBacktestOpen(true)}
-        />
-      )}
-
-      {/* NEXT-SESSION OPENING OUTLOOK */}
-      {(analysis?.nextSessionOpeningOutlook || overview?.nextSessionOpeningOutlook) && (
-        <NextSessionOpeningCard
-          outlook={analysis?.nextSessionOpeningOutlook || overview?.nextSessionOpeningOutlook!}
-          indexSymbol={selectedIndex}
-        />
-      )}
-
-      {/* SECTION 3: LIVE REAL-TIME SMARTSTREAM CHART */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <LiveAnalysisChart
-            symbol={selectedIndex}
-            currentPrice={currentPrice}
-            supportLevel={analysis?.supportResistance?.support1?.price}
-            resistanceLevel={analysis?.supportResistance?.resistance1?.price}
-          />
-
-          {/* SECTION 4: MARKET SENTIMENT PANEL */}
-          {analysis?.sentiment && <MarketSentimentPanel sentiment={analysis.sentiment} />}
-
-          {/* SECTION 6: SMART MONEY CONCEPTS (SMC) & ORDER FLOW */}
-          {analysis?.smcAnalysis && (
-            <SmartMoneyConceptsCard data={analysis.smcAnalysis} />
-          )}
-
-          {/* SECTION 7: TODAY'S OPTIONS SETUPS */}
-          {analysis?.todayOptionsSetups && (
-            <OptionsSetupsCard data={analysis.todayOptionsSetups} />
-          )}
-
-          {/* SECTION 7.5: 1-CLICK SMC OPTIONS PAPER TRADING SIMULATOR */}
-          <PaperTradingSimulator />
-
-          {/* SECTION 8: CHART PATTERNS */}
-          {analysis?.patterns && <ChartPatternsCard patterns={analysis.patterns} />}
-        </div>
-
-        {/* RIGHT COLUMN: SUPPORT & RESISTANCE LADDER + SESSION OUTLOOK */}
-        <div className="space-y-6">
-          {/* Support & Resistance Ladder */}
-          {analysis?.supportResistance && (
-            <SupportResistanceLadderView
-              data={analysis.supportResistance}
-              currentPrice={currentPrice}
-            />
-          )}
-
-          {/* Session Outlook (Today vs Next Session) */}
-          {analysis?.todayOutlook && analysis?.nextSessionOutlook && (
-            <SessionOutlookCard
-              todayData={analysis.todayOutlook}
-              nextSessionData={analysis.nextSessionOutlook}
-            />
-          )}
-
-          {/* Option Chain Quick Navigation Banner */}
-          <div className="p-4 rounded-xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent space-y-3 font-mono">
-            <div className="flex items-center gap-2 text-indigo-500 font-bold text-xs uppercase tracking-wider">
-              <Layers className="w-4 h-4" />
-              <span>Full Strike Option Chain</span>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Explore complete call & put strikes with Black-Scholes Greeks (Delta, Gamma, Theta, Vega),
-              open interest shifts, PCR, and Max Pain for {selectedIndex}.
-            </p>
-            <Link
-              href={`/option-chain?symbol=${encodeURIComponent(selectedIndex)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors shadow-xs"
-            >
-              <span>Launch {selectedIndex} Option Chain</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {/* Real-time Automated Indian Market News Feed */}
-          <MarketNewsCard initialSymbol={selectedIndex} />
-        </div>
-      </div>
-
-      {/* PLATFORM MANDATE DISCLAIMER FOOTER */}
-      <div className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] text-[11px] font-mono text-[var(--text-muted)] space-y-1">
-        <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold">
-          <ShieldCheck className="w-4 h-4 text-blue-500" />
-          <span>Institutional Research Mandate & Analytical Integrity</span>
-        </div>
-        <p className="leading-relaxed">
-          AIVOLVE Trading AI is strictly an Indian stock and index options analytics terminal. Numerical calculations
-          (Support/Resistance, Intraday Range, PCR, Greeks, Max Pain, Probability Distributions) are deterministically
-          computed by the Python Quantitative Engine. This application does NOT execute broker orders, place trades,
-          or manage funds. All analytical trade ideas are probabilistic observations for educational and research purposes.
-        </p>
-      </div>
-
-      {/* Modals */}
-      <SignalTimelineModal
-        signalId={selectedTimelineSignalId}
-        onClose={() => setSelectedTimelineSignalId(null)}
-      />
-
-      <FailureAnalysisModal
-        signalId={selectedFailureSignalId}
-        onClose={() => setSelectedFailureSignalId(null)}
-      />
-
-      {/* HISTORICAL VALIDATION BACKTEST MODAL */}
-      <NextSessionBacktestModal
-        isOpen={isBacktestOpen}
-        onClose={() => setIsBacktestOpen(false)}
-        symbol={selectedIndex}
-      />
+    <div className="workspace-quote-grid" aria-label="Index watchlist">
+      {displayIndices.map(quote => <MarketQuoteCard key={quote.symbol} symbol={quote.symbol} value={quote.currentValue} change={quote.change} changePercent={quote.changePercent} dataStatus={quote.dataStatus || overview?.dataStatus || 'UNAVAILABLE'} sparkline={quote.sparkline} selected={selectedIndex === quote.symbol} onSelect={() => { if (quote.symbol !== 'INDIA VIX') setSelectedIndex(quote.symbol === 'NIFTY' ? 'NIFTY 50' : quote.symbol); }}/>)}
     </div>
-  );
+
+    <WorkspaceTabs tabs={['Overview', 'Signals', 'Structure', 'Outlook', 'Learning', 'Paper trading']} value={view} onChange={setView}>
+      {view === 'Overview' && <div className="space-y-6">
+        <div className="workspace-overview-grid">
+          <div className="workspace-stack">
+            <LiveAnalysisChart symbol={selectedIndex} currentPrice={currentPrice || undefined} supportLevel={analysis?.supportResistance?.support1?.price} resistanceLevel={analysis?.supportResistance?.resistance1?.price}/>
+            {analysis?.todayOptionsSetups ? <OptionsSetupsCard data={analysis.todayOptionsSetups}/> : <div className="workspace-empty">{loadingAnalysis ? 'Loading setups from the analysis engine…' : 'No setup data is available. Refresh when the analysis feed is connected.'}</div>}
+          </div>
+          <aside className="workspace-stack" aria-label="Market context">
+            <section className="workspace-panel workspace-copilot">
+              <div className="workspace-panel-heading"><div><p className="workspace-eyebrow">Aivolve intelligence</p><h2>Your market copilot</h2></div><Sparkles size={18} className="text-[var(--accent-blue)]"/></div>
+              <div className="workspace-copilot-icon"><BrainCircuit size={27}/></div>
+              <h3>{contextLabel}</h3>
+              <p>{marketState?.explanation || 'A connected quantitative feed will provide the market regime, confirmation conditions and supporting evidence here.'}</p>
+              <div className="mt-4"><span className="workspace-pill">{feedLabel(analysis?.dataStatus || 'UNAVAILABLE')}</span></div>
+              <button onClick={() => setView('Structure')} className="workspace-primary-button">Explore the evidence <ArrowUpRight size={14}/></button>
+            </section>
+            <section className="workspace-panel"><div className="workspace-panel-heading"><h2>Market watch</h2><Layers size={16} className="text-[var(--text-muted)]"/></div>
+              {displayIndices.map(quote => <button type="button" className="workspace-watch-row" key={quote.symbol} onClick={() => { if (quote.symbol !== 'INDIA VIX') setSelectedIndex(quote.symbol); }}><span><b>{quote.symbol}</b><small>{feedLabel(quote.dataStatus || 'UNAVAILABLE')}</small></span><span><b>{quote.currentValue ? quote.currentValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</b>{typeof quote.changePercent === 'number' && <small style={{ color: quote.changePercent >= 0 ? 'var(--bullish)' : 'var(--bearish)' }}>{quote.changePercent >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%</small>}</span></button>)}
+              <Link className="workspace-text-link" href={`/option-chain?symbol=${encodeURIComponent(selectedIndex)}`}>Explore option chain <ArrowRight size={14}/></Link>
+            </section>
+          </aside>
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">{analysis?.sentiment && <MarketSentimentPanel sentiment={analysis.sentiment}/>}<section className="workspace-panel"><div className="workspace-panel-heading"><h2>Your paper workspace</h2><Wallet size={18}/></div><p className="text-xs leading-7 text-[var(--text-secondary)]">Practice entries, review open positions and follow the risk checks using virtual capital. Live broker order routing remains disabled.</p><Link className="workspace-text-link" href="/paper-trading">Open paper trading <ArrowRight size={14}/></Link></section></div>
+      </div>}
+      {view === 'Signals' && <div className="space-y-6">
+        {marketState && <MarketStatePanel data={marketState}/>}
+        <SignalActivationPanel data={activeSignalData} selectedBias={selectedSignalBias} onSelectBias={setSelectedSignalBias} onOpenTimeline={() => { if (trackedSignals.length) setSelectedTimelineSignalId(trackedSignals[0].id); }}/>
+        <ActiveSignalTracker signals={trackedSignals} onSelectSignalTimeline={setSelectedTimelineSignalId} onSelectFailureAnalysis={setSelectedFailureSignalId}/>
+        {analysis?.todayOptionsSetups && <OptionsSetupsCard data={analysis.todayOptionsSetups}/>}
+      </div>}
+      {view === 'Structure' && <div className="space-y-6">
+        {marketState && <MarketStatePanel data={marketState}/>}
+        <div className="workspace-overview-grid"><div className="workspace-stack">{analysis?.smcAnalysis && <SmartMoneyConceptsCard data={analysis.smcAnalysis}/>}{analysis?.patterns && <ChartPatternsCard patterns={analysis.patterns}/>}</div><div>{analysis?.supportResistance && <SupportResistanceLadderView data={analysis.supportResistance} currentPrice={currentPrice}/>}</div></div>
+        {!analysis && <div className="workspace-empty">Market structure is unavailable until the analysis feed responds.</div>}
+      </div>}
+      {view === 'Outlook' && <div className="space-y-6">
+        {(analysis?.nextSessionRecommendation || overview?.nextSessionRecommendation) && <NextSessionRecommendationCard data={analysis?.nextSessionRecommendation || overview?.nextSessionRecommendation!} onOpenBacktest={() => setIsBacktestOpen(true)}/>}
+        {(analysis?.nextSessionOpeningOutlook || overview?.nextSessionOpeningOutlook) && <NextSessionOpeningCard outlook={analysis?.nextSessionOpeningOutlook || overview?.nextSessionOpeningOutlook!} indexSymbol={selectedIndex}/>}
+        {analysis?.todayOutlook && analysis?.nextSessionOutlook && <SessionOutlookCard todayData={analysis.todayOutlook} nextSessionData={analysis.nextSessionOutlook}/>}
+        <MarketNewsCard initialSymbol={selectedIndex}/>
+      </div>}
+      {view === 'Learning' && <MLStrategyLearnerPanel indexSymbol={selectedIndex}/>}
+      {view === 'Paper trading' && <PaperTradingSimulator/>}
+    </WorkspaceTabs>
+    <SignalTimelineModal signalId={selectedTimelineSignalId} onClose={() => setSelectedTimelineSignalId(null)}/>
+    <FailureAnalysisModal signalId={selectedFailureSignalId} onClose={() => setSelectedFailureSignalId(null)}/>
+    <NextSessionBacktestModal isOpen={isBacktestOpen} onClose={() => setIsBacktestOpen(false)} symbol={selectedIndex}/>
+  </div>;
 }

@@ -18,17 +18,17 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         <AlertTriangle className="w-6 h-6" />
       </div>
       <div>
-        <h3 className="text-sm font-bold font-mono text-slate-200 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold tabular-nums text-[var(--text-primary)] uppercase tracking-wider">
           {title}
         </h3>
-        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+        <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
           {message}
         </p>
       </div>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-semibold transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] tabular-nums text-xs font-semibold transition-colors shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Try Again</span>

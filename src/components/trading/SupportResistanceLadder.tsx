@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { SupportResistanceLadder, SupportResistanceItem } from '@/types/options';
-import { ShieldCheck, TrendingUp, TrendingDown, Layers, Activity } from 'lucide-react';
-import { formatINR } from '@/lib/utils';
+import { SupportResistanceLadder } from '@/types/options';
+import { Layers, Activity } from 'lucide-react';
+
 
 interface SupportResistanceLadderProps {
   data: SupportResistanceLadder;
@@ -21,21 +21,21 @@ export const SupportResistanceLadderView: React.FC<SupportResistanceLadderProps>
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <Layers className="w-4 h-4 text-blue-500" />
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 flex items-center justify-center">
+            <Layers className="w-4 h-4 text-[var(--accent-blue)]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)] font-mono">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] tabular-nums">
               Support & Resistance Ladder
             </h3>
-            <span className="text-[10px] text-[var(--text-muted)] font-mono">
+            <span className="text-[10px] text-[var(--text-muted)] tabular-nums">
               Price-Action Pivots vs Option-Chain (OI) Walls
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono">
+        <div className="flex items-center gap-3 text-[10px] tabular-nums">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span> Price-Derived
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-blue)]"></span> Price-Derived
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span> Option-Chain (OI)
@@ -55,13 +55,13 @@ export const SupportResistanceLadderView: React.FC<SupportResistanceLadderProps>
             return (
               <div
                 key={idx}
-                className="py-2.5 px-4 rounded-lg bg-blue-600 text-white font-mono flex items-center justify-between shadow-sm my-1"
+                className="py-2.5 px-4 rounded-lg bg-[var(--accent-blue)] text-[var(--accent-on)] tabular-nums flex items-center justify-between shadow-sm my-1"
               >
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 animate-pulse" />
-                  <span className="font-bold text-xs uppercase tracking-wider">Spot Price</span>
+                  <span className="font-semibold text-xs uppercase tracking-wider">Spot Price</span>
                 </div>
-                <span className="text-sm font-bold tracking-tight">₹{currentPrice.toLocaleString('en-IN')}</span>
+                <span className="text-sm font-semibold tracking-tight">₹{currentPrice.toLocaleString('en-IN')}</span>
               </div>
             );
           }
@@ -69,7 +69,7 @@ export const SupportResistanceLadderView: React.FC<SupportResistanceLadderProps>
           return (
             <div
               key={idx}
-              className={`p-3 rounded-lg border font-mono transition-all flex items-center justify-between ${
+              className={`p-3 rounded-lg border tabular-nums transition-all flex items-center justify-between ${
                 isOptionChain
                   ? 'bg-amber-500/5 border-amber-500/30'
                   : isResistance
@@ -79,7 +79,7 @@ export const SupportResistanceLadderView: React.FC<SupportResistanceLadderProps>
             >
               <div className="flex items-center gap-3">
                 <span
-                  className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${
                     isOptionChain
                       ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
                       : isResistance
@@ -100,7 +100,7 @@ export const SupportResistanceLadderView: React.FC<SupportResistanceLadderProps>
               </div>
 
               <div className="text-right">
-                <div className="text-xs font-bold text-[var(--text-primary)]">
+                <div className="text-xs font-semibold text-[var(--text-primary)]">
                   ₹{item.price.toLocaleString('en-IN')}
                 </div>
                 <div

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { useSpring } from 'framer-motion';
 
 interface AnimatedNumberProps {
   value: number;
@@ -42,7 +42,7 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
   }).format(displayValue);
 
   return (
-    <span className={`font-mono inline-block tabular-nums ${className}`}>
+    <span className={`tabular-nums inline-block tabular-nums ${className}`}>
       {prefix}
       {formatted}
       {suffix}
