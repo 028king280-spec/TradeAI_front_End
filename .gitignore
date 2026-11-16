@@ -56,3 +56,6 @@ backend/*/*/__pycache__/
 *.log
 backend/.env
 backend/scratch/
+
+push_to_github.bat
+
