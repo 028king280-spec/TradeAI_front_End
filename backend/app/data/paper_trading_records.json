@@ -1,7 +1,57 @@
 {
-  "balance": 105525.0,
+  "balance": 91933.5,
   "startingBalance": 100000.0,
-  "openPositions": [],
+  "openPositions": [
+    {
+      "id": "PT-2057B421",
+      "instrument": "NIFTY 50",
+      "contractSymbol": "NIFTY23NOV2625350CE",
+      "bias": "CE",
+      "positionType": "BUY",
+      "strike": 25350.0,
+      "expiry": "23NOV2026",
+      "lots": 1,
+      "initialLots": 1,
+      "lotSize": 65,
+      "quantity": 65,
+      "remainingQuantity": 65,
+      "entryPremium": 209.1,
+      "currentPremium": 209.1,
+      "lastQuoteTimestamp": "17 Nov 2026, 01:13 PM IST",
+      "lastDataStatus": "VERIFIED_LIVE",
+      "stopLoss": 180.0,
+      "initialStopLoss": 180.0,
+      "target1": 245.0,
+      "target2": 275.0,
+      "target3": 310.0,
+      "strategy": "Model A (Liquidity Sweep & Retest at 25,350 Demand)",
+      "ictSetup": "Discount Demand Reclaim + FVG 50% CE",
+      "marginUsed": 13591.5,
+      "status": "OPEN",
+      "entryTimestamp": "17 Nov 2026, 01:13 PM IST",
+      "mfePts": 0.0,
+      "mfeRupees": 0.0,
+      "maePts": 0.0,
+      "maeRupees": 0.0,
+      "highestObservedPremium": 209.1,
+      "lowestObservedPremium": 209.1,
+      "partialExits": [],
+      "marketFeaturesAtEntry": {
+        "underlyingSpot": 25360.5,
+        "vix": 15.36,
+        "marketRegime": "SIDEWAYS_ACCUMULATION",
+        "confluenceScore": 62.0,
+        "demandLevel": 25350.0
+      },
+      "greeks": null,
+      "underlyingSpot": null,
+      "rupeeDelta": null,
+      "rupeeGamma": null,
+      "dailyTheta": null,
+      "rupeeVega": null,
+      "greeksSizing": null
+    }
+  ],
   "pendingOrders": [],
   "closedTrades": [
     {
@@ -133,6 +183,6 @@
   "totalTradingCosts": 149.75,
   "winCount": 1,
   "lossCount": 0,
-  "stateVersion": 66,
-  "lastUpdated": "05 Nov 2026, 10:32 PM IST"
+  "stateVersion": 67,
+  "lastUpdated": "17 Nov 2026, 01:13 PM IST"
 }

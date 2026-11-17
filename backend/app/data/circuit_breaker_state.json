@@ -1,16 +1,23 @@
 {
-  "configuredBudgetINR": null,
-  "budgetApprovedBy": null,
-  "budgetApprovalReference": null,
-  "budgetApprovalReason": null,
-  "budgetApprovalDate": null,
+  "configuredBudgetINR": 10000.0,
+  "budgetApprovedBy": "QUANT_RISK_COMMITTEE",
+  "budgetApprovalReference": "GOV-LIVE-2026-11-17-01",
+  "budgetApprovalReason": "Live market accuracy evaluation session 2026-11-17",
+  "budgetApprovalDate": "17 Nov 2026, 11:19 AM IST",
   "activeBreach": null,
   "historicalBreaches": [],
-  "consumedApprovalReferences": [
-    "MOCK-ACTIVE-001",
-    "GOV-RISK-2026-TEST"
-  ],
   "configurationAuditLog": [
+    {
+      "id": "CFG-E41C6A91",
+      "timestamp": "17 Nov 2026, 11:19 AM IST",
+      "actor": "QUANT_RISK_COMMITTEE",
+      "approvalReference": "GOV-LIVE-2026-11-17-01",
+      "reason": "Live market accuracy evaluation session 2026-11-17",
+      "action": "CONFIGURE_BUDGET",
+      "outcome": "SUCCESS",
+      "previousBudgetINR": null,
+      "newBudgetINR": 10000.0
+    },
     {
       "id": "CFG-SECURITY-PURGE-01",
       "timestamp": "14 Nov 2026, 05:40 PM IST",
@@ -50,5 +57,9 @@
       "newBudgetINR": 5000.0
     }
   ],
-  "lastUpdated": "14 Nov 2026, 05:40 PM IST"
+  "consumedApprovalReferences": [
+    "GOV-RISK-2026-TEST",
+    "MOCK-ACTIVE-001"
+  ],
+  "lastUpdated": "17 Nov 2026, 11:19 AM IST"
 }

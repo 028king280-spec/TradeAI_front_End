@@ -66,8 +66,8 @@ def main():
         # 3. Check Live Market Feed (Index Quotes)
         market_data, market_ms, market_err = fetch_json("http://127.0.0.1:8000/api/market/live")
 
-        # 4. Check Paper Trading Account Status
-        paper_data, paper_ms, paper_err = fetch_json("http://127.0.0.1:8000/api/paper-trading/account")
+        # 4. Check Paper Trading Portfolio Status
+        paper_data, paper_ms, paper_err = fetch_json("http://127.0.0.1:8000/api/paper-trading/portfolio")
 
         # 5. Check Frontend Status
         fe_ok, fe_ms, fe_err = check_frontend("http://localhost:3000", timeout=3)
@@ -117,9 +117,14 @@ def main():
         # Parse Paper Trading Invariants
         balance_str = "₹1,00,000.00"
         positions_cnt = 0
-        if paper_data and "data" in paper_data:
-            balance_str = f"₹{paper_data['data'].get('availableMargin', 100000):,.2f}"
-            positions_cnt = len(paper_data['data'].get('activePositions', []))
+        open_pos_info = ""
+        if paper_data and isinstance(paper_data, dict):
+            balance_str = f"₹{paper_data.get('currentBalance', 100000):,.2f}"
+            open_pos = paper_data.get('openPositions', [])
+            positions_cnt = len(open_pos)
+            if positions_cnt > 0:
+                p0 = open_pos[0]
+                open_pos_info = f" | Active Pos: {p0.get('contractSymbol')} ({p0.get('quantity')} qty @ ₹{p0.get('entryPremium')}) Curr=₹{p0.get('currentPremium')} PnL=₹{p0.get('unrealizedGrossPnl', 0.0):+0.1f}"
 
         # Status Summary Line
         status_flag = "HEALTHY" if (obs_err is None and (staleness or 0.0) < 5.0 and fe_ok) else "ATTENTION"
@@ -127,7 +132,7 @@ def main():
         log_line(
             f"#{iteration:04d} [{status_flag}] WS: {ws_status} | Ticks: {ticks_total:,} {tick_delta_str} (last tick: {staleness:.2f}s ago) | "
             f"NIFTY: {nifty_str} | BANKNIFTY: {bank_str} | VIX: {vix_str} | "
-            f"Paper Margin: {balance_str} (Pos: {positions_cnt}) | Latency: BE={health_ms}ms, FE={fe_ms}ms"
+            f"Paper Margin: {balance_str} (Pos: {positions_cnt}){open_pos_info} | Latency: BE={health_ms}ms, FE={fe_ms}ms"
         )
 
         # Verification Invariant Check
