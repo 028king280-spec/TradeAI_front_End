@@ -591,6 +591,28 @@ async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Dep
     except Exception as e:
         logger.warning(f"[OptionsRoute] Circuit breaker query notice: {e}")
 
+    # Independent research evaluation uses the same market snapshot, with no order writes.
+    research_setup = None
+    try:
+        from app.options.research_setup_engine import evaluate_research_setup
+        from app.models.db_models import ResearchSetupEvaluationRecord
+        research_setup = await evaluate_research_setup(
+            clean, provider, quote,
+            {"1h": candles_1h, "15m": candles_df, "5m": candles_5m, "1m": candles_1m}, chain,
+        )
+        if isinstance(session, AsyncSession):
+            saved_payload = dict(research_setup, journalSaved=True)
+            session.add(ResearchSetupEvaluationRecord(
+                id=research_setup["id"], engine_id=research_setup["engineId"], symbol=clean,
+                qualified=research_setup["qualified"], payload=saved_payload,
+            ))
+            await session.commit()
+            research_setup["journalSaved"] = True
+    except Exception as exc:
+        if isinstance(session, AsyncSession):
+            await session.rollback()
+        logger.warning("Independent research setup evaluation unavailable: %s", exc)
+
     # Next-Session Recommendation Engine
     next_session_rec = evaluate_next_session_recommendation(
         symbol=clean,
@@ -639,6 +661,7 @@ async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Dep
         "nextSessionRecommendation": next_session_rec,
         "patterns": patterns,
         "todayOptionsSetups": setups,
+        "researchSetup": research_setup,
         "smcAnalysis": smc_analysis,
         "circuitBreaker": cb_status,
         "dataQualityReport": data_quality_report,

@@ -519,3 +519,14 @@ class DailyPerformanceRecord(Base):
     metrics_payload = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
 
+
+
+class ResearchSetupEvaluationRecord(Base):
+    """Separate research observations; never counted as production signals or fills."""
+    __tablename__ = "research_setup_evaluations"
+    id = Column(String(36), primary_key=True)
+    engine_id = Column(String(50), nullable=False, index=True)
+    symbol = Column(String(30), nullable=False, index=True)
+    evaluated_at = Column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
+    qualified = Column(Boolean, nullable=False)
+    payload = Column(JSON, nullable=False)

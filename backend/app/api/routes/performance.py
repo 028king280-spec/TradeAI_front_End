@@ -491,3 +491,34 @@ async def export_daily_performance_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=aivolve_signals_{date}.csv"}
     )
+
+
+@router.get("/research-evaluations")
+async def get_research_evaluations(
+    date: Optional[str] = Query(None),
+    symbol: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    session: AsyncSession = Depends(get_db),
+):
+    """Paginated research observations, separate from production performance."""
+    from app.models.db_models import ResearchSetupEvaluationRecord
+    from app.options.research_setup_engine import ENGINE_ID
+    try:
+        day = datetime.strptime(date, "%Y-%m-%d").date() if date else MarketCalendar.now_ist().date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    start, end = ist_day_bounds(day)
+    query = select(ResearchSetupEvaluationRecord).where(
+        ResearchSetupEvaluationRecord.engine_id == ENGINE_ID,
+        ResearchSetupEvaluationRecord.evaluated_at >= start,
+        ResearchSetupEvaluationRecord.evaluated_at < end,
+    )
+    if symbol:
+        query = query.where(ResearchSetupEvaluationRecord.symbol == symbol)
+    count = (await session.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
+    rows = (await session.execute(query.order_by(
+        ResearchSetupEvaluationRecord.evaluated_at.desc(), ResearchSetupEvaluationRecord.id
+    ).offset(offset).limit(limit))).scalars().all()
+    return {"engineId": ENGINE_ID, "date": day.isoformat(), "count": count,
+            "limit": limit, "offset": offset, "evaluations": [row.payload for row in rows]}
