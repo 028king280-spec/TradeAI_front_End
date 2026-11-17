@@ -183,27 +183,26 @@ class InstrumentMaster:
         if not expiries:
             return None
 
-        # If expiry not provided, select the nearest active expiry
-        chosen_expiry = expiry if expiry and expiry in expiries else expiries[0]
-
-        # Query exact contract
         rounded_strike = round(float(strike), 2)
         target_opt = option_type.upper().strip()
 
-        contract = self._options_by_spec.get((key_und, chosen_expiry, rounded_strike, target_opt))
-        if contract:
-            return contract
+        # Search across active expiries (starting with preferred/nearest)
+        target_expiries = [expiry] if (expiry and expiry in expiries) else expiries
+        for cand_exp in target_expiries:
+            contract = self._options_by_spec.get((key_und, cand_exp, rounded_strike, target_opt))
+            if contract:
+                return contract
 
-        # If exact strike match failed (e.g. due to minor float rounding), search nearest strike
-        candidates = [
-            (spec, item) for spec, item in self._options_by_spec.items()
-            if spec[0] == key_und and spec[1] == chosen_expiry and spec[3] == target_opt
-        ]
-        if candidates:
-            best_match = min(candidates, key=lambda c: abs(c[0][2] - rounded_strike))
-            # Only match if within 1 strike step
-            if abs(best_match[0][2] - rounded_strike) <= 5.0:
-                return best_match[1]
+        # If exact strike match failed across expiries, search nearest strike within 5 points
+        for cand_exp in target_expiries:
+            candidates = [
+                (spec, item) for spec, item in self._options_by_spec.items()
+                if spec[0] == key_und and spec[1] == cand_exp and spec[3] == target_opt
+            ]
+            if candidates:
+                best_match = min(candidates, key=lambda c: abs(c[0][2] - rounded_strike))
+                if abs(best_match[0][2] - rounded_strike) <= 5.0:
+                    return best_match[1]
 
         return None
 
@@ -232,7 +231,16 @@ class InstrumentMaster:
         if not expiries:
             return []
 
-        chosen_expiry = expiry if expiry and expiry in expiries else expiries[0]
+        chosen_expiry = expiry
+        if not chosen_expiry or chosen_expiry not in expiries:
+            # Pick first expiry that actually has strikes around atm_strike
+            for exp in expiries:
+                if (key_und, exp, round(atm_strike, 2), "CE") in self._options_by_spec or \
+                   (key_und, exp, round(atm_strike, 2), "PE") in self._options_by_spec:
+                    chosen_expiry = exp
+                    break
+            if not chosen_expiry:
+                chosen_expiry = expiries[0]
         results = []
 
         strike_range = range(-num_strikes, num_strikes + 1)

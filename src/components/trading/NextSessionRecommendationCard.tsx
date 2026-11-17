@@ -305,15 +305,15 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-                <span className="text-[10px] text-[var(--text-muted)] block font-medium">Max Risk / Lot ({rec.financialImpact?.lotSize || 25} qty)</span>
+                <span className="text-[10px] text-[var(--text-muted)] block font-medium">Max Risk / Lot ({rec.financialImpact?.lotSize || (rec as any).lotSize || 25} qty)</span>
                 <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
-                  ₹{rec.financialImpact?.maxRiskINR?.toLocaleString('en-IN') || '—'}
+                  ₹{rec.financialImpact?.maxRiskINR?.toLocaleString('en-IN') || (rec as any).maxRiskPerLotINR?.toLocaleString('en-IN') || '—'}
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
                 <span className="text-[10px] text-[var(--text-muted)] block font-medium">Potential Gain / Lot (Target 2)</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  ₹{rec.financialImpact?.potentialRewardINR?.toLocaleString('en-IN') || '—'}
+                  ₹{rec.financialImpact?.potentialRewardINR?.toLocaleString('en-IN') || (rec as any).potentialGainPerLotINR?.toLocaleString('en-IN') || '—'}
                 </span>
               </div>
             </div>

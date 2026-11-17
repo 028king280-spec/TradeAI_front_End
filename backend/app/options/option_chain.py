@@ -73,7 +73,14 @@ def generate_index_option_chain(
     real_expiries = master.get_expiries(und_key)
     if real_expiries:
         expiries = real_expiries[:8]
-        selected_expiry = expiry if expiry and expiry in real_expiries else real_expiries[0]
+        selected_expiry = expiry
+        if not selected_expiry or selected_expiry not in real_expiries:
+            for exp in real_expiries:
+                if (und_key, exp, round(atm_strike, 2), "CE") in master._options_by_spec:
+                    selected_expiry = exp
+                    break
+            if not selected_expiry:
+                selected_expiry = real_expiries[0]
     else:
         expiries = ["Current Weekly Expiry", "Next Weekly Expiry", "Current Month Expiry"]
         selected_expiry = expiries[0]
