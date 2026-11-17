@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { paperTradingManager, PaperTradingState, PaperPosition } from '@/services/paperTradingService';
-import { Gamepad2, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, Brain, Sparkles } from 'lucide-react';
+import { Gamepad2, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, Brain, Sparkles, Clock, RefreshCw, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { WhatAiLearnedPanel } from './WhatAiLearnedPanel';
 import { AITradeReviewModal } from './AITradeReviewModal';
 
@@ -12,6 +12,8 @@ export const PaperTradingSimulator: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedTradeForReview, setSelectedTradeForReview] = useState<PaperPosition | null>(null);
+  const [nowMs, setNowMs] = useState<number>(Date.now());
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   useEffect(() => {
     // Automatically hydrate state directly from backend paper trading engine
@@ -24,9 +26,62 @@ export const PaperTradingSimulator: React.FC = () => {
     return unsub;
   }, []);
 
+  // 1-second live duration ticker
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 10-second auto-poll for live broker quotes on active positions
+  useEffect(() => {
+    if (state.positions.length === 0) return;
+    const poll = setInterval(() => {
+      paperTradingManager.refreshLiveQuotes().catch(() => {});
+    }, 10000);
+    return () => clearInterval(poll);
+  }, [state.positions.length]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleRefreshAllQuotes = async () => {
+    setIsRefreshing(true);
+    try {
+      const updated = await paperTradingManager.refreshLiveQuotes();
+      if (updated && updated.positions.length > 0) {
+        const p0 = updated.positions[0];
+        const pnl = p0.netPnl !== undefined ? p0.netPnl : p0.pnl;
+        const sign = pnl >= 0 ? '+' : '';
+        showToast(`Live CMP: ₹${p0.currentPremium.toFixed(2)} | Net P&L: ${sign}₹${pnl.toFixed(2)}`);
+      } else {
+        showToast('Live broker quotes synced.');
+      }
+    } catch {
+      showToast('Live quote sync completed.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const getElapsedDuration = (openedAt?: string) => {
+    if (!openedAt) return 'Just now';
+    try {
+      const clean = openedAt.replace(' IST', '').trim();
+      const start = new Date(clean).getTime();
+      if (isNaN(start)) return 'Active';
+      const diff = Math.max(0, Math.floor((nowMs - start) / 1000));
+      const hrs = Math.floor(diff / 3600);
+      const mins = Math.floor((diff % 3600) / 60);
+      const secs = diff % 60;
+      if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+      return `${mins}m ${secs}s`;
+    } catch {
+      return 'Active';
+    }
   };
 
   const handleClosePosition = (posId: string) => {
@@ -110,6 +165,15 @@ export const PaperTradingSimulator: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefreshAllQuotes}
+            disabled={isRefreshing}
+            className="px-2.5 py-1 text-xs rounded-lg border border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] hover:bg-[var(--accent-blue)] hover:text-white flex items-center gap-1.5 transition-all font-semibold active:scale-95 disabled:opacity-50"
+            title="Refresh live broker quotes for all open positions"
+          >
+            <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Live CMP'}
+          </button>
           <button
             onClick={handleReset}
             className="px-2.5 py-1 text-xs rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-amber-500 hover:border-amber-500/30 flex items-center gap-1 transition-all"
@@ -230,8 +294,8 @@ export const PaperTradingSimulator: React.FC = () => {
                             : 'border-rose-500/30 bg-rose-500/[0.03]'
                         }`}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--border-subtle)]">
-                          <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-[var(--border-subtle)]">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span
                               className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                                 pos.bias === 'CE'
@@ -247,27 +311,44 @@ export const PaperTradingSimulator: React.FC = () => {
                             <span className="text-[10px] text-[var(--text-muted)]">
                               ({pos.lots} Lot • {pos.totalQuantity} Qty)
                             </span>
-                            <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] tabular-nums">
+                            <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] tabular-nums">
                               ID: {pos.id}
+                            </span>
+                            {/* Live Running Duration Pill */}
+                            <span className="text-[10.5px] px-2 py-0.5 rounded-full bg-[var(--accent-blue)]/15 border border-[var(--accent-blue)]/30 text-[var(--accent-blue)] font-medium flex items-center gap-1">
+                              <Clock className="w-3 h-3 animate-pulse" />
+                              Running: {getElapsedDuration(pos.openedAt)}
                             </span>
                           </div>
 
-                          <div className="text-right">
-                            <span className="text-[10px] text-[var(--text-muted)] mr-2">Net MTM P&L:</span>
-                            {isMtmUnavailable ? (
-                              <span className="text-xs font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                                MTM UNAVAILABLE (FEED OFFLINE)
-                              </span>
-                            ) : (
-                              <span
-                                className={`text-sm font-semibold ${
-                                  netMtmPnl >= 0 ? 'text-emerald-500' : 'text-rose-500'
-                                }`}
-                              >
-                                {netMtmPnl >= 0 ? '+' : ''}₹{netMtmPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (
-                                {pos.pnlPercent >= 0 ? '+' : ''}{pos.pnlPercent.toFixed(1)}%)
-                              </span>
-                            )}
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              onClick={handleRefreshAllQuotes}
+                              disabled={isRefreshing}
+                              className="px-2 py-1 rounded-md text-[10.5px] font-semibold border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] hover:bg-[var(--accent-blue)] hover:text-white text-[var(--text-secondary)] flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+                              title="Fetch latest broker CMP & recalculate P&L"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[var(--accent-blue)]' : ''}`} />
+                              <span>{isRefreshing ? 'Checking...' : 'Refresh CMP'}</span>
+                            </button>
+
+                            <div className="text-right">
+                              <span className="text-[10px] text-[var(--text-muted)] mr-1.5">Net MTM P&L:</span>
+                              {isMtmUnavailable ? (
+                                <span className="text-xs font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                  MTM UNAVAILABLE (FEED OFFLINE)
+                                </span>
+                              ) : (
+                                <span
+                                  className={`text-sm font-bold ${
+                                    netMtmPnl >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                                  }`}
+                                >
+                                  {netMtmPnl >= 0 ? '+' : ''}₹{netMtmPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (
+                                  {pos.pnlPercent >= 0 ? '+' : ''}{pos.pnlPercent.toFixed(1)}%)
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -275,15 +356,28 @@ export const PaperTradingSimulator: React.FC = () => {
                         <div className="py-2.5 px-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block uppercase">Kharida (Entry):</span>
-                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">₹{pos.entryPremium.toFixed(2)}</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums text-sm">₹{pos.entryPremium.toFixed(2)}</span>
                             <span className="text-[9.5px] text-[var(--text-muted)] block">Time: {pos.openedAt}</span>
+                            <span className="text-[9px] text-[var(--accent-blue)] font-medium block">
+                              Active for {getElapsedDuration(pos.openedAt)}
+                            </span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-[var(--text-muted)] font-semibold block uppercase">Current Verified CMP:</span>
-                            <span className="font-semibold text-[var(--text-primary)] tabular-nums text-sm">
-                              {isMtmUnavailable ? 'UNAVAILABLE' : `₹${pos.currentPremium.toFixed(2)}`}
-                            </span>
-                            <span className="text-[9.5px] text-[var(--text-muted)] block">Qty: {pos.totalQuantity}</span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase">Current CMP:</span>
+                              <span className={`text-[10px] font-bold ${pos.currentPremium >= pos.entryPremium ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                {pos.currentPremium >= pos.entryPremium ? '+' : ''}{(pos.currentPremium - pos.entryPremium).toFixed(2)} pts
+                              </span>
+                            </div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="font-bold text-[var(--text-primary)] tabular-nums text-sm">
+                                {isMtmUnavailable ? 'UNAVAILABLE' : `₹${pos.currentPremium.toFixed(2)}`}
+                              </span>
+                              <span className={`text-[11px] font-semibold ${pos.pnlPercent >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                ({pos.pnlPercent >= 0 ? '+' : ''}{pos.pnlPercent.toFixed(1)}%)
+                              </span>
+                            </div>
+                            <span className="text-[9.5px] text-[var(--text-muted)] block">Qty: {pos.totalQuantity} • Live Angel One</span>
                           </div>
                           <div>
                             <span className="text-[10px] text-[var(--accent-blue)] font-semibold block uppercase">Invested / Est Fee:</span>

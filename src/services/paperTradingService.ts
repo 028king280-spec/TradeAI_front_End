@@ -508,6 +508,22 @@ class PaperTradingManager {
   }
 
   /**
+   * Force re-fetch of live broker quotes from the backend engine.
+   */
+  public async refreshLiveQuotes(): Promise<PaperTradingState | null> {
+    if (typeof window === 'undefined') return null;
+    try {
+      const res = await fetch('/api/paper-trading/refresh-quotes', { method: 'POST' });
+      if (res.ok) {
+        return this.syncWithBackend();
+      }
+    } catch (e) {
+      console.warn('Paper trading refresh quotes fallback:', e);
+    }
+    return this.syncWithBackend();
+  }
+
+  /**
    * Sync local paper trading state with the FastAPI backend engine.
    */
   public async syncWithBackend(): Promise<PaperTradingState | null> {

@@ -648,24 +648,36 @@ class PaperTradingEngine:
 
                 # Auto Exit Checks
                 if pos_type == "BUY":
-                    if low_val <= sl and sl > 0:
+                    if ltp <= sl and sl > 0:
                         return self.close_position(matched["id"], exit_price=sl, exit_reason="Stop Loss Hit")
                     t2 = matched.get("target2", 0.0)
-                    if high_val >= t2 and t2 > 0:
+                    if (ltp >= t2 or high_val >= t2) and t2 > 0:
                         return self.close_position(matched["id"], exit_price=t2, exit_reason="Target 2 Hit")
-                    if high_val >= t1 and t1 > 0 and not matched.get("partialExits"):
+                    if (ltp >= t1 or high_val >= t1) and t1 > 0 and not matched.get("partialExits"):
                         if matched["lots"] > 1:
                             exit_lots = max(1, matched["lots"] // 2)
                             self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
                             matched["stopLoss"] = matched["entryPremium"]
                             matched["status"] = "TARGET_1_HIT"
                         else:
-                            return self.close_position(matched["id"], exit_price=t1, exit_reason="Target 1 Hit")
+                            # Target 1 Hit: Auto-trail SL to entry cost for risk-free runner, keep position open for Target 2
+                            matched["status"] = "TARGET_1_HIT"
+                            matched["stopLoss"] = max(matched.get("stopLoss", 0.0), matched["entryPremium"])
                 else:
-                    if high_val >= sl and sl > 0:
+                    if ltp >= sl and sl > 0:
                         return self.close_position(matched["id"], exit_price=sl, exit_reason="Stop Loss Hit")
-                    if low_val <= t1 and t1 > 0:
-                        return self.close_position(matched["id"], exit_price=t1, exit_reason="Target 1 Hit")
+                    t2 = matched.get("target2", 0.0)
+                    if (ltp <= t2 or low_val <= t2) and t2 > 0:
+                        return self.close_position(matched["id"], exit_price=t2, exit_reason="Target 2 Hit")
+                    if (ltp <= t1 or low_val <= t1) and t1 > 0 and not matched.get("partialExits"):
+                        if matched["lots"] > 1:
+                            exit_lots = max(1, matched["lots"] // 2)
+                            self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
+                            matched["stopLoss"] = matched["entryPremium"]
+                            matched["status"] = "TARGET_1_HIT"
+                        else:
+                            matched["status"] = "TARGET_1_HIT"
+                            matched["stopLoss"] = min(matched.get("stopLoss", 999999.0), matched["entryPremium"])
 
             self._save_state()
 

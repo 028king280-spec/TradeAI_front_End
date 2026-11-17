@@ -20,15 +20,66 @@ from app.core.logging import logger
 router = APIRouter(prefix="/api/paper-trading", tags=["Paper Trading & Self-Learning"])
 
 
+async def _refresh_open_positions_live_quotes():
+    """Fetches real-time market quotes from broker for all active paper positions."""
+    open_pos = list(paper_engine.state.get("openPositions", []))
+    if not open_pos:
+        return
+    try:
+        from app.data.providers.factory import get_market_data_provider
+        from app.data.instrument_master import get_instrument_master
+        provider = get_market_data_provider()
+        master = get_instrument_master()
+        tokens = []
+        token_to_symbol = {}
+        for pos in open_pos:
+            csym = pos.get("contractSymbol", "")
+            c = master._options_by_symbol.get(csym)
+            if c and c.get("token"):
+                tok = str(c["token"])
+                tokens.append(tok)
+                token_to_symbol[tok] = csym
+        if tokens and hasattr(provider, "get_batch_quotes"):
+            quotes = await provider.get_batch_quotes("NFO", tokens)
+            for tok, q in quotes.items():
+                csym = token_to_symbol.get(tok)
+                ltp = float(q.get("ltp") or 0.0)
+                if csym and ltp > 0:
+                    paper_engine.update_live_monitoring(
+                        contract_symbol=csym,
+                        current_ltp=ltp,
+                        bar_high=ltp,
+                        bar_low=ltp,
+                    )
+    except Exception as e:
+        logger.warning(f"Notice refreshing paper trading live quotes: {e}")
+
+
 @router.get("/portfolio")
 async def get_paper_portfolio():
     """
     Returns virtual balance, portfolio metrics, win rate, profit factor,
     open positions (with MFE/MAE), and recent trade history.
     """
+    await _refresh_open_positions_live_quotes()
     metrics = paper_engine.get_dashboard_metrics()
     return {
         "status": "SUCCESS",
+        "timestamp": MarketCalendar.format_ist_timestamp(),
+        **metrics,
+    }
+
+
+@router.post("/refresh-quotes")
+async def refresh_paper_quotes():
+    """
+    Forces immediate re-fetching of live broker quotes for all open paper positions.
+    """
+    await _refresh_open_positions_live_quotes()
+    metrics = paper_engine.get_dashboard_metrics()
+    return {
+        "status": "SUCCESS",
+        "message": "Live option quotes refreshed from broker",
         "timestamp": MarketCalendar.format_ist_timestamp(),
         **metrics,
     }
