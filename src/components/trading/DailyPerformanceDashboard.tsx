@@ -5,14 +5,16 @@ import { BarChart3, Calendar, Download, RefreshCw } from 'lucide-react';
 
 export const DailyPerformanceDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
   });
   const [selectedSymbol, setSelectedSymbol] = useState<string>('ALL');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<any>(null);
   const [historyList, setHistoryList] = useState<any[]>([]);
+  const [evaluations, setEvaluations] = useState<{ count: number; evaluations: Array<{ timeUtc: string; symbol: string; dataStatus: string; action: string; qualified: boolean; reasons: string[] }> } | null>(null);
 
   const fetchPerformance = async () => {
     setLoading(true);
@@ -31,8 +33,12 @@ export const DailyPerformanceDashboard: React.FC = () => {
       if (histJson.success) {
         setHistoryList(histJson.data.history || []);
       }
+      const evalRes = await fetch(`/api/performance/evaluations?date=${selectedDate}${symParam}`);
+      if (evalRes.ok) setEvaluations(await evalRes.json());
+      else setEvaluations(null);
     } catch (err) {
       console.error('Failed to load daily performance:', err);
+      setEvaluations(null);
     } finally {
       setLoading(false);
     }
@@ -111,6 +117,11 @@ export const DailyPerformanceDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {evaluations && <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-secondary)]">
+        <strong>Analysis evaluations: {evaluations.count}</strong> (includes NO TRADE checks; these are not generated signals or executed trades).
+        {evaluations.evaluations[0] && <p className="mt-2">Latest: {evaluations.evaluations[0].symbol} — {evaluations.evaluations[0].dataStatus} — {evaluations.evaluations[0].action}. {evaluations.evaluations[0].reasons.slice(0, 2).join('; ') || 'No rejection reason recorded.'}</p>}
+      </div>}
 
       {loading && !data ? (
         <div className="py-20 text-center space-y-3">
