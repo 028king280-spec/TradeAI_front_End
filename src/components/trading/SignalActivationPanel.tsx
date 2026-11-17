@@ -83,7 +83,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
     : 0;
 
   const totalClosed = paperState.winCount + paperState.lossCount;
-  const currentWinRate = totalClosed > 0 ? Math.round((paperState.winCount / totalClosed) * 100) : 78;
+  const currentWinRate = totalClosed > 0 ? `${Math.round((paperState.winCount / totalClosed) * 100)}%` : 'N/A';
 
   // Handlers for Paper Trading Buy & Sell at Target
   const handleBuyMarket = () => {
@@ -151,7 +151,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
     ? { text: 'PUT SETUP ACTIVE', bg: 'bg-rose-500', color: 'text-[var(--text-primary)]' }
     : isEntryTriggered && !isSideways
     ? { text: 'ENTRY TRIGGERED', bg: 'bg-[var(--accent-blue)]', color: 'text-[var(--text-primary)]' }
-    : { text: 'NO TRADE — SIDEWAYS MARKET', bg: 'bg-amber-500', color: 'text-[var(--text-primary)]' };
+    : { text: 'NO QUALIFIED SETUP', bg: 'bg-amber-500', color: 'text-[var(--text-primary)]' };
 
   return (
     <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] overflow-hidden transition-all duration-300">
@@ -349,7 +349,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
                   <span className="text-rose-400 font-semibold">🛡️ {paperState.lossCount} SL Hit</span>
                   <span>•</span>
                   <span className="text-[var(--accent-blue)] font-semibold flex items-center gap-1">
-                    <Brain className="w-3 h-3" /> {currentWinRate}% Win Rate
+                    <Brain className="w-3 h-3" /> {currentWinRate} Win Rate ({totalClosed} closed)
                   </span>
                 </div>
               </div>
@@ -387,7 +387,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
                   <div className="flex items-center gap-2 text-xs tabular-nums text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3.5 py-2 rounded-lg border border-amber-500/25 w-full mb-1">
                     <ShieldAlert className="w-4 h-4 shrink-0 text-amber-500" />
                     <span>
-                      <strong>SIDEWAYS CHOP ZONE:</strong> Breakout ka intezaar hai. Paper trade test karne ke liye aap Live CMP (₹{data!.lastObservedLtp.toFixed(2)}) par Buy / Sell kar sakte hain.
+                      <strong>NO QUALIFIED SETUP:</strong> Check the signal reason and market data before placing a paper trade.
                     </span>
                   </div>
                 )}
@@ -396,6 +396,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
                   <>
                     <button
                       onClick={handleBuyMarket}
+                      disabled={!hasActiveSetup || !Number.isFinite(data!.lastObservedLtp) || data!.lastObservedLtp <= 0}
                       className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-md active:scale-95"
                       title="Buy 1 Lot at Current Market Premium"
                     >
@@ -405,6 +406,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
 
                     <button
                       onClick={handleBuyEntry}
+                      disabled={!hasActiveSetup || !Number.isFinite(data!.lastObservedLtp) || data!.lastObservedLtp <= 0}
                       className="px-3.5 py-2.5 rounded-lg bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
                     >
                       <Crosshair className="w-3.5 h-3.5" />
@@ -413,6 +415,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
 
                     <button
                       onClick={() => handleSellTarget(data!.target1, 'Target 1')}
+                      disabled={!hasActiveSetup || !Number.isFinite(data!.lastObservedLtp) || data!.lastObservedLtp <= 0}
                       className="px-3.5 py-2.5 rounded-lg bg-[var(--bg-surface)] hover:bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all active:scale-95"
                       title="Simulates Target 1 exit and trains the ML model"
                     >
@@ -466,7 +469,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
               <PriceLevelCard
                 label="Entry Zone"
                 value={isSideways ? "LOCKED" : `₹${data!.entryRangeMin.toFixed(0)} — ₹${data!.entryRangeMax.toFixed(0)}`}
-                sublabel={isSideways ? "Await Breakout" : "Ask-calibrated"}
+                sublabel={isSideways ? "Await qualified setup" : "Ask-calibrated"}
                 icon={<Crosshair className="w-3.5 h-3.5" />}
                 color={isSideways ? "amber" : "blue"}
                 actionButton={
@@ -500,7 +503,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
               <PriceLevelCard
                 label={`Target 1 (+${data!.t1GainPct || 30}%)`}
                 value={isSideways ? "DISABLED" : `₹${data!.target1}`}
-                sublabel={isSideways ? "Sideways — No Targets" : `🎯 ${data!.t1Probability || 82}% High Chance (Book 50%)`}
+                sublabel={isSideways ? "No target available" : data!.t1Probability != null ? `🎯 ${data!.t1Probability}% (Book 50%)` : "Probability unavailable"}
                 icon={<Target className="w-3.5 h-3.5" />}
                 color={isSideways ? "amber" : "emerald"}
                 actionButton={
@@ -517,7 +520,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
               <PriceLevelCard
                 label={`Target 2 (+${data!.t2GainPct || 55}%)`}
                 value={isSideways ? "DISABLED" : `₹${data!.target2}`}
-                sublabel={isSideways ? "Theta Decay Risk" : `⚖️ ${data!.t2Probability || 54}% Moderate (Hold Runner)`}
+                sublabel={isSideways ? "No target available" : data!.t2Probability != null ? `⚖️ ${data!.t2Probability}% (Hold Runner)` : "Probability unavailable"}
                 icon={<CircleDot className="w-3.5 h-3.5" />}
                 color={isSideways ? "amber" : "emerald"}
                 actionButton={
@@ -534,7 +537,7 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
               <PriceLevelCard
                 label={`Target 3 (+${data!.t3GainPct || 85}%)`}
                 value={isSideways ? "DISABLED" : `₹${data!.target3}`}
-                sublabel={isSideways ? "Theta Decay Risk" : `⚠️ ${data!.t3Probability || 24}% Low Chance (Trend Day)`}
+                sublabel={isSideways ? "No target available" : data!.t3Probability != null ? `⚠️ ${data!.t3Probability}%` : "Probability unavailable"}
                 icon={<Sparkles className="w-3.5 h-3.5" />}
                 color={isSideways ? "amber" : "rose"}
                 actionButton={
