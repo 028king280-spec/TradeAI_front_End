@@ -689,6 +689,12 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                                 spread = round(max(0.0, best_ask - best_bid), 2)
 
                                 q_dict = {
+                                    # Research fills require real depth and a source timestamp;
+                                    # legacy LTP/time fallbacks above must not authorize a fill.
+                                    "hasExecutableDepth": bool(buy_orders and sell_orders and buy_orders[0].get("price") and sell_orders[0].get("price")),
+                                    "marketTimestampVerified": bool(item.get("exchFeedTime")),
+                                    "bidQuantity": (buy_orders[0].get("quantity") or 0) if buy_orders else 0,
+                                    "askQuantity": (sell_orders[0].get("quantity") or 0) if sell_orders else 0,
                                     "symbolToken": sym_token,
                                     "tradingSymbol": item.get("tradingSymbol"),
                                     "exchange": item.get("exchange", exch_seg),

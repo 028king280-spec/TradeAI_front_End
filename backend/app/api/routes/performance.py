@@ -522,3 +522,37 @@ async def get_research_evaluations(
     ).offset(offset).limit(limit))).scalars().all()
     return {"engineId": ENGINE_ID, "date": day.isoformat(), "count": count,
             "limit": limit, "offset": offset, "evaluations": [row.payload for row in rows]}
+
+
+@router.get("/research-paper")
+async def get_research_paper(session: AsyncSession = Depends(get_db)):
+    """Read-only separate simulated account; no reset or order mutation endpoint."""
+    from app.models.db_models import ResearchPaperAccount, ResearchPaperTrade
+    from app.options.research_paper_engine import ENGINE_ID, INITIAL_CASH, FEE, SLIPPAGE_BPS
+    from app.jobs.research_paper import entries_enabled
+    account = await session.get(ResearchPaperAccount, ENGINE_ID)
+    rows = list((await session.execute(select(ResearchPaperTrade).where(
+        ResearchPaperTrade.engine_id == ENGINE_ID
+    ).order_by(ResearchPaperTrade.opened_at.desc()).limit(100))).scalars())
+    net = (await session.execute(select(func.coalesce(func.sum(ResearchPaperTrade.net_pnl_paise), 0)).where(
+        ResearchPaperTrade.engine_id == ENGINE_ID, ResearchPaperTrade.status == 'CLOSED'
+    ))).scalar_one()
+    count = (await session.execute(select(func.count()).select_from(ResearchPaperTrade).where(
+        ResearchPaperTrade.engine_id == ENGINE_ID
+    ))).scalar_one()
+    return {"engineId": ENGINE_ID, "initialized": account is not None,
+            "autoEntryEnabled": entries_enabled(), "initialCash": (account.initial_cash_paise if account else INITIAL_CASH) / 100,
+            "availableCash": account.cash_paise / 100 if account else None,
+            "realizedNetPnl": net / 100, "totalTrades": count,
+            "costModel": {"feePerSide": FEE / 100, "slippageBps": SLIPPAGE_BPS,
+                          "excludes": "GST and other statutory charges"},
+            "trades": [{"id": row.id, "evaluationId": row.evaluation_id, "symbol": row.symbol,
+                        "contract": row.contract_symbol, "quantity": row.quantity, "status": row.status,
+                        "entry": row.entry_paise / 100, "target": row.target_paise / 100,
+                        "stop": row.stop_paise / 100, "exit": row.exit_paise / 100 if row.exit_paise is not None else None,
+                        "exitReason": row.exit_reason, "netPnl": row.net_pnl_paise / 100 if row.net_pnl_paise is not None else None,
+                        "monitoring": row.monitoring_status, "hadDataGap": row.had_data_gap,
+                        "openedAt": row.opened_at.replace(tzinfo=timezone.utc).isoformat(),
+                        "closedAt": row.closed_at.replace(tzinfo=timezone.utc).isoformat() if row.closed_at else None,
+                        "lastQuoteAt": row.last_quote_at.replace(tzinfo=timezone.utc).isoformat() if row.last_quote_at else None,
+                        } for row in rows]}
