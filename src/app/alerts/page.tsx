@@ -1,5 +1,6 @@
 'use client';
 import { PageHeading } from "@/components/shared/PageHeading";
+import { WhatsAppRecipients } from '@/components/trading/WhatsAppRecipients';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -71,13 +72,14 @@ export default function AlertsConfigPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <PageHeading title="Alerts & notifications" description="Keep your Telegram delivery settings and market notifications in one place." actions={<><Link
+      <PageHeading title="Alerts & notifications" description="Manage your notification settings in one place." actions={<><Link
           href="/"
           className="self-start md:self-auto text-xs tabular-nums text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-3 py-1.5 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] transition-colors"
         >
           ← Return to Dashboard
         </Link></>}/>
 
+      <WhatsAppRecipients />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Configuration Form (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
