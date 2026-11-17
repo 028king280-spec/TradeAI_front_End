@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Activity, BarChart3, TrendingUp, Anchor, Crosshair, Zap, Info, RefreshCw, ArrowUpRight, ArrowDownRight, Gauge, Newspaper, ExternalLink, Clock, Sparkles } from 'lucide-react';
 import { ObserverIntelligenceData, ObserverAsset } from '@/types/observer';
 import { marketDataService } from '@/services/marketDataService';
-import { MOCK_OBSERVER_DATA } from '@/lib/api';
 
 // Senior-grade vector sparkline with gradient area fill
 const SeniorSparkline: React.FC<{
@@ -119,7 +118,7 @@ const DonutChart: React.FC<{
 };
 
 export const GodsEyeObserver: React.FC = () => {
-  const [data, setData] = useState<ObserverIntelligenceData>(MOCK_OBSERVER_DATA);
+  const [data, setData] = useState<ObserverIntelligenceData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAsset, setSelectedAsset] = useState<ObserverAsset | null>(null);
   const [newsFilter, setNewsFilter] = useState<'ALL' | 'BULLISH' | 'BEARISH' | 'NEUTRAL'>('ALL');
@@ -131,19 +130,22 @@ export const GodsEyeObserver: React.FC = () => {
         setData(res);
       }
     } catch (e) {
-      console.warn('Using mock observer data due to network error:', e);
+      console.warn('Observer feed unavailable:', e);
+      setData(null);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    const initial = setTimeout(loadData, 0);
     const interval = setInterval(loadData, 10000);
-    return () => clearInterval(interval);
+    return () => { clearTimeout(initial); clearInterval(interval); };
   }, []);
 
-  const rawNewsList = data.latestNews || MOCK_OBSERVER_DATA.latestNews || [];
+  if (!data) return <div role="status" className="rounded-xl border border-[var(--border-subtle)] p-6">{loading ? 'Loading market intelligence…' : 'Market intelligence unavailable. Waiting for verified data.'}</div>;
+
+  const rawNewsList = data.latestNews || [];
   const filteredNews = rawNewsList.filter((n) => {
     if (newsFilter === 'ALL') return true;
     return n.sentiment?.toUpperCase() === newsFilter;
@@ -418,7 +420,6 @@ export const GodsEyeObserver: React.FC = () => {
             {data.assets?.map((asset) => {
               const isBull = asset.bias === 'BULLISH';
               const isBear = asset.bias === 'BEARISH';
-              const isNeut = asset.bias === 'NEUTRAL';
 
               const badgeStyle = isBull
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'

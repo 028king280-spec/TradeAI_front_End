@@ -61,21 +61,21 @@ class Settings(BaseSettings):
     DHAN_BASE_URL: str = "https://api.dhan.co/v2"
 
     # Angel One SmartAPI Credentials
-    ANGELONE_API_KEY: str = "5ML7YMT7IEPHZT45TO5RLCA6CU"
+    ANGELONE_API_KEY: str = ""
     ANGELONE_CLIENT_CODE: str = ""
     ANGELONE_PIN: str = ""
-    ANGELONE_TOTP_SECRET: str = "5ML7YMT7IEPHZT45TO5RLCA6CU"
+    ANGELONE_TOTP_SECRET: str = ""
     ANGELONE_BASE_URL: str = "https://apiconnect.angelbroking.com"
     ANGELONE_WS_URL: str = "wss://smartapisocket.angelone.in/smart-stream"
 
     # AI & LLM Explanation
     AI_PROVIDER: str = "arcee"
-    AI_API_KEY: str = "rcai-b5426ec5ab06c2ee2ad51bc58e270398"
+    AI_API_KEY: str = ""
     AI_MODEL: str = "trinity-large-thinking"
     AI_TEMPERATURE: float = 0.2
 
     # Arcee AI Specific
-    ARCEE_API_KEY: str = "rcai-b5426ec5ab06c2ee2ad51bc58e270398"
+    ARCEE_API_KEY: str = ""
     ARCEE_BASE_URL: str = "https://api.arcee.ai/api/v1"
     ARCEE_MODEL: str = "trinity-large-thinking"
 
