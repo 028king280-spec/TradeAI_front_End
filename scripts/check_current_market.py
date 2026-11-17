@@ -16,3 +16,4 @@ for sym in ['NIFTY 50', 'BANK NIFTY']:
     print('Confluence Score:', s_data.get('pipelineMetadata', {}).get('confluenceScore'))
     print('Regime:', s_data.get('pipelineMetadata', {}).get('marketRegime'))
     print('Disqualifications:', s_data.get('disqualificationReasons'))
+

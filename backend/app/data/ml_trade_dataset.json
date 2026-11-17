@@ -8674,5 +8674,55 @@
     "strategy": "Model A (Liquidity Sweep & Retest)",
     "condition": "Trending",
     "timestamp": "10 Nov 2026, 02:59 PM IST"
+  },
+  {
+    "tradeId": "PT-8A16893D",
+    "contract": "NIFTY23NOV2625350CE",
+    "features": [
+      0.14,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      15.42,
+      110.0,
+      0.002,
+      35.0,
+      85.0,
+      0.0,
+      1.5,
+      20.0,
+      1.1
+    ],
+    "target": 0,
+    "netPnl": -1998.27,
+    "strategy": "Model A (Liquidity Sweep & Retest at 25,350 Demand)",
+    "condition": "Trending",
+    "timestamp": "17 Nov 2026, 02:08 PM IST"
+  },
+  {
+    "tradeId": "PT-816E8FF9",
+    "contract": "NIFTY23NOV2625350CE",
+    "features": [
+      0.14,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      15.39,
+      110.0,
+      0.002,
+      35.0,
+      85.0,
+      0.0,
+      1.5,
+      20.0,
+      1.1
+    ],
+    "target": 0,
+    "netPnl": -1998.27,
+    "strategy": "Model A (Liquidity Sweep & Retest at 25,350 Demand)",
+    "condition": "Trending",
+    "timestamp": "17 Nov 2026, 02:09 PM IST"
   }
 ]

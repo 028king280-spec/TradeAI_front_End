@@ -1002,6 +1002,12 @@ class PaperTradingEngine:
             open_pos = self.state.get("openPositions", [])
             return PortfolioGreeksAggregator.aggregate(open_pos, quotes=quotes)
 
+    def reload_state(self) -> Dict[str, Any]:
+        """Reloads the persisted state from disk into memory."""
+        with self._save_lock:
+            self.state = self._load_state()
+            return self.state
+
     def reset_account(self, initial_capital: float = DEFAULT_CAPITAL):
         """Resets virtual portfolio."""
         with self._save_lock:
