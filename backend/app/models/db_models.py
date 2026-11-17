@@ -294,6 +294,21 @@ class StrategyPolicyRecord(Base):
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
+class SignalEvaluationRecord(Base):
+    """One observed analysis evaluation, including rejected and unavailable data."""
+    __tablename__ = "signal_evaluations"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    symbol = Column(String(30), nullable=False, index=True)
+    evaluated_at = Column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
+    data_status = Column(String(30), nullable=False)
+    action = Column(String(30), nullable=False)
+    qualified = Column(Boolean, nullable=False)
+    rejection_reasons = Column(JSON, nullable=False, default=list)
+    stage_status = Column(JSON, nullable=False, default=dict)
+    persisted_signal_id = Column(String(60), nullable=True)
+
+
 class SignalRecord(Base):
     __tablename__ = "signals"
 

@@ -1,5 +1,8 @@
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Query, HTTPException, status, Body
+from fastapi import APIRouter, Query, HTTPException, status, Body, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import get_db
+from app.models.db_models import SignalEvaluationRecord
 from app.data.providers.factory import get_market_data_provider
 from app.data.market_calendar import MarketCalendar
 from app.options.candle_processor import process_candlestick_series
@@ -392,7 +395,7 @@ async def get_index_candles(
 
 
 @router.get("/{index_symbol}/analysis")
-async def get_index_full_analysis(index_symbol: str):
+async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Depends(get_db)):
     """
     Deep quantitative options analysis:
     Candles + Support/Resistance Ladder + Sentiment + Today/Next Session Outlook + Chart Patterns + Trade Setups.
@@ -529,6 +532,24 @@ async def get_index_full_analysis(index_symbol: str):
         },
         custom_option_chain=chain,
     )
+
+    # An analysis observation is not an order or a persisted qualified signal.
+    # Record every evaluation so zero setups have an inspectable cause.
+    if isinstance(session, AsyncSession):
+        try:
+            session.add(SignalEvaluationRecord(
+            symbol=clean,
+            data_status=str((pipeline_res.get("data_quality_report") or {}).get("feedStatus") or "DATA_UNAVAILABLE"),
+            action=str(pipeline_res.get("action") or "NO_TRADE"),
+            qualified=bool(pipeline_res.get("is_trade_qualified", False)),
+            rejection_reasons=list(pipeline_res.get("rejection_reasons") or []),
+            stage_status=dict(pipeline_res.get("stage_status") or {}),
+            persisted_signal_id=pipeline_res.get("persisted_signal_id"),
+            ))
+            await session.commit()
+        except Exception as exc:
+            await session.rollback()
+            logger.warning("Signal evaluation journal unavailable: %s", exc)
 
     market_state = pipeline_res.get("market_state") or {}
     setups = pipeline_res.get("frontend_options_setups") or {
