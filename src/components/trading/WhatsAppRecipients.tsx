@@ -41,9 +41,12 @@ export function WhatsAppRecipients() {
 
   function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const normalized = value.replace(/[\s()-]/g, '');
+    const input = value.replace(/[\s()-]/g, '');
+    const normalized = /^[6-9]\d{9}$/.test(input)
+      ? `+91${input}`
+      : /^91[6-9]\d{9}$/.test(input) ? `+${input}` : input;
     if (!/^\+[1-9]\d{7,14}$/.test(normalized)) {
-      setMessage('Enter a number with country code, for example +919876543210.');
+      setMessage('Enter a 10-digit Indian mobile number, or an international number with + and country code.');
       return;
     }
     if (numbers.some((number, index) => number === normalized && index !== editing)) {
@@ -62,8 +65,8 @@ export function WhatsAppRecipients() {
         <p className="text-xs text-amber-700 dark:text-amber-400">Delivery not connected yet. These numbers are saved only in this browser and are not sent to the server.</p>
       </div>
       <form onSubmit={save} className="flex flex-col sm:flex-row gap-2">
-        <label htmlFor="whatsapp-number" className="sr-only">WhatsApp number with country code</label>
-        <input id="whatsapp-number" type="tel" autoComplete="tel" value={value} onChange={(e) => setValue(e.target.value)} placeholder="+91 98765 43210" className="flex-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-2.5 text-sm text-[var(--text-primary)]" />
+        <label htmlFor="whatsapp-number" className="sr-only">WhatsApp number</label>
+        <input id="whatsapp-number" type="tel" autoComplete="tel" value={value} onChange={(e) => setValue(e.target.value)} placeholder="98765 43210 or +91 98765 43210" className="flex-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-2.5 text-sm text-[var(--text-primary)]" />
         <button type="submit" disabled={!ready} className="rounded-lg bg-[var(--accent-blue)] px-4 py-2 text-sm font-semibold text-[var(--accent-on)] disabled:opacity-50">{editing === null ? 'Add number' : 'Save change'}</button>
         {editing !== null && <button type="button" onClick={() => { setEditing(null); setValue(''); setMessage(''); }} className="rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm">Cancel</button>}
       </form>
