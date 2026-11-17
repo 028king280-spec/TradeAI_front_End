@@ -9,6 +9,7 @@ import {
   IndexAnalysisFullResponse,
 } from '@/types/options';
 import { LiveAnalysisChart } from '@/components/trading/LiveAnalysisChart';
+import { ResearchSetupCard } from '@/components/trading/ResearchSetupCard';
 import { OptionsSetupsCard } from '@/components/trading/OptionsSetupsCard';
 import { SmartMoneyConceptsCard } from '@/components/trading/SmartMoneyConceptsCard';
 import { PaperTradingSimulator } from '@/components/trading/PaperTradingSimulator';
@@ -229,6 +230,7 @@ export default function OptionsDashboardPage() {
           <div className="workspace-stack">
             <LiveAnalysisChart symbol={selectedIndex} currentPrice={currentPrice || undefined} supportLevel={analysis?.supportResistance?.support1?.price} resistanceLevel={analysis?.supportResistance?.resistance1?.price}/>
             {analysis?.todayOptionsSetups ? <OptionsSetupsCard data={analysis.todayOptionsSetups}/> : <div className="workspace-empty">{loadingAnalysis ? 'Loading setups from the analysis engine…' : 'No setup data is available. Refresh when the analysis feed is connected.'}</div>}
+            <ResearchSetupCard data={analysis?.researchSetup}/>
           </div>
           <aside className="workspace-stack" aria-label="Market context">
             <section className="workspace-panel workspace-copilot">
@@ -252,6 +254,7 @@ export default function OptionsDashboardPage() {
         <SignalActivationPanel data={activeSignalData} selectedBias={selectedSignalBias} onSelectBias={setSelectedSignalBias} onOpenTimeline={() => { if (trackedSignals.length) setSelectedTimelineSignalId(trackedSignals[0].id); }}/>
         <ActiveSignalTracker signals={trackedSignals} onSelectSignalTimeline={setSelectedTimelineSignalId} onSelectFailureAnalysis={setSelectedFailureSignalId}/>
         {analysis?.todayOptionsSetups && <OptionsSetupsCard data={analysis.todayOptionsSetups}/>}
+        <ResearchSetupCard data={analysis?.researchSetup}/>
       </div>}
       {view === 'Structure' && <div className="space-y-6">
         {marketState && <MarketStatePanel data={marketState}/>}

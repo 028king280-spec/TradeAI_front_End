@@ -415,6 +415,7 @@ export interface IndexAnalysisFullResponse {
   nextSessionRecommendation?: NextSessionRecommendation;
   patterns: DetectedChartPattern[];
   todayOptionsSetups: TodayOptionsSetupsResult;
+  researchSetup?: ResearchSetupEvaluation | null;
   smcAnalysis?: SmcAnalysisData;
   optionChainSummary: {
     pcr: PcrData;
@@ -673,3 +674,21 @@ export interface SmcAnalysisData {
   disclaimer: string;
 }
 
+
+export interface ResearchSetupEvaluation {
+  id: string;
+  engineId: string;
+  timestamp: string;
+  threshold: number;
+  score: number | null;
+  qualified: boolean;
+  reasons: string[];
+  journalSaved: boolean;
+  setup: null | {
+    contractSymbol: string;
+    entryPremium: number;
+    stopLoss: number;
+    targetPremium: number;
+    grossRewardRisk: number;
+  };
+}

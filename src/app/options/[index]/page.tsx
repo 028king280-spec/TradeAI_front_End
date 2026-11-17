@@ -7,6 +7,7 @@ import { ArrowUpRight, ArrowDownRight, ShieldCheck, Layers, RefreshCw, ChevronRi
 import { optionsService } from '@/services/optionsService';
 import { IndexAnalysisFullResponse } from '@/types/options';
 import { OptionsCandlestickChart } from '@/components/trading/OptionsCandlestickChart';
+import { ResearchSetupCard } from '@/components/trading/ResearchSetupCard';
 import { OptionsSetupsCard } from '@/components/trading/OptionsSetupsCard';
 import { SmartMoneyConceptsCard } from '@/components/trading/SmartMoneyConceptsCard';
 import { PaperTradingSimulator } from '@/components/trading/PaperTradingSimulator';
@@ -319,6 +320,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               )}
 
               <OptionsSetupsCard data={analysis.todayOptionsSetups} />
+              <ResearchSetupCard data={analysis.researchSetup} />
 
               <PaperTradingSimulator />
 
