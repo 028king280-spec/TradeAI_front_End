@@ -22,7 +22,8 @@ def evaluate_next_session_recommendation(
     vix_value: float = 13.5,
     live_open_price: Optional[float] = None,
     market_state: Optional[str] = None,
-    circuit_breaker: Optional[Any] = None
+    circuit_breaker: Optional[Any] = None,
+    real_quotes_map: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Institutional Next-Session Options Recommendation Engine for Indian Indices.
@@ -193,28 +194,28 @@ def evaluate_next_session_recommendation(
             contract_symbol = f"{clean_sym} {int(target_strike)} {target_type}"
             expiry_str = "Current Weekly Expiry"
 
-    # Fetch live option quote from provider or cache if token exists
-    if token:
+    # Fetch live option quote from real_quotes_map, in-memory cache, or provider
+    live_q = None
+    if token and real_quotes_map and str(token) in real_quotes_map:
+        live_q = real_quotes_map[str(token)]
+    elif token:
         try:
-            from app.data.providers.factory import get_market_data_provider
-            prov = get_market_data_provider()
-            if hasattr(prov, "_ensure_authenticated") and prov._ensure_authenticated:
-                import asyncio
-                # Use sync quote check or cached quote
-                from app.core.cache import CacheService
-                import asyncio
-                loop = asyncio.get_event_loop() if asyncio.get_event_loop().is_running() else None
-                cached_q = CacheService.get_sync(f"token_quote:NFO:{token}") if hasattr(CacheService, "get_sync") else None
-                if not cached_q and hasattr(prov, "get_batch_quotes"):
-                    # Attempt fetch
-                    try:
-                        import concurrent.futures
-                        # Check if running in async context
-                        pass
-                    except Exception:
-                        pass
+            from app.core.cache import CacheService
+            live_q = CacheService.get_sync(f"token_quote:NFO:{token}")
         except Exception:
-            pass
+            live_q = None
+
+    if live_q and live_q.get("ltp") is not None and float(live_q["ltp"]) > 0:
+        last_verified_premium = float(live_q["ltp"])
+        bid = float(live_q.get("bid") or last_verified_premium)
+        ask = float(live_q.get("ask") or last_verified_premium)
+        spread = float(live_q.get("spread") or max(0.05, round(ask - bid, 2)))
+        contract_oi = int(live_q.get("openInterest") or live_q.get("oi") or contract_oi)
+        data_status = live_q.get("dataStatus", "LIVE")
+        premium_source = "LIVE_MARKET"
+        is_theoretical = False
+        if live_q.get("tradingSymbol"):
+            contract_symbol = live_q["tradingSymbol"]
 
     # Compute Greeks for next session (~2.5 days to expiry)
     greeks = calculate_black_scholes(

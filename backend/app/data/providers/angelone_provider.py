@@ -710,9 +710,11 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                                     "provider": "angelone",
                                 }
                                 results[sym_token] = q_dict
-                                await CacheService.set(f"token_quote:{exch_seg}:{sym_token}", q_dict, ttl_seconds=5)
+                                await CacheService.set(f"token_quote:{exch_seg}:{sym_token}", q_dict, ttl_seconds=15)
+                                CacheService.set_sync(f"token_quote:{exch_seg}:{sym_token}", q_dict, ttl_seconds=15)
                                 if item.get("tradingSymbol"):
-                                    await CacheService.set(f"live_ltp:{item.get('tradingSymbol')}", ltp, ttl_seconds=5)
+                                    await CacheService.set(f"live_ltp:{item.get('tradingSymbol')}", ltp, ttl_seconds=15)
+                                    CacheService.set_sync(f"live_ltp:{item.get('tradingSymbol')}", ltp, ttl_seconds=15)
 
         except Exception as e:
             logger.error(f"Error in Angel One get_batch_quotes: {e}")

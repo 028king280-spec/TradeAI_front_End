@@ -343,6 +343,7 @@ export interface QualifiedNextSessionSetup {
     potentialRewardINR: number;
   };
   reasonsForSelection: string[];
+  dataStatus?: string;
   dataTimestamp: string;
   analysisTimestamp: string;
 }

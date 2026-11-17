@@ -61,6 +61,21 @@ class CacheService:
         _in_memory_cache[key] = (time.time() + ttl_seconds, value)
 
     @classmethod
+    def get_sync(cls, key: str) -> Optional[Any]:
+        item = _in_memory_cache.get(key)
+        if item:
+            expires_at, val = item
+            if time.time() < expires_at:
+                return val
+            else:
+                del _in_memory_cache[key]
+        return None
+
+    @classmethod
+    def set_sync(cls, key: str, value: Any, ttl_seconds: int = 60):
+        _in_memory_cache[key] = (time.time() + ttl_seconds, value)
+
+    @classmethod
     async def delete(cls, key: str):
         r = get_redis_client()
         if r:

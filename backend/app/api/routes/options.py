@@ -120,14 +120,34 @@ async def get_options_overview():
         day_low=n_val - 120.0
     )
 
-    # Next-Session Engine Analysis for Benchmark
-    chain_sample = generate_index_option_chain("NIFTY 50", n_val, n_chg, filter_mode="ATM")
+    # Next-Session Engine Analysis for Benchmark with Live Angel One Option Chain Quotes
+    from app.data.instrument_master import get_instrument_master
+    master = get_instrument_master()
+    step = 50.0
+    atm_k = round(n_val / step) * step
+    ladder = master.get_option_chain_contracts("NIFTY 50", atm_k, step, num_strikes=7)
+    tokens = []
+    for pair in ladder:
+        if pair.get("ce_contract"):
+            tokens.append(str(pair["ce_contract"]["token"]))
+        if pair.get("pe_contract"):
+            tokens.append(str(pair["pe_contract"]["token"]))
+
+    real_quotes_map = {}
+    if tokens and hasattr(provider, "get_batch_quotes"):
+        try:
+            real_quotes_map = await provider.get_batch_quotes("NFO", tokens)
+        except Exception as e:
+            logger.warning(f"Failed to fetch batch quotes for overview chain: {e}")
+
+    chain_sample = generate_index_option_chain("NIFTY 50", n_val, n_chg, real_quotes_map=real_quotes_map, filter_mode="ATM")
     next_session_rec = evaluate_next_session_recommendation(
         symbol="NIFTY 50",
         underlying_ltp=n_val,
         sentiment=sentiment["overallSentiment"],
         sentiment_score=sentiment["sentimentScore"],
         strikes_data=chain_sample["strikes"],
+        real_quotes_map=real_quotes_map,
         atr_14=120.0,
         daily_high=n_val + 50.0,
         daily_low=n_val - 120.0,

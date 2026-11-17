@@ -197,11 +197,15 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 py-4">
               {/* Last Verified Premium */}
               <div className="p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-                <span className="text-[10px] text-[var(--text-muted)] block font-medium">Last Verified</span>
+                <span className="text-[10px] text-[var(--text-muted)] block font-medium">
+                  {rec.dataStatus === 'LIVE' ? 'Live Market LTP' : 'Last Verified'}
+                </span>
                 <span className="text-base font-semibold text-[var(--text-primary)] tabular-nums">
                   ₹{rec.lastVerifiedPremium?.toFixed(1)}
                 </span>
-                <span className="text-[10px] text-[var(--text-muted)] block">Observed close</span>
+                <span className="text-[10px] text-[var(--text-muted)] block">
+                  {rec.dataStatus === 'LIVE' ? 'Angel One NFO Live' : 'Observed close'}
+                </span>
               </div>
 
               {/* Suggested Entry Range */}
@@ -305,7 +309,7 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)]">
-                <span className="text-[10px] text-[var(--text-muted)] block font-medium">Max Risk / Lot ({rec.financialImpact?.lotSize || (rec as any).lotSize || 25} qty)</span>
+                <span className="text-[10px] text-[var(--text-muted)] block font-medium">Max Risk / Lot ({rec.financialImpact?.lotSize || (rec as any).lotSize || 65} qty)</span>
                 <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
                   ₹{rec.financialImpact?.maxRiskINR?.toLocaleString('en-IN') || (rec as any).maxRiskPerLotINR?.toLocaleString('en-IN') || '—'}
                 </span>

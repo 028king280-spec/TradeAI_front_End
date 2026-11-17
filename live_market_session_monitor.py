@@ -80,7 +80,14 @@ def main():
         if obs_data and "diagnostics" in obs_data:
             diag = obs_data["diagnostics"]
             ticks_total = diag.get("ticks_received", 0)
-            staleness = diag.get("seconds_since_last_tick", 0.0)
+            staleness = diag.get("seconds_since_last_tick")
+            if staleness is None:
+                staleness = 0.0
+            else:
+                try:
+                    staleness = float(staleness)
+                except (ValueError, TypeError):
+                    staleness = 0.0
             ws_status = obs_data.get("status", "STREAMING")
             if prev_ticks is not None:
                 delta = ticks_total - prev_ticks
@@ -115,7 +122,7 @@ def main():
             positions_cnt = len(paper_data['data'].get('activePositions', []))
 
         # Status Summary Line
-        status_flag = "HEALTHY" if (obs_err is None and staleness < 5.0 and fe_ok) else "ATTENTION"
+        status_flag = "HEALTHY" if (obs_err is None and (staleness or 0.0) < 5.0 and fe_ok) else "ATTENTION"
 
         log_line(
             f"#{iteration:04d} [{status_flag}] WS: {ws_status} | Ticks: {ticks_total:,} {tick_delta_str} (last tick: {staleness:.2f}s ago) | "
