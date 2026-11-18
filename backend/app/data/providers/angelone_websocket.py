@@ -568,12 +568,15 @@ class AngelOneWebSocketManager:
 
     def _resolve_token_to_symbol(self, token: str, exchange_type: int) -> str:
         """Reverse-lookup token to human-readable symbol."""
+        exchange = EXCHANGE_TYPE_REVERSE.get(exchange_type)
+        if exchange is None:
+            return token
         for sym, info in ANGELONE_TOKEN_MAP.items():
-            if info.get("symbol_token") == token or info.get("token") == token:
+            if info.get("exchange") == exchange and (info.get("symbol_token") == token or info.get("token") == token):
                 return sym
         try:
             from app.data.instrument_master import InstrumentMaster
-            inst = InstrumentMaster.get_instance().resolve_token(token)
+            inst = InstrumentMaster.get_instance().resolve_token(token, exchange=exchange)
             if inst:
                 return inst.get("symbol") or inst.get("name") or token
         except Exception:

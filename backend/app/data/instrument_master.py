@@ -25,6 +25,7 @@ class InstrumentMaster:
         self._equity_by_symbol: Dict[str, Dict[str, Any]] = {}
         # token -> instrument dict
         self._by_token: Dict[str, Dict[str, Any]] = {}
+        self._by_exchange_token: Dict[Tuple[str, str], Dict[str, Any]] = {}
         # (underlying, expiry_str, strike_float, option_type) -> instrument dict
         self._options_by_spec: Dict[Tuple[str, str, float, str], Dict[str, Any]] = {}
         # option symbol -> instrument dict
@@ -67,6 +68,7 @@ class InstrumentMaster:
 
                 if not token:
                     continue
+                self._by_exchange_token[(exch_seg, str(token))] = item
 
                 if token not in self._by_token or exch_seg in ("NSE", "NFO"):
                     self._by_token[token] = item
@@ -260,7 +262,9 @@ class InstrumentMaster:
 
         return results
 
-    def resolve_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def resolve_token(self, token: str, exchange: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        if exchange is not None:
+            return self._by_exchange_token.get((exchange.upper(), str(token)))
         return self._by_token.get(token)
 
     def get_equity(self, symbol: str, preferred_exch: str = "NSE") -> Optional[Dict[str, Any]]:
