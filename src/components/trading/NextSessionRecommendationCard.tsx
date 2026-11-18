@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
-import { NextSessionRecommendation, QualifiedNextSessionSetup } from '@/types/options';
-import { ShieldAlert, ShieldCheck, Zap, AlertOctagon, Info, CheckCircle, Activity, BarChart3 } from 'lucide-react';
-
+import React, { useState } from 'react';
+import { NextSessionRecommendation, QualifiedNextSessionSetup, OptionTradeSetup } from '@/types/options';
+import { ShieldAlert, ShieldCheck, Zap, AlertOctagon, Info, CheckCircle, Activity, BarChart3, Gamepad2, CheckCircle2 } from 'lucide-react';
+import { paperTradingManager } from '@/services/paperTradingService';
 
 interface NextSessionRecommendationCardProps {
   data: NextSessionRecommendation;
@@ -14,14 +14,72 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
   data,
   onOpenBacktest,
 }) => {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   if (!data) return null;
 
   const isLiveStage = data.stage === 'STAGE_2_LIVE_CONFIRMED';
   const hasQualified = data.hasQualifiedRecommendation && data.recommendation !== null;
   const rec: QualifiedNextSessionSetup | null = data.recommendation;
 
+  const handleExecutePaperTrade = () => {
+    if (!rec) return;
+    const lotSize = rec.financialImpact?.lotSize || (data.symbol.includes('BANK') ? 15 : data.symbol.includes('SENSEX') ? 10 : 65);
+    const entryPrice = rec.lastVerifiedPremium || 120.0;
+
+    const setup: OptionTradeSetup = {
+      index: data.symbol,
+      bias: rec.optionType,
+      biasLabel: `${data.symbol} ${rec.strike} ${rec.optionType}`,
+      contractSymbol: rec.contractSymbol,
+      strike: rec.strike,
+      expiry: rec.expiry,
+      currentPremium: entryPrice,
+      entryRange: rec.suggestedEntryRange,
+      stopLoss: rec.stopLossPremium,
+      target1: rec.target1Premium,
+      target2: rec.target2Premium,
+      target3: rec.target3Premium,
+      riskRewardRatio: rec.riskRewardRatio,
+      maxRiskPerLot: rec.financialImpact?.maxRiskINR || Math.round((entryPrice - rec.stopLossPremium) * lotSize),
+      potentialGainPerLot: rec.financialImpact?.potentialRewardINR || Math.round((rec.target2Premium - entryPrice) * lotSize),
+      greeks: {
+        delta: rec.greeks?.delta || (rec.optionType === 'CE' ? 0.45 : -0.45),
+        gamma: 0.001,
+        thetaPerDay: rec.greeks?.thetaPerDay || -15,
+        vega: 1.0,
+      },
+      iv: rec.greeks?.ivPercent || 14,
+      liquidity: rec.liquidityAssessment,
+      openInterest: rec.contractOpenInterest,
+      changeInOi: 0,
+      underlyingTrigger: rec.entryConfirmationCondition || rec.underlyingTrigger,
+      invalidationCondition: rec.invalidationCondition,
+      supportingReasons: rec.reasonsForSelection || [],
+      disclaimer: 'Institutional Next-Session Setup',
+      smcModel: 'Next-Session Institutional Setup',
+    };
+
+    const res = paperTradingManager.openPosition(setup, 1);
+    setToastMessage(res.message);
+    setTimeout(() => setToastMessage(null), 5000);
+  };
+
   return (
     <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 sm:p-6 space-y-4 shadow-sm">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="p-3 rounded-xl bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <span>{toastMessage}</span>
+          </div>
+          <button onClick={() => setToastMessage(null)} className="text-[var(--text-primary)]/80 hover:text-[var(--text-primary)] text-xs">
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header with Stage Indicator & Action Button */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
@@ -50,6 +108,21 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {hasQualified && rec && (
+            <button
+              onClick={handleExecutePaperTrade}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
+                rec.optionType === 'CE'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-rose-600 hover:bg-rose-700'
+              }`}
+              title="Execute 1 Lot Simulated Paper Trade"
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+              <span>1-Click Paper Trade</span>
+            </button>
+          )}
+
           {onOpenBacktest && (
             <button
               onClick={onOpenBacktest}
@@ -338,6 +411,41 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
                 </ul>
               </div>
             )}
+
+            {/* 1-Click Paper Trading Execution Bar */}
+            <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border-subtle)]">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    rec.optionType === 'CE'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                  }`}
+                >
+                  <Gamepad2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-[var(--text-primary)] block">
+                    Simulate this Trade in Paper Trading
+                  </span>
+                  <span className="text-[11px] text-[var(--text-muted)]">
+                    1 Lot ({rec.financialImpact?.lotSize || (rec as any).lotSize || 65} qty) • Max Risk ₹{rec.financialImpact?.maxRiskINR?.toLocaleString('en-IN') || (rec as any).maxRiskPerLotINR || '780'} • Live SL & Target tracking
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleExecutePaperTrade}
+                className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer text-white ${
+                  rec.optionType === 'CE'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                    : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'
+                }`}
+              >
+                <Gamepad2 className="w-4 h-4" />
+                <span>Execute 1-Click Paper Trade (1 Lot)</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
