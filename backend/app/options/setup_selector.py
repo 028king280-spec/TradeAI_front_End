@@ -147,23 +147,25 @@ def evaluate_options_trade_setups(
     effective_vwap = vwap if (vwap and vwap > 0) else underlying_ltp
 
     # Determine bias
-    is_call_favored = sentiment_score >= 54 or (sentiment == "BULLISH" and sentiment_score >= 50)
-    is_put_favored = sentiment_score <= 46 or (sentiment == "BEARISH" and sentiment_score <= 50)
-    is_neutral_range = not is_call_favored and not is_put_favored
+    has_directional_bull = sentiment_score >= 54 or (sentiment == "BULLISH" and sentiment_score >= 50)
+    has_directional_bear = sentiment_score <= 46 or (sentiment == "BEARISH" and sentiment_score <= 50)
 
-    # If market_state explicitly indicates SIDEWAYS or NO_TRADE, lock out directional targets
-    if market_state in ["SIDEWAYS", "NO_TRADE"] or is_sideways:
-        is_call_favored = False
-        is_put_favored = False
-        is_neutral_range = True
-    elif market_state == "BULLISH":
+    if market_state == "BULLISH" or has_directional_bull:
         is_call_favored = True
         is_put_favored = False
         is_neutral_range = False
-    elif market_state == "BEARISH":
+    elif market_state == "BEARISH" or has_directional_bear:
         is_call_favored = False
         is_put_favored = True
         is_neutral_range = False
+    elif market_state in ["SIDEWAYS", "NO_TRADE"] or is_sideways:
+        is_call_favored = False
+        is_put_favored = False
+        is_neutral_range = True
+    else:
+        is_call_favored = False
+        is_put_favored = False
+        is_neutral_range = True
 
     # Build index of available strikes by strike value
     strikes_by_val = {float(s.get("strike", 0)): s for s in strikes_data}

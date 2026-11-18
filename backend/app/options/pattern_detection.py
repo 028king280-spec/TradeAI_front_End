@@ -25,9 +25,16 @@ def detect_candlestick_and_chart_patterns(
     if candles_df.attrs.get("is_mock") or candles_df.attrs.get("is_synthetic"):
         return []
 
-    filtered_df = filter_completed_candles(candles_df, timeframe=timeframe)
+    try:
+        filtered_df = filter_completed_candles(candles_df, timeframe=timeframe)
+    except Exception:
+        filtered_df = candles_df
+
     if filtered_df is None or len(filtered_df) < 2:
-        return []
+        if len(candles_df) >= 2:
+            filtered_df = candles_df
+        else:
+            return []
 
     patterns: List[Dict[str, Any]] = []
     df = filtered_df.copy().reset_index(drop=True)

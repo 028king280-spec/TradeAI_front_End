@@ -115,16 +115,24 @@ def evaluate_next_session_recommendation(
     if sentiment == "NEUTRAL" or (48 <= sentiment_score <= 52):
         no_trade_reasons.append("Market sentiment is NEUTRAL (Score 50). Directional bias lacks conviction. Preserve capital.")
 
-    # Live market regime gate: Disqualify directional option buying during sideways chop or after morning window
+    # Live market regime gate: Disqualify directional option buying only during genuine dead chop without intraday drift
     if is_live_stage:
         from datetime import time as dt_time
         curr_time = MarketCalendar.now_ist().time()
 
-        if market_state == "SIDEWAYS":
+        # Check if underlying price has experienced meaningful intraday displacement
+        has_intraday_displacement = bool(
+            live_open_price and abs(live_open_price - underlying_ltp) >= (atr_14 * 0.35)
+        ) or bool(
+            daily_close and abs(daily_close - underlying_ltp) >= (atr_14 * 0.35)
+        )
+
+        if market_state == "SIDEWAYS" and not has_intraday_displacement:
             no_trade_reasons.append("Intraday market has settled into a Sideways Chop / Consolidation regime. Directional option buying is disqualified to prevent theta decay.")
 
-        if curr_time >= dt_time(11, 0) and market_state in ["SIDEWAYS", "NEUTRAL"]:
-            no_trade_reasons.append("The Morning Momentum Window (09:20 — 11:00 AM IST) has expired. Market is currently range-bound. Await a confirmed afternoon breakout before deploying capital.")
+        # Midday lunch lull gate (11:45 AM — 12:45 PM IST when volume compresses and momentum pauses)
+        if dt_time(11, 45) <= curr_time < dt_time(12, 45) and market_state in ["SIDEWAYS", "NEUTRAL"] and not has_intraday_displacement:
+            no_trade_reasons.append("Midday Consolidation Lull (11:45 AM — 12:45 PM IST). Volume has dried up. Await the 1:00 PM afternoon momentum window.")
 
     # Determine clear directional bias (Call favored if score >= 50, otherwise Put)
     is_call_bias = (sentiment == "BULLISH" or sentiment_score > 52)
