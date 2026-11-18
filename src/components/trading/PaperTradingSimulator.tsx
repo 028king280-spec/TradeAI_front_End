@@ -314,6 +314,11 @@ export const PaperTradingSimulator: React.FC = () => {
                             <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] tabular-nums">
                               ID: {pos.id}
                             </span>
+                            {/* Engine / Setup Source Pill */}
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border border-[var(--accent-blue)]/25 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-[var(--accent-blue)]" />
+                              <span>{pos.smcModel || 'SMC Standard Setup'}</span>
+                            </span>
                             {/* Live Running Duration Pill */}
                             <span className="text-[10.5px] px-2 py-0.5 rounded-full bg-[var(--accent-blue)]/15 border border-[var(--accent-blue)]/30 text-[var(--accent-blue)] font-medium flex items-center gap-1">
                               <Clock className="w-3 h-3 animate-pulse" />
@@ -479,6 +484,10 @@ export const PaperTradingSimulator: React.FC = () => {
                               {isWin ? 'PROFIT' : isLoss ? 'LOSS' : 'BREAK-EVEN'}
                             </span>
                             <span className="font-semibold text-[var(--text-primary)]">{trade.contractSymbol}</span>
+                            <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border border-[var(--accent-blue)]/25 font-semibold flex items-center gap-1">
+                              <Sparkles className="w-2.5 h-2.5 text-[var(--accent-blue)]" />
+                              <span>{trade.smcModel || 'SMC Standard Setup'}</span>
+                            </span>
                             <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)] tabular-nums">
                               ID: {trade.id}
                             </span>
