@@ -62,7 +62,7 @@ def generate_index_option_chain(
         und_key = "SENSEX"
         step = 100.0
         atm_strike = round(underlying_ltp / 100.0) * 100.0
-        lot_size = 10
+        lot_size = None
     else:
         und_key = clean_sym
         step = 50.0
@@ -84,6 +84,19 @@ def generate_index_option_chain(
     else:
         expiries = ["Current Weekly Expiry", "Next Weekly Expiry", "Current Month Expiry"]
         selected_expiry = expiries[0]
+
+    if und_key == "SENSEX":
+        contract_lots = set()
+        for spec, contract in master._options_by_spec.items():
+            if spec[0] != und_key or spec[1] != selected_expiry:
+                continue
+            try:
+                value = float(contract.get("lotsize"))
+                if math.isfinite(value) and value > 0 and value.is_integer():
+                    contract_lots.add(int(value))
+            except (TypeError, ValueError):
+                continue
+        lot_size = next(iter(contract_lots)) if len(contract_lots) == 1 else None
 
     num_strikes = 7 if filter_mode.upper() == "ATM" else 15
     strike_range = range(-num_strikes, num_strikes + 1)
