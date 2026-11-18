@@ -1,7 +1,9 @@
 {
-  "balance": 92378.75,
+  "balance": 102161.25,
   "startingBalance": 100000.0,
-  "openPositions": [
+  "openPositions": [],
+  "pendingOrders": [],
+  "closedTrades": [
     {
       "id": "PT-31C26C6A",
       "instrument": "NIFTY 50",
@@ -16,10 +18,10 @@
       "quantity": 65,
       "remainingQuantity": 65,
       "entryPremium": 117.25,
-      "currentPremium": 144.3,
-      "lastQuoteTimestamp": "18 Nov 2026, 03:18 PM IST",
+      "currentPremium": 150.5,
+      "lastQuoteTimestamp": "18 Nov 2026, 03:48 PM IST",
       "lastDataStatus": "VERIFIED_LIVE",
-      "stopLoss": 105.2,
+      "stopLoss": 117.25,
       "initialStopLoss": 105.2,
       "target1": 152.4,
       "target2": 180.0,
@@ -27,13 +29,13 @@
       "strategy": "SMC Liquidity Sweep",
       "ictSetup": "Bullish SSL Sweep + FVG 50% CE",
       "marginUsed": 7621.25,
-      "status": "OPEN",
+      "status": "MANUALLY_CLOSED",
       "entryTimestamp": "18 Nov 2026, 03:11 PM IST",
-      "mfePts": 28.75,
-      "mfeRupees": 1868.75,
+      "mfePts": 36.85,
+      "mfeRupees": 2395.25,
       "maePts": 0.0,
       "maeRupees": -0.0,
-      "highestObservedPremium": 146.0,
+      "highestObservedPremium": 154.1,
       "lowestObservedPremium": 117.25,
       "partialExits": [],
       "marketFeaturesAtEntry": {
@@ -48,16 +50,91 @@
       "dailyTheta": null,
       "rupeeVega": null,
       "greeksSizing": null,
-      "unrealizedGrossPnl": 1758.25
+      "unrealizedGrossPnl": 2161.25,
+      "exitPremium": 150.5,
+      "weightedExitPremium": 150.5,
+      "grossPnl": 2161.25,
+      "netPnl": 2061.25,
+      "totalCosts": 100.0,
+      "exitReason": "Manual Close",
+      "exitTimestamp": "18 Nov 2026, 03:48 PM IST",
+      "aiEvaluation": {
+        "tradeId": "PT-31C26C6A",
+        "contract": "NIFTY23NOV2625200PE",
+        "netPnl": 2061.25,
+        "grade": "A+",
+        "verdict": "INSTITUTIONAL GRADE EXECUTION",
+        "scorePercent": 88.9,
+        "passedFactorsCount": 8,
+        "totalFactorsCount": 9,
+        "questions": [
+          {
+            "id": "Q1",
+            "question": "Was market direction correct?",
+            "passed": true,
+            "details": "Yes. Directional momentum favored PE contract; price expanded by +36.9 pts MFE."
+          },
+          {
+            "id": "Q2",
+            "question": "Was entry correct (Discount vs Premium)?",
+            "passed": true,
+            "details": "Optimal. Filled at ₹117.25 within favorable institutional PREMIUM zone."
+          },
+          {
+            "id": "Q3",
+            "question": "Was ICT/SMC confirmation present?",
+            "passed": true,
+            "details": "Confirmed. Valid Market Structure Shift (MSS) and candle-close BOS were documented prior to entry."
+          },
+          {
+            "id": "Q4",
+            "question": "Was liquidity correctly identified?",
+            "passed": true,
+            "details": "Verified. Opposing liquidity pool was cleanly swept with reclaim before the impulse."
+          },
+          {
+            "id": "Q5",
+            "question": "Was FVG valid (50% CE)?",
+            "passed": true,
+            "details": "Valid. Imbalance respected 50% Consequent Encroachment (CE) without invalidation close."
+          },
+          {
+            "id": "Q6",
+            "question": "Was stop-loss placement reasonable?",
+            "passed": false,
+            "details": "Too tight or unanchored. Vulnerable to market noise wicks."
+          },
+          {
+            "id": "Q7",
+            "question": "Was target realistic?",
+            "passed": true,
+            "details": "Realistic. Target 1 at ₹152.4 provided 1:35.15 R:R anchored to nearest resting liquidity."
+          },
+          {
+            "id": "Q8",
+            "question": "Was market condition suitable?",
+            "passed": true,
+            "details": "Suitable. Active in TRENDING regime with adequate directional momentum."
+          },
+          {
+            "id": "Q9",
+            "question": "Did theta, IV or spread affect result?",
+            "passed": true,
+            "details": "Friction quantified: Transaction charges ₹100.00. Holding duration and spread accounted for."
+          }
+        ],
+        "keyTakeaways": [
+          "Stop-loss must always be anchored behind a verified protected swing structure."
+        ],
+        "mfeMaeSummary": "Peak MFE: +36.9 pts | Max MAE: -0.0 pts"
+      }
     }
   ],
-  "pendingOrders": [],
-  "closedTrades": [],
-  "totalRealizedGrossPnl": 0.0,
-  "totalRealizedNetPnl": 0.0,
-  "totalTradingCosts": 0.0,
-  "winCount": 0,
+  "totalRealizedGrossPnl": 2161.25,
+  "totalRealizedNetPnl": 2061.25,
+  "totalTradingCosts": 100.0,
+  "winCount": 1,
   "lossCount": 0,
-  "stateVersion": 327,
-  "lastUpdated": "18 Nov 2026, 03:18 PM IST"
+  "stateVersion": 800,
+  "lastUpdated": "18 Nov 2026, 03:48 PM IST"
 }

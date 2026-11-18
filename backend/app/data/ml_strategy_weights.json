@@ -1,25 +1,25 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "17 Nov 2026, 02:22 PM IST",
+  "lastUpdated": "18 Nov 2026, 03:48 PM IST",
   "accuracySummary": {
-    "totalTrades": 56,
-    "targetsHit": 46,
-    "target1Hits": 46,
+    "totalTrades": 57,
+    "targetsHit": 47,
+    "target1Hits": 47,
     "target2Hits": 19,
     "target3Hits": 11,
     "slHits": 8,
-    "winRate": 82.1,
+    "winRate": 82.5,
     "profitFactor": 2.65,
     "avgRealizedRr": 1.92,
-    "netPointsGained": 663.95
+    "netPointsGained": 697.2
   },
   "modelPerformance": {
     "Model A (Liquidity Sweep & CHoCH)": {
       "key": "modelA",
-      "targetsHit": 29,
+      "targetsHit": 30,
       "slHits": 4,
-      "winRate": 87.9,
-      "weight": 1.58,
+      "winRate": 88.2,
+      "weight": 1.6,
       "status": "HIGH CONVICTION",
       "edge": "+18.2% vs Baseline",
       "optimalCondition": "Range-Bound Boundary Sweep (SSL/BSL)"
