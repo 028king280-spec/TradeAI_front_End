@@ -81,7 +81,7 @@ class InstrumentMaster:
                         self._equity_by_symbol[(clean_name, "NSE")] = item
 
                 # 2. NFO Index & Stock Options (OPTIDX, OPTSTK)
-                elif exch_seg == "NFO" and instrument_type in ("OPTIDX", "OPTSTK"):
+                elif exch_seg in ("NFO", "BFO") and instrument_type in ("OPTIDX", "OPTSTK"):
                     expiry_raw = item.get("expiry") or ""
                     strike_raw = item.get("strike") or "0"
 
