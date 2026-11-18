@@ -53,5 +53,9 @@ def start_scheduler():
     # Post-market job at 15:35 PM IST Mon-Fri
     scheduler.add_job(post_market_job, "cron", day_of_week="mon-fri", hour=15, minute=35)
 
+    from app.jobs.research_paper import research_paper_job
+    scheduler.add_job(research_paper_job, "interval", seconds=10,
+                      id="research_paper_lifecycle", max_instances=1, coalesce=True, replace_existing=True)
+
     scheduler.start()
     logger.info("APScheduler initialized for Indian Stock Market hours (Asia/Kolkata)")

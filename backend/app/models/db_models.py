@@ -530,3 +530,42 @@ class ResearchSetupEvaluationRecord(Base):
     evaluated_at = Column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
     qualified = Column(Boolean, nullable=False)
     payload = Column(JSON, nullable=False)
+
+
+class ResearchPaperAccount(Base):
+    __tablename__ = "research_paper_accounts"
+    id = Column(String(50), primary_key=True)
+    initial_cash_paise = Column(Integer, nullable=False)
+    cash_paise = Column(Integer, nullable=False)
+
+
+class ResearchPaperTrade(Base):
+    __tablename__ = "research_paper_trades"
+    # Deterministic profile/day/contract key survives restarts and multiple workers.
+    id = Column(String(64), primary_key=True)
+    evaluation_id = Column(String(36), nullable=False, unique=True)
+    engine_id = Column(String(50), nullable=False, index=True)
+    symbol = Column(String(30), nullable=False)
+    active_slot = Column(String(100), nullable=True, unique=True)
+    contract_symbol = Column(String(100), nullable=False)
+    instrument_token = Column(String(30), nullable=False)
+    exchange = Column(String(10), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    status = Column(String(20), nullable=False, default="OPEN", index=True)
+    entry_paise = Column(Integer, nullable=False)
+    stop_paise = Column(Integer, nullable=False)
+    target_paise = Column(Integer, nullable=False)
+    entry_fee_paise = Column(Integer, nullable=False)
+    exit_fee_paise = Column(Integer, nullable=False)
+    slippage_bps = Column(Integer, nullable=False)
+    opened_at = Column(DateTime(timezone=True), nullable=False)
+    entry_quote_at = Column(DateTime(timezone=True), nullable=False)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    exit_paise = Column(Integer, nullable=True)
+    exit_reason = Column(String(30), nullable=True)
+    net_pnl_paise = Column(Integer, nullable=True)
+    last_quote_at = Column(DateTime(timezone=True), nullable=True)
+    last_bid_paise = Column(Integer, nullable=True)
+    had_data_gap = Column(Boolean, nullable=False, default=False)
+    monitoring_status = Column(String(40), nullable=False, default="AWAITING_QUOTE")
+    snapshot = Column(JSON, nullable=False)

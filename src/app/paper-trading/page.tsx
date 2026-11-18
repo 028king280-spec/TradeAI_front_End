@@ -1,4 +1,5 @@
 'use client';
+import { ResearchPaperAccountPanel } from '@/components/trading/ResearchPaperAccountPanel';
 import { WorkspaceTabs } from '@/components/shared/WorkspaceTabs';
 import { PageHeading } from "@/components/shared/PageHeading";
 
@@ -273,6 +274,7 @@ export default function PaperTradingCockpitPage() {
           </div>
         </div>
       </div>
+<ResearchPaperAccountPanel />
 <WorkspaceTabs tabs={['Account & positions', 'Signals & execution', 'System health']} value={view} onChange={setView} label="Paper trading views">
 {view === 'Account & positions' && <div className="space-y-6"><div className="p-5 rounded-2xl bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm space-y-4 tabular-nums">
         <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] dark:border-[var(--border-subtle)]">

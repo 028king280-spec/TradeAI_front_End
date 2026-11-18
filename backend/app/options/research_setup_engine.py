@@ -1,4 +1,4 @@
-"""Independent 60-point research profile. Never submits or mutates paper orders."""
+"""Independent 60-point research profile. Evaluation itself never submits orders."""
 from decimal import Decimal, ROUND_HALF_UP
 from math import isfinite
 from uuid import uuid4
@@ -47,13 +47,16 @@ def build_research_setup(result):
                 setup = {"contractSymbol": contract.get("contract_symbol"),
                          "optionType": contract.get("option_type"), "expiry": contract.get("expiry"),
                          "strike": contract.get("strike"), "entryPremium": entry,
+                         "instrumentToken": contract.get("instrument_token"),
+                         "exchange": contract.get("exchange") or ("BFO" if result.get("symbol") == "SENSEX" else "NFO"),
+                         "lotSize": contract.get("lot_size"),
                          "stopLoss": stop, "targetPremium": target, "targetGainPct": 30,
                          "grossRewardRisk": round(rr, 4)}
     return {"id": str(uuid4()), "engineId": ENGINE_ID, "symbol": result.get("symbol"),
-            "timestamp": MarketCalendar.format_ist_timestamp(), "threshold": 60,
+            "timestamp": MarketCalendar.now_ist().isoformat(), "threshold": 60,
             "score": score if isfinite(score) else None, "qualified": qualified,
             "action": result.get("action") if qualified else "NO_TRADE",
-            "reasons": reasons, "setup": setup, "mode": "RESEARCH_ONLY",
+            "reasons": reasons, "setup": setup, "mode": "RESEARCH_PAPER_CANDIDATE",
             "dataStatus": (result.get("data_quality_report") or {}).get("feedStatus", "DATA_UNAVAILABLE"),
             "stages": dict(result.get("stage_status") or {}),
             "features": {"confluence": result.get("mtf_confluence") or {},
