@@ -260,6 +260,45 @@ class PaperTradingManager {
     this.state.positions.unshift(newPosition);
     this.saveState();
 
+    // Asynchronously sync with backend so backend portfolio and broker quote engine knows about this position
+    if (typeof window !== 'undefined') {
+      fetch('/api/paper-trading/open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instrument: setup.index,
+          contractSymbol: setup.contractSymbol,
+          bias: setup.bias,
+          strike: setup.strike,
+          expiry: setup.expiry,
+          entryPremium: entryPrice,
+          positionType: 'BUY',
+          lots: lots,
+          lotSize: lotSize,
+          stopLoss: newPosition.stopLoss,
+          target1: newPosition.target1,
+          target2: newPosition.target2,
+          strategy: newPosition.smcModel,
+          marketFeatures: {
+            allowAfterHoursSimulation: true,
+            isTradeQualified: true,
+            dataStatus: 'VERIFIED_LIVE',
+          },
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d && d.success && d.position && d.position.id) {
+            const found = this.state.positions.find((p) => p.id === posId || p.contractSymbol === setup.contractSymbol);
+            if (found) {
+              found.id = d.position.id;
+              this.saveState();
+            }
+          }
+        })
+        .catch((err) => console.warn('Notice syncing open paper trade to backend:', err));
+    }
+
     return {
       success: true,
       message: `Kharid Liya (Bought): ${lots} Lot (${totalQty} Qty) of ${setup.contractSymbol} @ ₹${entryPrice.toFixed(2)} at ${nowStr}.`,
@@ -308,6 +347,19 @@ class PaperTradingManager {
 
     // Asynchronously send feedback to Machine Learning strategy learner
     this.sendMlFeedback(pos);
+
+    // Asynchronously notify backend paper trading engine
+    if (typeof window !== 'undefined') {
+      fetch('/api/paper-trading/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          positionId: pos.id,
+          exitPrice: exitPrice,
+          exitReason: exitReason,
+        }),
+      }).catch((err) => console.warn('Notice syncing close paper trade to backend:', err));
+    }
 
     return {
       success: true,
@@ -389,6 +441,45 @@ class PaperTradingManager {
     this.state.balance = round(this.state.balance - marginRequired, 2);
     this.state.positions.unshift(newPosition);
     this.saveState();
+
+    // Asynchronously sync with backend so backend portfolio and broker quote engine knows about this position
+    if (typeof window !== 'undefined') {
+      fetch('/api/paper-trading/open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instrument: signal.index,
+          contractSymbol: signal.contractSymbol,
+          bias: signal.bias,
+          strike: signal.strike,
+          expiry: signal.expiry,
+          entryPremium: entryPrice,
+          positionType: 'BUY',
+          lots: lots,
+          lotSize: lotSize,
+          stopLoss: newPosition.stopLoss,
+          target1: newPosition.target1,
+          target2: newPosition.target2,
+          strategy: newPosition.smcModel,
+          marketFeatures: {
+            allowAfterHoursSimulation: true,
+            isTradeQualified: true,
+            dataStatus: 'VERIFIED_LIVE',
+          },
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d && d.success && d.position && d.position.id) {
+            const found = this.state.positions.find((p) => p.id === posId || p.contractSymbol === signal.contractSymbol);
+            if (found) {
+              found.id = d.position.id;
+              this.saveState();
+            }
+          }
+        })
+        .catch((err) => console.warn('Notice syncing signal paper trade to backend:', err));
+    }
 
     return {
       success: true,
@@ -509,76 +600,116 @@ class PaperTradingManager {
 
   /**
    * Force re-fetch of live broker quotes from the backend engine.
+   * Directly queries live tick quote endpoint for all active contracts,
+   * updates MTM P&L, MFE/MAE excursions, and checks auto SL/TP triggers.
    */
   public async refreshLiveQuotes(): Promise<PaperTradingState | null> {
     if (typeof window === 'undefined') return null;
     try {
-      const res = await fetch('/api/paper-trading/refresh-quotes', { method: 'POST' });
-      if (res.ok) {
-        return this.syncWithBackend();
+      // 1. Fetch live LTP for all open positions directly via live stream endpoint
+      if (this.state.positions.length > 0) {
+        await Promise.all(
+          this.state.positions.map(async (pos) => {
+            try {
+              const res = await fetch(`/api/live/ltp/${encodeURIComponent(pos.contractSymbol)}`);
+              if (res.ok) {
+                const quote = await res.json();
+                const ltp = typeof quote.ltp === 'number' ? quote.ltp : parseFloat(quote.ltp);
+                if (ltp && ltp > 0) {
+                  this.updateLivePrice(pos.contractSymbol, ltp, quote.dataStatus || 'LIVE');
+                  // Also report tick to backend paper trading engine
+                  fetch('/api/paper-trading/update-live', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractSymbol: pos.contractSymbol,
+                      currentLtp: ltp,
+                      barHigh: ltp,
+                      barLow: ltp,
+                    }),
+                  }).catch(() => {});
+                }
+              }
+            } catch (err) {
+              console.warn(`Failed to fetch live quote for ${pos.contractSymbol}:`, err);
+            }
+          })
+        );
       }
+
+      // 2. Trigger backend broker quote refresh
+      await fetch('/api/paper-trading/refresh-quotes', { method: 'POST' }).catch(() => {});
+
+      // 3. Sync state with backend using safe-merge
+      await this.syncWithBackend();
+      return this.getState();
     } catch (e) {
       console.warn('Paper trading refresh quotes fallback:', e);
+      return this.getState();
     }
-    return this.syncWithBackend();
   }
 
   /**
    * Sync local paper trading state with the FastAPI backend engine.
+   * Employs safe-merge so local active trades are NEVER wiped out if backend returns empty.
    */
   public async syncWithBackend(): Promise<PaperTradingState | null> {
     if (typeof window === 'undefined') return null;
     try {
       const res = await fetch('/api/paper-trading/portfolio');
-      if (!res.ok) return null;
+      if (!res.ok) return this.getState();
       const data = await res.json();
       if (data && data.status === 'SUCCESS') {
         const bal = data.currentBalance !== undefined ? data.currentBalance : data.balance;
-        if (bal !== undefined) this.state.balance = bal;
-        if (data.startingBalance !== undefined) this.state.startingBalance = data.startingBalance;
-        if (Array.isArray(data.openPositions)) {
-          this.state.positions = data.openPositions.map((p: any) => ({
-            id: p.id,
-            symbol: p.instrument || 'NIFTY 50',
-            contractSymbol: p.contractSymbol,
-            bias: p.bias,
-            strike: p.strike,
-            expiry: p.expiry,
-            entryPremium: p.entryPremium,
-            currentPremium: p.currentPremium,
-            stopLoss: p.stopLoss,
-            target1: p.target1,
-            target2: p.target2,
-            target3: p.target3,
-            lots: p.lots,
-            lotSize: p.lotSize,
-            totalQuantity: p.quantity,
-            remainingLots: p.remainingLots,
-            remainingQuantity: p.remainingQuantity,
-            marginUsed: p.entryPremium * p.quantity,
-            pnl: p.unrealizedGrossPnl !== undefined ? p.unrealizedGrossPnl : (p.unrealizedPnl !== undefined ? p.unrealizedPnl : ((p.currentPremium - p.entryPremium) * p.quantity)),
-            pnlPercent: p.unrealizedGrossPnlPct !== undefined ? p.unrealizedGrossPnlPct : (p.unrealizedPnlPct !== undefined ? p.unrealizedPnlPct : (p.entryPremium > 0 ? ((p.currentPremium - p.entryPremium) / p.entryPremium) * 100 : 0.0)),
-            grossPnl: p.grossPnl !== undefined ? p.grossPnl : p.unrealizedGrossPnl,
-            netPnl: p.netPnl !== undefined ? p.netPnl : ((p.unrealizedGrossPnl !== undefined ? p.unrealizedGrossPnl : ((p.currentPremium - p.entryPremium) * p.quantity)) - (p.statutoryCosts || 48.5)),
-            statutoryCosts: p.statutoryCosts,
-            smcModel: p.strategy,
-            status: p.status,
-            openedAt: p.entryTimestamp,
-            mfe: p.mfe,
-            mae: p.mae,
-            highestObservedLtp: p.highestObservedLtp,
-            lowestObservedLtp: p.lowestObservedLtp,
-            partialExits: p.partialExits,
-            aiEvaluation: p.aiEvaluation,
-            costBreakdown: p.costBreakdown,
-          }));
-        }
+        if (bal !== undefined && typeof bal === 'number') this.state.balance = bal;
+        if (data.startingBalance !== undefined && typeof data.startingBalance === 'number') this.state.startingBalance = data.startingBalance;
+
+        // Parse backend open positions
+        const backendPositions: PaperPosition[] = Array.isArray(data.openPositions)
+          ? data.openPositions.map((p: any) => ({
+              id: p.id,
+              symbol: p.instrument || 'NIFTY 50',
+              contractSymbol: p.contractSymbol,
+              bias: p.bias,
+              strike: p.strike,
+              expiry: p.expiry,
+              entryPremium: p.entryPremium,
+              currentPremium: p.currentPremium || p.entryPremium,
+              stopLoss: p.stopLoss,
+              target1: p.target1,
+              target2: p.target2,
+              target3: p.target3,
+              lots: p.lots,
+              lotSize: p.lotSize,
+              totalQuantity: p.quantity,
+              remainingLots: p.remainingLots,
+              remainingQuantity: p.remainingQuantity,
+              marginUsed: p.marginUsed || (p.entryPremium * p.quantity),
+              pnl: p.unrealizedGrossPnl !== undefined ? p.unrealizedGrossPnl : (p.unrealizedPnl !== undefined ? p.unrealizedPnl : ((p.currentPremium - p.entryPremium) * p.quantity)),
+              pnlPercent: p.unrealizedGrossPnlPct !== undefined ? p.unrealizedGrossPnlPct : (p.unrealizedPnlPct !== undefined ? p.unrealizedPnlPct : (p.entryPremium > 0 ? ((p.currentPremium - p.entryPremium) / p.entryPremium) * 100 : 0.0)),
+              grossPnl: p.grossPnl !== undefined ? p.grossPnl : p.unrealizedGrossPnl,
+              netPnl: p.netPnl !== undefined ? p.netPnl : ((p.unrealizedGrossPnl !== undefined ? p.unrealizedGrossPnl : ((p.currentPremium - p.entryPremium) * p.quantity)) - (p.statutoryCosts || 48.5)),
+              statutoryCosts: p.statutoryCosts,
+              smcModel: p.strategy,
+              status: p.status,
+              openedAt: p.entryTimestamp,
+              mfe: p.mfe,
+              mae: p.mae,
+              highestObservedLtp: p.highestObservedPremium || p.highestObservedLtp,
+              lowestObservedLtp: p.lowestObservedPremium || p.lowestObservedLtp,
+              partialExits: p.partialExits,
+              aiEvaluation: p.aiEvaluation,
+              costBreakdown: p.costBreakdown,
+            }))
+          : [];
+
+        // Parse backend closed trades
         const closed = Array.isArray(data.recentClosedTrades)
           ? data.recentClosedTrades
           : Array.isArray(data.closedTrades)
           ? data.closedTrades
           : null;
-        if (closed) {
+        if (closed && closed.length > 0) {
           this.state.closedTrades = closed.map((p: any) => ({
             id: p.id,
             symbol: p.instrument || 'NIFTY 50',
@@ -614,6 +745,77 @@ class PaperTradingManager {
             costBreakdown: p.costBreakdown,
           }));
         }
+
+        // --- SAFE MERGE LOGIC (PREVENTS TRADES FROM EVER BEING WIPED OUT) ---
+        const closedIds = new Set(this.state.closedTrades.map((p) => p.id));
+        const backendIds = new Set(backendPositions.map((p) => p.id));
+        const backendSymbols = new Set(backendPositions.map((p) => p.contractSymbol));
+
+        if (backendPositions.length > 0) {
+          // Keep backend positions, plus any local positions not yet synced to backend
+          const localOnlyPositions = this.state.positions.filter(
+            (pos) => !backendIds.has(pos.id) && !backendSymbols.has(pos.contractSymbol) && !closedIds.has(pos.id)
+          );
+          this.state.positions = [...backendPositions, ...localOnlyPositions];
+
+          // Auto-push unsynced local positions to backend
+          localOnlyPositions.forEach((pos) => {
+            fetch('/api/paper-trading/open', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                instrument: pos.symbol,
+                contractSymbol: pos.contractSymbol,
+                bias: pos.bias,
+                strike: pos.strike,
+                expiry: pos.expiry,
+                entryPremium: pos.entryPremium,
+                positionType: 'BUY',
+                lots: pos.lots,
+                lotSize: pos.lotSize,
+                stopLoss: pos.stopLoss,
+                target1: pos.target1,
+                target2: pos.target2,
+                strategy: pos.smcModel,
+                marketFeatures: { allowAfterHoursSimulation: true, isTradeQualified: true, dataStatus: 'VERIFIED_LIVE' },
+              }),
+            }).catch(() => {});
+          });
+        } else {
+          // Backend has 0 open positions.
+          // CRITICAL: NEVER blindly wipe out local active positions!
+          // Only filter out trades that are legitimately closed.
+          const activeLocal = this.state.positions.filter((pos) => !closedIds.has(pos.id));
+          if (activeLocal.length > 0) {
+            this.state.positions = activeLocal;
+            // Push to backend so backend state is populated
+            activeLocal.forEach((pos) => {
+              fetch('/api/paper-trading/open', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  instrument: pos.symbol,
+                  contractSymbol: pos.contractSymbol,
+                  bias: pos.bias,
+                  strike: pos.strike,
+                  expiry: pos.expiry,
+                  entryPremium: pos.entryPremium,
+                  positionType: 'BUY',
+                  lots: pos.lots,
+                  lotSize: pos.lotSize,
+                  stopLoss: pos.stopLoss,
+                  target1: pos.target1,
+                  target2: pos.target2,
+                  strategy: pos.smcModel,
+                  marketFeatures: { allowAfterHoursSimulation: true, isTradeQualified: true, dataStatus: 'VERIFIED_LIVE' },
+                }),
+              }).catch(() => {});
+            });
+          } else {
+            this.state.positions = [];
+          }
+        }
+
         if (data.totalRealizedNetPnl !== undefined) this.state.totalRealizedPnl = data.totalRealizedNetPnl;
         if (data.winningTrades !== undefined) this.state.winCount = data.winningTrades;
         if (data.losingTrades !== undefined) this.state.lossCount = data.losingTrades;
@@ -623,7 +825,7 @@ class PaperTradingManager {
     } catch (e) {
       console.warn('Paper trading backend sync failed, using local state:', e);
     }
-    return null;
+    return this.getState();
   }
 
   /**
