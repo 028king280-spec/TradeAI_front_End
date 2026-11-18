@@ -19,6 +19,15 @@ from app.core.logging import logger
 
 router = APIRouter(prefix="/options", tags=["Options Intelligence"])
 
+
+def _option_strike_step(symbol: str) -> float:
+    return 100.0 if symbol == "SENSEX" or "BANK" in symbol else 50.0
+
+
+def _option_quote_exchange(symbol: str) -> str:
+    return "BFO" if symbol == "SENSEX" else "NFO"
+
+
 SUPPORTED_INDICES = {
     "NIFTY": "NIFTY 50",
     "NIFTY 50": "NIFTY 50",
@@ -210,7 +219,7 @@ async def get_index_candles(
 
     df = await provider.get_intraday_candles(clean, timeframe)
 
-    step = 50.0 if ("NIFTY" in clean and "BANK" not in clean and "FIN" not in clean) else (100.0 if "BANK" in clean else 50.0)
+    step = _option_strike_step(clean)
     has_candles = df is not None and len(df) > 0
     current_spot = float(df["close"].iloc[-1]) if has_candles else 0.0
     atm_strike = round(current_spot / step) * step if current_spot > 0 else 0.0
@@ -240,7 +249,7 @@ async def get_index_candles(
 
         if token and hasattr(provider, "get_batch_quotes"):
             try:
-                quotes = await provider.get_batch_quotes("NFO", [token])
+                quotes = await provider.get_batch_quotes(_option_quote_exchange(clean), [token])
                 if quotes and token in quotes:
                     real_ltp = float(quotes[token].get("ltp") or 0.0)
             except Exception as e:
@@ -265,7 +274,7 @@ async def get_index_candles(
 
                 url = f"{provider.base_url}/rest/secure/angelbroking/historical/v1/getCandleData"
                 payload = {
-                    "exchange": "NFO",
+                    "exchange": _option_quote_exchange(clean),
                     "symboltoken": token,
                     "interval": interval,
                     "fromdate": from_date.strftime("%Y-%m-%d %H:%M"),
@@ -431,7 +440,7 @@ async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Dep
     if hasattr(provider, "get_batch_quotes"):
         from app.data.instrument_master import get_instrument_master
         master = get_instrument_master()
-        step = 50.0 if "NIFTY" in clean and "BANK" not in clean and "FIN" not in clean else (100.0 if "BANK" in clean else 50.0)
+        step = _option_strike_step(clean)
         atm_k = round(ltp / step) * step
         ladder = master.get_option_chain_contracts(clean, atm_k, step, num_strikes=7)
         tokens = []
@@ -441,7 +450,7 @@ async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Dep
             if pair.get("pe_contract"):
                 tokens.append(str(pair["pe_contract"]["token"]))
         if tokens:
-            real_quotes_map = await provider.get_batch_quotes("NFO", tokens)
+            real_quotes_map = await provider.get_batch_quotes(_option_quote_exchange(clean), tokens)
 
     chain = generate_index_option_chain(clean, ltp, chg, real_quotes_map=real_quotes_map, filter_mode="ATM")
     call_wall = chain["oiAnalysis"]["callWall"]
@@ -725,6 +734,15 @@ async def get_index_option_chain_endpoint(
     clean = canonicalize_symbol(index_symbol)
     provider = get_market_data_provider()
     quote = await provider.get_quote(clean)
+    if clean == "SENSEX":
+        from math import isfinite
+
+        try:
+            sensex_spot = float(quote.get("currentPrice") or quote.get("ltp") or 0)
+        except (TypeError, ValueError):
+            sensex_spot = 0.0
+        if not isfinite(sensex_spot) or sensex_spot <= 0:
+            raise HTTPException(status_code=503, detail="SENSEX spot quote is unavailable.")
     ltp = float(quote.get("currentPrice") or quote.get("ltp", 24852.4))
     chg = float(quote.get("change", 0.0))
 
@@ -732,7 +750,7 @@ async def get_index_option_chain_endpoint(
     if hasattr(provider, "get_batch_quotes"):
         from app.data.instrument_master import get_instrument_master
         master = get_instrument_master()
-        step = 50.0 if "NIFTY" in clean and "BANK" not in clean and "FIN" not in clean else (100.0 if "BANK" in clean else 50.0)
+        step = _option_strike_step(clean)
         atm_k = round(ltp / step) * step
         num_str = 7 if filter_mode.upper() == "ATM" else 15
         ladder = master.get_option_chain_contracts(clean, atm_k, step, num_strikes=num_str, expiry=expiry)
@@ -743,7 +761,7 @@ async def get_index_option_chain_endpoint(
             if pair.get("pe_contract"):
                 tokens.append(str(pair["pe_contract"]["token"]))
         if tokens:
-            real_quotes_map = await provider.get_batch_quotes("NFO", tokens)
+            real_quotes_map = await provider.get_batch_quotes(_option_quote_exchange(clean), tokens)
 
     chain = generate_index_option_chain(
         symbol=clean,
