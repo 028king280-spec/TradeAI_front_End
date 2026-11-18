@@ -207,6 +207,33 @@ export default function IndexAnalysisPage({ params }: PageProps) {
           </button>
         </div></>}/>
 
+      {/* Index Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] pb-2 overflow-x-auto">
+        {[
+          { label: 'NIFTY 50', href: '/options/nifty' },
+          { label: 'BANK NIFTY', href: '/options/banknifty' },
+          { label: 'FINNIFTY', href: '/options/finnifty' },
+          { label: 'SENSEX', href: '/options/sensex' },
+        ].map((tab) => {
+          const isActive =
+            indexSymbol.toUpperCase() === tab.label ||
+            (tab.label === 'SENSEX' && indexSymbol.toUpperCase().includes('SENSEX'));
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                isActive
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-elevated)]'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Institutional Market Closed Banner (Decision 3) */}
       {isMarketClosed && (
         <div className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/25 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] text-xs">
