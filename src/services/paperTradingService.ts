@@ -728,7 +728,7 @@ class PaperTradingManager {
             lotSize: p.lotSize,
             totalQuantity: p.quantity,
             marginUsed: p.entryPremium * p.quantity,
-            pnl: p.netPnl || p.grossPnl || 0.0,
+            pnl: p.netPnl ?? p.grossPnl ?? 0.0,
             pnlPercent: p.pnlPercent || 0.0,
             grossPnl: p.grossPnl,
             netPnl: p.netPnl,
@@ -855,25 +855,14 @@ class PaperTradingManager {
         body: JSON.stringify(params),
       });
       const data = await res.json();
-      if (data && data.success) {
+      if (res.ok && data?.success === true) {
         await this.syncWithBackend();
         return { success: true, message: data.message, position: data.position };
       }
-    } catch (e) {
-      console.warn('Backend open failed, falling back to local simulation:', e);
+      return { success: false, message: typeof data?.message === 'string' ? data.message : 'Server rejected this trade. No local trade was created.' };
+    } catch {
+      return { success: false, message: 'Trade outcome could not be confirmed. Refresh the portfolio before retrying.' };
     }
-    // Fallback to local
-    return this.openPosition({
-      index: params.instrument,
-      contractSymbol: params.contractSymbol,
-      bias: params.bias,
-      strike: params.strike,
-      expiry: params.expiry,
-      currentPremium: params.entryPremium,
-      stopLoss: params.stopLoss,
-      target1: params.target1,
-      target2: params.target2,
-    } as any, params.lots);
   }
 
   /**
@@ -897,14 +886,14 @@ class PaperTradingManager {
         }),
       });
       const data = await res.json();
-      if (data && data.success) {
+      if (res.ok && data?.success === true) {
         await this.syncWithBackend();
         return { success: true, message: data.message };
       }
-    } catch (e) {
-      console.warn('Backend close failed, executing locally:', e);
+      return { success: false, message: typeof data?.message === 'string' ? data.message : 'Server rejected this exit. The local position was retained.' };
+    } catch {
+      return { success: false, message: 'Exit outcome could not be confirmed. Refresh the portfolio before retrying.' };
     }
-    return this.closePosition(positionId, exitPrice, exitReason);
   }
 
   /**
@@ -1006,23 +995,18 @@ class PaperTradingManager {
   /**
    * Reset Virtual Portfolio both locally and on backend server.
    */
-  public async resetAccount(capital: number = DEFAULT_CAPITAL) {
+  public async resetAccount() {
     try {
-      await fetch('/api/paper-trading/reset', { method: 'POST' });
-    } catch (e) {
-      console.warn('Backend reset failed:', e);
+      const response = await fetch('/api/paper-trading/reset', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok || data?.status !== 'SUCCESS') return { success: false, message: 'Server rejected portfolio reset.' };
+      const state = await this.syncWithBackend();
+      return { success: Boolean(state), message: state ? 'Portfolio reset.' : 'Reset accepted; refresh to confirm the portfolio.' };
+    } catch {
+      return { success: false, message: 'Reset outcome could not be confirmed. Refresh the portfolio.' };
     }
-    this.state = {
-      balance: capital,
-      startingBalance: capital,
-      positions: [],
-      closedTrades: [],
-      totalRealizedPnl: 0.0,
-      winCount: 0,
-      lossCount: 0,
-    };
-    this.saveState();
   }
+
 }
 
 function round(val: number, decimals: number = 2): number {

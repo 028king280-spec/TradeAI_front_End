@@ -14,6 +14,7 @@ import json
 import uuid
 import math
 import threading
+import copy
 from datetime import datetime, timezone
 
 from app.data.market_calendar import MarketCalendar
@@ -129,6 +130,7 @@ class PaperTradingEngine:
         self._save_lock = threading.RLock()
         self.state = self._load_state()
         self._state_version = int(self.state.get("stateVersion", 0))
+        self._persisted_state = copy.deepcopy(self.state)
         self._cleanup_stale_temp_files()
 
     def _cleanup_stale_temp_files(self):
@@ -226,6 +228,7 @@ class PaperTradingEngine:
 
                 # Step 1: Pre-serialize to detect errors BEFORE touching disk
                 serialized_state = json.dumps(self.state, indent=2, ensure_ascii=False)
+                committed_snapshot = copy.deepcopy(self.state)
 
                 # Step 2: Write to unique temp file in same directory
                 tmp_filename = f".paper_state_{uuid.uuid4().hex}.tmp"
@@ -251,8 +254,11 @@ class PaperTradingEngine:
 
                 # Step 5: Directory metadata sync
                 _sync_dir(storage_dir)
+                self._persisted_state = committed_snapshot
 
             except Exception as e:
+                self.state = copy.deepcopy(self._persisted_state)
+                self._state_version = int(self.state.get("stateVersion", 0))
                 logger.error(f"[PaperTradingEngine] Atomic save failed: {e}. Existing state preserved.")
                 raise
             finally:
@@ -379,6 +385,13 @@ class PaperTradingEngine:
                         "Naked option writing/shorting is strictly barred."
                     ),
                 }
+
+            # Domain invariants apply to every entry path, including isolated replay.
+            if any(isinstance(v, bool) or not isinstance(v, int) or v <= 0 for v in (lots, lot_size)):
+                return {"success": False, "status": "INVALID_QUANTITY", "message": "Lots and lot size must be positive integers."}
+            for name, value in (("entry premium", entry_premium), ("strike", strike)):
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                    return {"success": False, "status": "INVALID_PRICE", "message": f"Invalid {name}: expected a positive finite number."}
 
             # SENSEX Governance Lock Invariant
             clean_inst = str(instrument or "").strip().upper()
