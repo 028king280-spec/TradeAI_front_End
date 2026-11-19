@@ -178,6 +178,11 @@ class FinancialNewsProvider(NewsProvider):
             "url": "https://in.investing.com/rss/news_25.rss",
             "source": "Investing.com",
         },
+        {"name": "Financial Express Markets", "url": "https://www.financialexpress.com/market/feed/", "source": "Financial Express"},
+        {"name": "BusinessLine Markets", "url": "https://www.thehindubusinessline.com/markets/?service=rss", "source": "BusinessLine"},
+        {"name": "CNBC TV18 Markets", "url": "https://www.cnbctv18.com/commonfeeds/v1/feeds/rss/market.xml", "source": "CNBC TV18"},
+        {"name": "Zee Business Markets", "url": "https://www.zeebiz.com/markets/rss", "source": "Zee Business"},
+        {"name": "Google News India Markets", "url": "https://news.google.com/rss/search?q=Indian+stocks+NSE+OR+BSE&hl=en-IN&gl=IN&ceid=IN:en", "source": "Google News"},
     ]
 
     def __init__(self):
@@ -204,7 +209,7 @@ class FinancialNewsProvider(NewsProvider):
         if cached and isinstance(cached, list) and len(cached) > 0:
             return cached
 
-        all_items = await self._fetch_all_primary_feeds(limit=limit)
+        all_items = await self._fetch_all_primary_feeds(limit=max(limit, 150))
 
         if not all_items:
             # Fallback to Google News search if direct RSS fails

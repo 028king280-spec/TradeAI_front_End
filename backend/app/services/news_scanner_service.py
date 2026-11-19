@@ -60,6 +60,8 @@ class IntradayNewsScannerService:
             "Business Standard Markets",
             "Business Standard Companies",
             "NDTV Profit Markets",
+            "Investing.com India Equities", "Financial Express Markets", "BusinessLine Markets",
+            "CNBC TV18 Markets", "Zee Business Markets", "Google News India Markets",
         ]
         self._unauthorized_sources: List[str] = [
             "NSE Corporate Announcements (Direct Unauthenticated Scraping Blocked: Requires Paid Akamai/Exchange API License)",
@@ -120,7 +122,7 @@ class IntradayNewsScannerService:
         """
         Fetches live articles from all primary authorized RSS feeds.
         """
-        raw_items = await self._news_provider.get_market_news(limit=60)
+        raw_items = await self._news_provider.get_market_news(limit=150)
         return raw_items
 
     async def scan_and_rank_opportunities(self, force_refresh: bool = False) -> Dict[str, Any]:
