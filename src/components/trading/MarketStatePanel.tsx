@@ -118,7 +118,7 @@ const stateConfig = {
 };
 
 export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
-  const rawState = data.marketState || (data as any)?.market_regime || 'NO_TRADE';
+  const rawState = data.marketState || (data as MarketStateData & { market_regime?: string }).market_regime || 'NO_TRADE';
   const state = (typeof rawState === 'string' ? rawState : 'NO_TRADE').toUpperCase() as keyof typeof stateConfig;
   const config = stateConfig[state] || stateConfig.NO_TRADE || stateConfig.DATA_UNAVAILABLE;
   const StateIcon = config.icon;
@@ -135,7 +135,7 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
   };
 
   const headline = data.headline || `${data.symbol || 'Index'} Market Regime: ${isStrictNoTrade ? 'NO TRADE' : state}`;
-  const explanation = data.explanation || (isStrictNoTrade ? 'Market is in sideways chop or risk budget is pending governance approval. Directional trading disabled to protect capital.' : 'Market structure active.');
+  const explanation = data.explanation || data.reasonForNoTrade || data.primaryReason || (isStrictNoTrade ? 'No trade reason is unavailable. Check market data and risk status.' : 'Market structure active.');
 
   return (
     <div
@@ -188,9 +188,9 @@ export const MarketStatePanel: React.FC<MarketStatePanelProps> = ({ data }) => {
             {/* Live indicator */}
             <div className="hidden sm:flex flex-col items-end gap-0.5">
               <span className="text-[10px] font-medium text-[var(--text-muted)]">Feed</span>
-              <span className={`text-xs font-semibold flex items-center gap-1 ${(data.dataStatus || 'LIVE') === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              <span className={`text-xs font-semibold flex items-center gap-1 ${data.dataStatus === 'LIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                 <Radio className="w-3 h-3" />
-                {data.dataStatus || 'LIVE'}
+                {data.dataStatus || 'UNKNOWN'}
               </span>
             </div>
           </div>
