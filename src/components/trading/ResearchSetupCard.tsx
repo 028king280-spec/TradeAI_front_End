@@ -86,10 +86,16 @@ export function ResearchSetupCard({ data, indexSymbol = 'NIFTY 50' }: ResearchSe
                 className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${
                   isQualified
                     ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+                    : score >= threshold
+                    ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
                     : 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
                 }`}
               >
-                {isQualified ? 'QUALIFIED (60-PT RESEARCH)' : 'WAITING FOR 60+ CONFLUENCE'}
+                {isQualified
+                  ? 'QUALIFIED (60-PT RESEARCH)'
+                  : score >= threshold
+                  ? 'WAITING FOR ENTRY TRIGGER'
+                  : 'WAITING FOR 60+ CONFLUENCE'}
               </span>
             </div>
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mt-0.5">

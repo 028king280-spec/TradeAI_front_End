@@ -1,15 +1,15 @@
 {
-  "lastUpdated": "18 Nov 2026, 03:48 PM IST",
-  "totalTrainingSamples": 351,
+  "lastUpdated": "19 Nov 2026, 02:26 PM IST",
+  "totalTrainingSamples": 362,
   "models": {
     "xgboost": {
       "name": "XGBoost Classifier (v3.4.1)",
-      "accuracy": "88.6%",
+      "accuracy": "87.3%",
       "primaryRole": "Trade Outcome & Edge Prediction"
     },
     "neuralNetwork": {
       "name": "Multi-Layer Perceptron (32x16)",
-      "accuracy": "88.0%",
+      "accuracy": "86.7%",
       "primaryRole": "Non-linear Greeks & Market Regime Learner"
     }
   },
@@ -141,14 +141,14 @@
   "trainingHistory": [
     {
       "session": "Initial Baseline Calibration",
-      "samples": 351,
-      "xgbAcc": "88.6%",
-      "nnAcc": "88.0%",
-      "timestamp": "18 Nov 2026, 03:48 PM IST"
+      "samples": 362,
+      "xgbAcc": "87.3%",
+      "nnAcc": "86.7%",
+      "timestamp": "19 Nov 2026, 02:26 PM IST"
     },
     {
       "session": "Reinforcement Epoch v1.2",
-      "samples": 348,
+      "samples": 359,
       "xgbAcc": "80.0%",
       "nnAcc": "82.5%",
       "timestamp": "03 Nov 2026, 18:30 IST"

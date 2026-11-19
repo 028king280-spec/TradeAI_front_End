@@ -576,6 +576,8 @@ async def get_index_full_analysis(index_symbol: str, session: AsyncSession = Dep
     try:
         from app.options.drawdown_circuit_breaker import get_circuit_breaker
         from app.options.paper_trading.paper_engine import paper_engine
+        from app.api.routes.paper_trading import _refresh_open_positions_live_quotes
+        await _refresh_open_positions_live_quotes()
         cb_instance = get_circuit_breaker()
         cb_status = cb_instance.get_status(paper_engine.state)
         if not cb_status.get("isPermitted", False):
