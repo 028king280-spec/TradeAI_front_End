@@ -94,6 +94,7 @@ async def open_simulated_trade(
     """
     Fills and opens an active simulated paper trade position.
     """
+    await _refresh_open_positions_live_quotes()
     instrument = payload.get("instrument", "NIFTY 50")
     contract_symbol = payload.get("contractSymbol", "NIFTY06NOV2624000CE")
     bias = payload.get("bias", "CE")

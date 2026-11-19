@@ -594,11 +594,12 @@ class PaperTradingEngine:
             if not effective_quotes:
                 return None
 
+            positions_to_close: List[tuple] = []
+
             for sym, q in effective_quotes.items():
-                matched = next((p for p in positions if p["contractSymbol"] == sym), None)
-                if not matched:
+                matched_list = [p for p in positions if p.get("contractSymbol") == sym]
+                if not matched_list:
                     continue
-                last_matched = matched
 
                 val = q.get("ltp") or q.get("lastPrice") or (current_ltp if sym == contract_symbol else None)
                 if val is None:
@@ -608,78 +609,90 @@ class PaperTradingEngine:
                 q_ts = q.get("timestamp") or now_ist
                 q_status = q.get("dataStatus") or "VERIFIED_LIVE"
 
-                matched["currentPremium"] = ltp
-                matched["lastQuoteTimestamp"] = q_ts
-                matched["lastDataStatus"] = q_status
-
                 b_high = q.get("bar_high", bar_high if sym == contract_symbol else None)
                 b_low = q.get("bar_low", bar_low if sym == contract_symbol else None)
                 high_val = b_high if b_high is not None else ltp
                 low_val = b_low if b_low is not None else ltp
 
-                matched["highestObservedPremium"] = max(matched.get("highestObservedPremium", ltp), high_val)
-                matched["lowestObservedPremium"] = min(matched.get("lowestObservedPremium", ltp), low_val)
+                for matched in matched_list:
+                    last_matched = matched
 
-                p_entry = matched["entryPremium"]
-                pos_type = matched["positionType"]
-                rem_qty = matched["remainingQuantity"]
+                    matched["currentPremium"] = ltp
+                    matched["lastQuoteTimestamp"] = q_ts
+                    matched["lastDataStatus"] = q_status
 
-                # Calculate floating excursion
-                if pos_type == "BUY":
-                    fav_pts = max(0.0, matched["highestObservedPremium"] - p_entry)
-                    adv_pts = max(0.0, p_entry - matched["lowestObservedPremium"])
-                    curr_pts = ltp - p_entry
-                else:
-                    fav_pts = max(0.0, p_entry - matched["lowestObservedPremium"])
-                    adv_pts = max(0.0, matched["highestObservedPremium"] - p_entry)
-                    curr_pts = p_entry - ltp
+                    matched["highestObservedPremium"] = max(matched.get("highestObservedPremium", ltp), high_val)
+                    matched["lowestObservedPremium"] = min(matched.get("lowestObservedPremium", ltp), low_val)
 
-                matched["mfePts"] = round(fav_pts, 2)
-                matched["mfeRupees"] = round(fav_pts * rem_qty, 2)
-                matched["maePts"] = round(adv_pts, 2)
-                matched["maeRupees"] = round(-adv_pts * rem_qty, 2)
+                    p_entry = matched["entryPremium"]
+                    pos_type = matched["positionType"]
+                    rem_qty = matched["remainingQuantity"]
 
-                # Unrealized P&L
-                matched["unrealizedGrossPnl"] = round(curr_pts * rem_qty, 2)
+                    # Calculate floating excursion
+                    if pos_type == "BUY":
+                        fav_pts = max(0.0, matched["highestObservedPremium"] - p_entry)
+                        adv_pts = max(0.0, p_entry - matched["lowestObservedPremium"])
+                        curr_pts = ltp - p_entry
+                    else:
+                        fav_pts = max(0.0, p_entry - matched["lowestObservedPremium"])
+                        adv_pts = max(0.0, matched["highestObservedPremium"] - p_entry)
+                        curr_pts = p_entry - ltp
 
-                # Check Target 1 Hit (Auto partial exit 50% if multi-lot, or full)
-                t1 = matched.get("target1", 0.0)
-                sl = matched.get("stopLoss", 0.0)
+                    matched["mfePts"] = round(fav_pts, 2)
+                    matched["mfeRupees"] = round(fav_pts * rem_qty, 2)
+                    matched["maePts"] = round(adv_pts, 2)
+                    matched["maeRupees"] = round(-adv_pts * rem_qty, 2)
 
-                # Auto Exit Checks
-                if pos_type == "BUY":
-                    if ltp <= sl and sl > 0:
-                        return self.close_position(matched["id"], exit_price=sl, exit_reason="Stop Loss Hit")
-                    t2 = matched.get("target2", 0.0)
-                    if (ltp >= t2 or high_val >= t2) and t2 > 0:
-                        return self.close_position(matched["id"], exit_price=t2, exit_reason="Target 2 Hit")
-                    if (ltp >= t1 or high_val >= t1) and t1 > 0 and not matched.get("partialExits"):
-                        if matched["lots"] > 1:
-                            exit_lots = max(1, matched["lots"] // 2)
-                            self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
-                            matched["stopLoss"] = matched["entryPremium"]
-                            matched["status"] = "TARGET_1_HIT"
-                        else:
-                            # Target 1 Hit: Auto-trail SL to entry cost for risk-free runner, keep position open for Target 2
-                            matched["status"] = "TARGET_1_HIT"
-                            matched["stopLoss"] = max(matched.get("stopLoss", 0.0), matched["entryPremium"])
-                else:
-                    if ltp >= sl and sl > 0:
-                        return self.close_position(matched["id"], exit_price=sl, exit_reason="Stop Loss Hit")
-                    t2 = matched.get("target2", 0.0)
-                    if (ltp <= t2 or low_val <= t2) and t2 > 0:
-                        return self.close_position(matched["id"], exit_price=t2, exit_reason="Target 2 Hit")
-                    if (ltp <= t1 or low_val <= t1) and t1 > 0 and not matched.get("partialExits"):
-                        if matched["lots"] > 1:
-                            exit_lots = max(1, matched["lots"] // 2)
-                            self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
-                            matched["stopLoss"] = matched["entryPremium"]
-                            matched["status"] = "TARGET_1_HIT"
-                        else:
-                            matched["status"] = "TARGET_1_HIT"
-                            matched["stopLoss"] = min(matched.get("stopLoss", 999999.0), matched["entryPremium"])
+                    # Unrealized P&L
+                    matched["unrealizedGrossPnl"] = round(curr_pts * rem_qty, 2)
+
+                    # Check Target 1 Hit (Auto partial exit 50% if multi-lot, or full)
+                    t1 = matched.get("target1", 0.0)
+                    sl = matched.get("stopLoss", 0.0)
+
+                    # Auto Exit Checks
+                    if pos_type == "BUY":
+                        if ltp <= sl and sl > 0:
+                            positions_to_close.append((matched["id"], sl, "Stop Loss Hit"))
+                            continue
+                        t2 = matched.get("target2", 0.0)
+                        if (ltp >= t2 or high_val >= t2) and t2 > 0:
+                            positions_to_close.append((matched["id"], t2, "Target 2 Hit"))
+                            continue
+                        if (ltp >= t1 or high_val >= t1) and t1 > 0 and not matched.get("partialExits"):
+                            if matched["lots"] > 1:
+                                exit_lots = max(1, matched["lots"] // 2)
+                                self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
+                                matched["stopLoss"] = matched["entryPremium"]
+                                matched["status"] = "TARGET_1_HIT"
+                            else:
+                                # Target 1 Hit: Auto-trail SL to entry cost for risk-free runner, keep position open for Target 2
+                                matched["status"] = "TARGET_1_HIT"
+                                matched["stopLoss"] = max(matched.get("stopLoss", 0.0), matched["entryPremium"])
+                    else:
+                        if ltp >= sl and sl > 0:
+                            positions_to_close.append((matched["id"], sl, "Stop Loss Hit"))
+                            continue
+                        t2 = matched.get("target2", 0.0)
+                        if (ltp <= t2 or low_val <= t2) and t2 > 0:
+                            positions_to_close.append((matched["id"], t2, "Target 2 Hit"))
+                            continue
+                        if (ltp <= t1 or low_val <= t1) and t1 > 0 and not matched.get("partialExits"):
+                            if matched["lots"] > 1:
+                                exit_lots = max(1, matched["lots"] // 2)
+                                self.execute_partial_exit(matched["id"], exit_lots=exit_lots, exit_price=t1, exit_label="Target 1 Hit (50% Partial)")
+                                matched["stopLoss"] = matched["entryPremium"]
+                                matched["status"] = "TARGET_1_HIT"
+                            else:
+                                matched["status"] = "TARGET_1_HIT"
+                                matched["stopLoss"] = min(matched.get("stopLoss", 999999.0), matched["entryPremium"])
 
             self._save_state()
+
+            for pid, exit_p, exit_r in positions_to_close:
+                close_res = self.close_position(pid, exit_price=exit_p, exit_reason=exit_r)
+                if not last_matched or last_matched.get("id") == pid:
+                    last_matched = close_res
 
             # Immediate portfolio drawdown circuit breaker recalculation on every fresh verified price update
             if self.circuit_breaker is not None:
