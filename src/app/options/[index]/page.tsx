@@ -89,9 +89,32 @@ export default function IndexAnalysisPage({ params }: PageProps) {
 
     const marketState = analysis.marketState;
     const setups = analysis.todayOptionsSetups?.setups;
-    const primarySetup = setups && setups.length > 0 ? setups[0] : null;
+    let chosenSetup = setups && setups.length > 0 ? setups[0] : null;
 
-    if (marketState?.isNoTrade || !primarySetup) {
+    // 60-Point Research Setup integration (60% Confluence Hurdle)
+    const researchCandidate = analysis?.researchSetup?.qualified ? analysis.researchSetup.setup : null;
+    if (!chosenSetup && researchCandidate) {
+      const optType = researchCandidate.contractSymbol.endsWith('CE') ? 'CE' : 'PE';
+      chosenSetup = {
+        bias: optType,
+        contractSymbol: researchCandidate.contractSymbol,
+        strike: Math.round(currentPrice / 50) * 50,
+        expiry: 'Current Expiry',
+        currentPremium: researchCandidate.entryPremium,
+        suggestedEntryMin: Math.round(researchCandidate.entryPremium * 0.98 * 10) / 10,
+        suggestedEntryMax: Math.round(researchCandidate.entryPremium * 1.02 * 10) / 10,
+        stopLoss: researchCandidate.stopLoss,
+        target1: researchCandidate.targetPremium,
+        target2: Math.round(researchCandidate.targetPremium * 1.15 * 10) / 10,
+        target3: Math.round(researchCandidate.targetPremium * 1.30 * 10) / 10,
+        riskRewardRatio: `${researchCandidate.grossRewardRisk.toFixed(1)}:1`,
+        underlyingTrigger: '60-Point Confluence Research Trigger',
+        invalidationCondition: `Premium drops below SL ₹${researchCandidate.stopLoss.toFixed(2)}`,
+        supportingReasons: ['60-Point Confluence Research Engine Setup (+30% Target)'],
+      } as any;
+    }
+
+    if (marketState?.isNoTrade || !chosenSetup) {
       return {
         index: indexSymbol,
         signalState: 'NO_TRADE',
@@ -115,25 +138,25 @@ export default function IndexAnalysisPage({ params }: PageProps) {
       };
     }
 
-    const isCall = primarySetup.bias === 'CE';
+    const isCall = chosenSetup.bias === 'CE';
     return {
       index: indexSymbol,
       signalState: isCall ? 'CALL_SETUP_READY' : 'PUT_SETUP_READY',
-      bias: primarySetup.bias as 'CE' | 'PE',
-      contractSymbol: primarySetup.contractSymbol,
-      strike: primarySetup.strike,
-      expiry: primarySetup.expiry,
-      lastObservedLtp: primarySetup.currentPremium,
-      entryRangeMin: (primarySetup as any).suggestedEntryMin || primarySetup.currentPremium * 0.98,
-      entryRangeMax: (primarySetup as any).suggestedEntryMax || primarySetup.currentPremium * 1.02,
-      stopLoss: primarySetup.stopLoss,
-      target1: primarySetup.target1,
-      target2: primarySetup.target2,
-      target3: primarySetup.target3,
-      riskRewardRatio: primarySetup.riskRewardRatio,
-      entryCondition: primarySetup.underlyingTrigger,
-      invalidationCondition: primarySetup.invalidationCondition,
-      supportingReasons: primarySetup.supportingReasons,
+      bias: chosenSetup.bias as 'CE' | 'PE',
+      contractSymbol: chosenSetup.contractSymbol,
+      strike: chosenSetup.strike,
+      expiry: chosenSetup.expiry,
+      lastObservedLtp: chosenSetup.currentPremium,
+      entryRangeMin: (chosenSetup as any).suggestedEntryMin || chosenSetup.currentPremium * 0.98,
+      entryRangeMax: (chosenSetup as any).suggestedEntryMax || chosenSetup.currentPremium * 1.02,
+      stopLoss: chosenSetup.stopLoss,
+      target1: chosenSetup.target1,
+      target2: chosenSetup.target2,
+      target3: chosenSetup.target3,
+      riskRewardRatio: chosenSetup.riskRewardRatio,
+      entryCondition: chosenSetup.underlyingTrigger,
+      invalidationCondition: chosenSetup.invalidationCondition,
+      supportingReasons: chosenSetup.supportingReasons,
       dataTimestamp: analysis.dataTimestamp,
       dataStatus: analysis.dataStatus,
     };
@@ -347,7 +370,7 @@ export default function IndexAnalysisPage({ params }: PageProps) {
               )}
 
               <OptionsSetupsCard data={analysis.todayOptionsSetups} />
-              <ResearchSetupCard data={analysis.researchSetup} />
+              <ResearchSetupCard data={analysis.researchSetup} indexSymbol={indexSymbol} />
 
               <PaperTradingSimulator />
 

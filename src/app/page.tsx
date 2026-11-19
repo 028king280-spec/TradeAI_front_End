@@ -127,6 +127,31 @@ export default function OptionsDashboardPage() {
       chosenSetup = setups.length > 0 ? setups[0] : null;
     }
 
+    // 60-Point Research Setup integration (60% Confluence Hurdle)
+    const researchCandidate = analysis?.researchSetup?.qualified ? analysis.researchSetup.setup : null;
+    if (!chosenSetup && researchCandidate) {
+      const optType = researchCandidate.contractSymbol.endsWith('CE') ? 'CE' : 'PE';
+      if (selectedSignalBias === 'AUTO' || selectedSignalBias === optType) {
+        chosenSetup = {
+          bias: optType,
+          contractSymbol: researchCandidate.contractSymbol,
+          strike: Math.round(currentPrice / 50) * 50,
+          expiry: 'Current Expiry',
+          currentPremium: researchCandidate.entryPremium,
+          suggestedEntryMin: Math.round(researchCandidate.entryPremium * 0.98 * 10) / 10,
+          suggestedEntryMax: Math.round(researchCandidate.entryPremium * 1.02 * 10) / 10,
+          stopLoss: researchCandidate.stopLoss,
+          target1: researchCandidate.targetPremium,
+          target2: Math.round(researchCandidate.targetPremium * 1.15 * 10) / 10,
+          target3: Math.round(researchCandidate.targetPremium * 1.30 * 10) / 10,
+          riskRewardRatio: `${researchCandidate.grossRewardRisk.toFixed(1)}:1`,
+          underlyingTrigger: '60-Point Confluence Research Trigger',
+          invalidationCondition: `Premium drops below SL ₹${researchCandidate.stopLoss.toFixed(2)}`,
+          supportingReasons: ['60-Point Confluence Research Engine Setup (+30% Target)'],
+        } as any;
+      }
+    }
+
     if (!chosenSetup || isSideways || chosenSetup.target1 === 0) {
       const displaySetup = chosenSetup || setups[0];
       const verifiedLtp = displaySetup?.currentPremium && displaySetup.currentPremium > 0
@@ -212,7 +237,7 @@ export default function OptionsDashboardPage() {
           <div className="workspace-stack">
             <LiveAnalysisChart symbol={selectedIndex} currentPrice={currentPrice || undefined} supportLevel={analysis?.supportResistance?.support1?.price} resistanceLevel={analysis?.supportResistance?.resistance1?.price}/>
             {analysis?.todayOptionsSetups ? <OptionsSetupsCard data={analysis.todayOptionsSetups}/> : <div className="workspace-empty">{loadingAnalysis ? 'Loading setups from the analysis engine…' : 'No setup data is available. Refresh when the analysis feed is connected.'}</div>}
-            <ResearchSetupCard data={analysis?.researchSetup}/>
+            <ResearchSetupCard data={analysis?.researchSetup} indexSymbol={selectedIndex}/>
           </div>
           <aside className="workspace-stack" aria-label="Market context">
             <section className="workspace-panel workspace-copilot">
@@ -236,7 +261,7 @@ export default function OptionsDashboardPage() {
         <SignalActivationPanel data={activeSignalData} selectedBias={selectedSignalBias} onSelectBias={setSelectedSignalBias} onOpenTimeline={() => { if (trackedSignals.length) setSelectedTimelineSignalId(trackedSignals[0].id); }}/>
         <ActiveSignalTracker signals={trackedSignals} onSelectSignalTimeline={setSelectedTimelineSignalId} onSelectFailureAnalysis={setSelectedFailureSignalId}/>
         {analysis?.todayOptionsSetups && <OptionsSetupsCard data={analysis.todayOptionsSetups}/>}
-        <ResearchSetupCard data={analysis?.researchSetup}/>
+        <ResearchSetupCard data={analysis?.researchSetup} indexSymbol={selectedIndex}/>
       </div>}
       {view === 'Structure' && <div className="space-y-6">
         {marketState && <MarketStatePanel data={marketState}/>}
