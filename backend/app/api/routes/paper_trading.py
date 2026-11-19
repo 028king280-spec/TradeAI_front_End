@@ -117,14 +117,23 @@ async def open_simulated_trade(
         )
     position_type = clean_pos_type
     lots = int(payload.get("lots", 1))
-    lot_size = int(payload.get("lotSize", 65 if "NIFTY" in instrument and "BANK" not in instrument else 15))
+    inst_clean = str(instrument or "").upper()
+    default_lot = 30 if "BANK" in inst_clean else (60 if "FIN" in inst_clean else 65)
+    lot_size = int(payload.get("lotSize") or default_lot)
     stop_loss = float(payload.get("stopLoss", 95.0))
     target_1 = float(payload.get("target1", 150.0))
     target_2 = float(payload.get("target2", 185.0))
     target_3 = float(payload.get("target3", 220.0))
     strategy = payload.get("strategy", "Model A (Liquidity Sweep & Retest)")
     ict_setup = payload.get("ictSetup", "Bullish SSL Sweep + FVG 50% CE")
-    market_features = payload.get("marketFeatures", {})
+    
+    # Sanitize client marketFeatures: Strip client-forged live/replay override flags
+    raw_market_features = payload.get("marketFeatures", {}) or {}
+    market_features = {k: v for k, v in raw_market_features.items() if k not in ("allowAfterHoursSimulation", "dataStatus", "feedStatus", "isReplay")}
+    # Server-verified market session and data feed
+    from app.data.quality_validator import FeedStatus
+    market_features["isMarketOpen"] = MarketCalendar.is_market_open()
+    market_features["dataStatus"] = FeedStatus.VERIFIED_LIVE if MarketCalendar.is_market_open() else FeedStatus.MARKET_CLOSED
 
     result = paper_engine.open_position(
         instrument=instrument,

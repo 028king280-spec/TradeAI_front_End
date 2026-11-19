@@ -105,3 +105,81 @@ class StockSentimentAnalysisSchema(BaseModel):
     articles: List[NewsItemSchema] = Field(default_factory=list)
     calculatedAt: str
     disclaimer: str = "Quantitative sentiment analysis for informational purposes only. Not financial advice."
+
+
+class StockNewsArticleSchema(BaseModel):
+    id: str
+    headline: str
+    source: str
+    url: str
+    publishedAt: str
+    ingestedAt: str
+    category: str
+    polarity: int
+    impact: int
+    confidence: float
+    verificationStatus: str
+    explanation: str
+    isSyndicatedCopy: bool = False
+
+
+class IntradayStockOpportunitySchema(BaseModel):
+    rank: int
+    symbol: str
+    companyName: str
+    sector: str
+    exchange: str = "NSE"
+    primaryHeadline: str
+    primarySource: str
+    primaryUrl: str
+    publishedAt: str
+    ageHours: float
+    category: str
+    sentiment: str  # 'VERY_BULLISH' | 'BULLISH' | 'NEUTRAL' | 'BEARISH' | 'VERY_BEARISH'
+    sentimentPolarity: int  # -100 to +100
+    impactScore: int        # 0 to 100
+    compositeRankScore: float  # 0 to 100
+    confidence: float       # 0.0 to 1.0
+    verificationStatus: str # 'VERIFIED_OFFICIAL_FILING' | 'VERIFIED_TIER1_MEDIA' | 'FINANCIAL_MEDIA' | 'UNVERIFIED_RUMOR'
+    explanation: str
+    catalyst: str
+    articlesCount: int = 1
+    articles: List[StockNewsArticleSchema] = Field(default_factory=list)
+    
+    # Real Market Confirmation
+    currentPrice: Optional[float] = None
+    change: Optional[float] = None
+    changePercent: Optional[float] = None
+    dayHigh: Optional[float] = None
+    dayLow: Optional[float] = None
+    volume: Optional[int] = None
+    vwap: Optional[float] = None
+    quoteTimestamp: Optional[str] = None
+    dataStatus: str = "DATA_OFFLINE"  # 'VERIFIED_LIVE' | 'VERIFIED_EOD' | 'DATA_OFFLINE' | 'PRICE_UNVERIFIED'
+    priceConfirmation: str  # 'BULLISH_WATCHLIST_CANDIDATE' | 'BEARISH_WATCHLIST_CANDIDATE' | 'NEWS_PRICE_DIVERGENCE' | 'PENDING_CONFIRMATION' | 'PRICE_UNVERIFIED'
+    intradayBias: str       # 'BULLISH' | 'BEARISH' | 'DIVERGENCE' | 'NEUTRAL'
+    researchStatus: str     # 'RESEARCH_WATCHLIST_ACTIVE' | 'PRICE_UNVERIFIED' | 'NO_CONFIRMED_SETUP'
+
+
+class IntradayTopStocksResponseSchema(BaseModel):
+    direction: str  # 'all' | 'bullish' | 'bearish'
+    generatedAt: str
+    sourceFreshness: str
+    totalArticlesAnalyzed: int
+    totalQualifiedStocks: int
+    stocks: List[IntradayStockOpportunitySchema] = Field(default_factory=list)
+    dataStatus: str = "LIVE"
+    disclaimer: str = "READ-ONLY equity intraday intelligence. No trade execution or profit guarantee."
+
+
+class IntradayScannerStatusSchema(BaseModel):
+    status: str
+    sourcesActive: List[str] = Field(default_factory=list)
+    lastIngestionTimestamp: Optional[str] = None
+    totalArticlesInCache: int = 0
+    totalStocksScanned: int = 0
+    totalQualifiedBullish: int = 0
+    totalQualifiedBearish: int = 0
+    unauthorizedSourcesReported: List[str] = Field(default_factory=list)
+    cacheTtlSeconds: int = 300
+

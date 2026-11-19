@@ -10,7 +10,7 @@ from app.core.logging import logger
 from app.db.database import init_db
 from app.jobs.market_refresh import start_scheduler, scheduler
 from app.api.routes import health, market, stocks, analysis, ai, signals, knowledge, ml, options, news, performance
-from app.api.routes import live_stream, paper_trading, macro
+from app.api.routes import live_stream, paper_trading, macro, post_market
 
 
 @asynccontextmanager
@@ -164,6 +164,7 @@ app.include_router(news.router, prefix="/api")
 app.include_router(performance.router, prefix="/api")
 app.include_router(live_stream.router, prefix="/api")
 app.include_router(macro.router, prefix="/api")
+app.include_router(post_market.router, prefix="/api")
 app.include_router(paper_trading.router)
 
 

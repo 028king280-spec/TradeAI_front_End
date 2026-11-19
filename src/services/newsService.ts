@@ -114,6 +114,82 @@ export interface NewsStatusResponse {
   };
 }
 
+export interface StockNewsArticle {
+  id: string;
+  headline: string;
+  source: string;
+  url: string;
+  publishedAt: string;
+  ingestedAt: string;
+  category: string;
+  polarity: number;
+  impact: number;
+  confidence: number;
+  verificationStatus: string;
+  explanation: string;
+  isSyndicatedCopy?: boolean;
+}
+
+export interface IntradayStockOpportunity {
+  rank: number;
+  symbol: string;
+  companyName: string;
+  sector: string;
+  exchange: string;
+  primaryHeadline: string;
+  primarySource: string;
+  primaryUrl: string;
+  publishedAt: string;
+  ageHours: number;
+  category: string;
+  sentiment: 'VERY_BULLISH' | 'BULLISH' | 'NEUTRAL' | 'BEARISH' | 'VERY_BEARISH' | string;
+  sentimentPolarity: number; // -100 to +100
+  impactScore: number;       // 0 to 100
+  compositeRankScore: number;// 0 to 100
+  confidence: number;        // 0.0 to 1.0
+  verificationStatus: string;
+  explanation: string;
+  catalyst: string;
+  articlesCount: number;
+  articles: StockNewsArticle[];
+  currentPrice: number | null;
+  change: number | null;
+  changePercent: number | null;
+  dayHigh: number | null;
+  dayLow: number | null;
+  volume: number | null;
+  vwap: number | null;
+  quoteTimestamp: string | null;
+  dataStatus: string;
+  priceConfirmation: 'BULLISH_WATCHLIST_CANDIDATE' | 'BEARISH_WATCHLIST_CANDIDATE' | 'NEWS_PRICE_DIVERGENCE' | 'PENDING_CONFIRMATION' | 'PRICE_UNVERIFIED' | string;
+  intradayBias: 'BULLISH' | 'BEARISH' | 'DIVERGENCE' | 'NEUTRAL' | string;
+  researchStatus: 'RESEARCH_WATCHLIST_ACTIVE' | 'PRICE_UNVERIFIED' | 'NO_CONFIRMED_SETUP' | string;
+}
+
+export interface IntradayTopStocksResponse {
+  direction: 'all' | 'bullish' | 'bearish';
+  generatedAt: string;
+  sourceFreshness: string;
+  totalArticlesAnalyzed: number;
+  totalQualifiedStocks: number;
+  stocks: IntradayStockOpportunity[];
+  dataStatus: string;
+  disclaimer: string;
+}
+
+export interface IntradayScannerStatus {
+  status: string;
+  sourcesActive: string[];
+  lastIngestionTimestamp: string | null;
+  totalArticlesInCache: number;
+  totalStocksScanned: number;
+  totalQualifiedBullish: number;
+  totalQualifiedBearish: number;
+  unauthorizedSourcesReported: string[];
+  cacheTtlSeconds: number;
+}
+
+
 const API_BASE_URL = typeof window !== 'undefined'
   ? ''
   : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000');
@@ -183,6 +259,31 @@ class NewsService {
 
   async getNewsStatus(): Promise<NewsStatusResponse['data'] | null> {
     const res = await this.fetchJson<NewsStatusResponse>('/api/news/status');
+    if (res && res.success && res.data) {
+      return res.data;
+    }
+    return null;
+  }
+
+  async getIntradayTopStocks(direction: 'all' | 'bullish' | 'bearish' = 'all', limit: number = 10): Promise<IntradayTopStocksResponse | null> {
+    const res = await this.fetchJson<NewsApiResponse<IntradayTopStocksResponse>>(`/api/news/intraday/top-stocks?direction=${direction}&limit=${limit}`);
+    if (res && res.success && res.data) {
+      return res.data;
+    }
+    return null;
+  }
+
+  async getIntradayStockOpportunity(symbol: string): Promise<IntradayStockOpportunity | null> {
+    const clean = encodeURIComponent(symbol.trim());
+    const res = await this.fetchJson<NewsApiResponse<IntradayStockOpportunity>>(`/api/news/intraday/stock/${clean}`);
+    if (res && res.success && res.data) {
+      return res.data;
+    }
+    return null;
+  }
+
+  async getIntradayScannerStatus(): Promise<IntradayScannerStatus | null> {
+    const res = await this.fetchJson<NewsApiResponse<IntradayScannerStatus>>('/api/news/intraday/status');
     if (res && res.success && res.data) {
       return res.data;
     }

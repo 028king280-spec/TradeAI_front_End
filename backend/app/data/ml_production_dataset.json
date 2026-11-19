@@ -1,0 +1,1362 @@
+[
+  {
+    "trade_id": "PT-947F4576",
+    "prediction_id": "PRED-947F4576",
+    "signal_id": "SIG-20261119-7F4576",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "BANKNIFTY23NOV2662700CE",
+    "instrument_token": null,
+    "index": "BANKNIFTY",
+    "strike": 62700.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:33 PM IST",
+    "entry_premium": 355.75,
+    "exit_time": "19 Nov 2026, 02:26 PM IST",
+    "exit_premium": 551.4,
+    "outcome": "TARGET_2_HIT",
+    "gross_pnl": 5869.5,
+    "net_pnl": 5774.35,
+    "total_costs": 95.15,
+    "net_roi_pct": 54.1,
+    "mfe_pts": 192.7,
+    "mae_pts": 11.55,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      28.5,
+      76.5,
+      0.0,
+      1.85,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "TRENDING_BULLISH_AFTERNOON",
+    "smc_ict_setup": "Bullish Liquidity Expansion above 62600",
+    "confluence_score": 76.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.8
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 8.4
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 24.5
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 55.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-98070912",
+    "prediction_id": "PRED-98070912",
+    "signal_id": "SIG-20261119-070912",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625450CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25450.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 02:13 PM IST",
+    "entry_premium": 142.65,
+    "exit_time": "19 Nov 2026, 02:26 PM IST",
+    "exit_premium": 166.85,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": 1573.0,
+    "net_pnl": 1470.28,
+    "total_costs": 102.72,
+    "net_roi_pct": 15.86,
+    "mfe_pts": 32.0,
+    "mae_pts": 2.25,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      28.5,
+      78.5,
+      1.0,
+      1.85,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "TRENDING_BULLISH_AFTERNOON",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.8
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 8.4
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 24.5
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 55.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-94BD04F7",
+    "prediction_id": "PRED-94BD04F7",
+    "signal_id": "SIG-20261119-BD04F7",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 01:16 PM IST",
+    "entry_premium": 153.25,
+    "exit_time": "19 Nov 2026, 02:25 PM IST",
+    "exit_premium": 237.6,
+    "outcome": "TARGET_2_HIT",
+    "gross_pnl": 5482.75,
+    "net_pnl": 5372.29,
+    "total_costs": 110.46,
+    "net_roi_pct": 53.93,
+    "mfe_pts": 72.7,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      28.5,
+      78.5,
+      1.0,
+      1.85,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "TRENDING_BULLISH_AFTERNOON",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.8
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 8.4
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 24.5
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 55.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-AE4D999B",
+    "prediction_id": "PRED-AE4D999B",
+    "signal_id": "SIG-20261119-4D999B",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 01:16 PM IST",
+    "entry_premium": 153.25,
+    "exit_time": "19 Nov 2026, 02:25 PM IST",
+    "exit_premium": 237.6,
+    "outcome": "TARGET_2_HIT",
+    "gross_pnl": 5482.75,
+    "net_pnl": 5372.29,
+    "total_costs": 110.46,
+    "net_roi_pct": 53.93,
+    "mfe_pts": 72.7,
+    "mae_pts": 6.8,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      28.5,
+      78.5,
+      1.0,
+      1.85,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "TRENDING_BULLISH_AFTERNOON",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.8
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 8.4
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 24.5
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 55.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-3D3F0634",
+    "prediction_id": "PRED-3D3F0634",
+    "signal_id": "SIG-20261119-3F0634",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 01:16 PM IST",
+    "entry_premium": 153.25,
+    "exit_time": "19 Nov 2026, 02:25 PM IST",
+    "exit_premium": 237.6,
+    "outcome": "TARGET_2_HIT",
+    "gross_pnl": 5482.75,
+    "net_pnl": 5372.29,
+    "total_costs": 110.46,
+    "net_roi_pct": 53.93,
+    "mfe_pts": 72.7,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      28.5,
+      78.5,
+      1.0,
+      1.85,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "TRENDING_BULLISH_AFTERNOON",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.8
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 8.4
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 24.5
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 55.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-1C0FADF4",
+    "prediction_id": "PRED-1C0FADF4",
+    "signal_id": "SIG-20261119-0FADF4",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:28 PM IST",
+    "entry_premium": 148.8,
+    "exit_time": "19 Nov 2026, 12:31 PM IST",
+    "exit_premium": 125.0,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": -1547.0,
+    "net_pnl": -1645.63,
+    "total_costs": 98.63,
+    "net_roi_pct": -17.01,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-323908AF",
+    "prediction_id": "PRED-323908AF",
+    "signal_id": "SIG-20261119-3908AF",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625400CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25400.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:19 PM IST",
+    "entry_premium": 123.95,
+    "exit_time": "19 Nov 2026, 12:31 PM IST",
+    "exit_premium": 125.0,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": 68.25,
+    "net_pnl": -29.38,
+    "total_costs": 97.63,
+    "net_roi_pct": -0.36,
+    "mfe_pts": 10.2,
+    "mae_pts": 4.95,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-06B08E88",
+    "prediction_id": "PRED-06B08E88",
+    "signal_id": "SIG-20261119-B08E88",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:15 PM IST",
+    "entry_premium": 151.75,
+    "exit_time": "19 Nov 2026, 12:31 PM IST",
+    "exit_premium": 125.0,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": -1738.75,
+    "net_pnl": -1837.5,
+    "total_costs": 98.75,
+    "net_roi_pct": -18.63,
+    "mfe_pts": 9.6,
+    "mae_pts": 8.75,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-86BDFDBE",
+    "prediction_id": "PRED-86BDFDBE",
+    "signal_id": "SIG-20261119-BDFDBE",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:15 PM IST",
+    "entry_premium": 151.75,
+    "exit_time": "19 Nov 2026, 12:18 PM IST",
+    "exit_premium": 151.75,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": 0.0,
+    "net_pnl": -101.51,
+    "total_costs": 101.51,
+    "net_roi_pct": -1.03,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-E102E686",
+    "prediction_id": "PRED-E102E686",
+    "signal_id": "SIG-20261119-02E686",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:15 PM IST",
+    "entry_premium": 151.75,
+    "exit_time": "19 Nov 2026, 12:18 PM IST",
+    "exit_premium": 151.75,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": 0.0,
+    "net_pnl": -101.51,
+    "total_costs": 101.51,
+    "net_roi_pct": -1.03,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "PT-02D39520",
+    "prediction_id": "PRED-02D39520",
+    "signal_id": "SIG-20261119-D39520",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625350CE",
+    "instrument_token": null,
+    "index": "NIFTY",
+    "strike": 25350.0,
+    "option_type": "CE",
+    "entry_time": "19 Nov 2026, 12:15 PM IST",
+    "entry_premium": 151.75,
+    "exit_time": "19 Nov 2026, 12:18 PM IST",
+    "exit_premium": 151.75,
+    "outcome": "MANUAL_EXIT",
+    "gross_pnl": 0.0,
+    "net_pnl": -101.51,
+    "total_costs": 101.51,
+    "net_roi_pct": -1.03,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.142,
+      0.52,
+      -11.8,
+      0.0022,
+      1.15,
+      13.4,
+      108.5,
+      0.0035,
+      51.0,
+      78.5,
+      1.0,
+      1.05,
+      24.0,
+      1.18
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MIDDAY_CONSOLIDATION",
+    "smc_ict_setup": "Bullish SSL Sweep + FVG 50% CE",
+    "confluence_score": 78.5,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -1.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -2.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -6.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -15.8
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:09:50.489122+05:30"
+    }
+  },
+  {
+    "trade_id": "RES-6979f8dcd745",
+    "prediction_id": "PRED-RES-6979f8dc",
+    "signal_id": "SIG-RES-6979f8dc",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625300CE",
+    "instrument_token": "64456",
+    "index": "NIFTY",
+    "strike": 25300.0,
+    "option_type": "CE",
+    "entry_time": "2026-11-19 04:46:36.636163",
+    "entry_premium": 144.12,
+    "exit_time": "2026-11-19 04:53:56.759366",
+    "exit_premium": 126.39,
+    "outcome": "STOP_LOSS_HIT",
+    "gross_pnl": -1152.45,
+    "net_pnl": -1192.45,
+    "total_costs": 40.0,
+    "net_roi_pct": -12.73,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.145,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      13.5,
+      110.0,
+      0.001,
+      45.0,
+      62.0,
+      0.0,
+      1.1,
+      15.0,
+      1.05
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MORNING_CHOPPY",
+    "smc_ict_setup": "60-Point Confluence Hurdle Test",
+    "confluence_score": 62.0,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -4.5
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -8.2
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:10:25.197345+05:30"
+    }
+  },
+  {
+    "trade_id": "RES-1b919b1defed",
+    "prediction_id": "PRED-RES-1b919b1d",
+    "signal_id": "SIG-RES-1b919b1d",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "BANKNIFTY23NOV2662600CE",
+    "instrument_token": "62489",
+    "index": "BANKNIFTY",
+    "strike": 62600.0,
+    "option_type": "CE",
+    "entry_time": "2026-11-19 04:47:56.693786",
+    "entry_premium": 375.74,
+    "exit_time": "2026-11-19 04:57:56.736103",
+    "exit_premium": 330.98,
+    "outcome": "STOP_LOSS_HIT",
+    "gross_pnl": -1342.8,
+    "net_pnl": -1382.8,
+    "total_costs": 40.0,
+    "net_roi_pct": -12.27,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.145,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      13.5,
+      110.0,
+      0.001,
+      45.0,
+      62.0,
+      0.0,
+      1.1,
+      15.0,
+      1.05
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MORNING_CHOPPY",
+    "smc_ict_setup": "60-Point Confluence Hurdle Test",
+    "confluence_score": 62.0,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -4.5
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -8.2
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:10:25.197345+05:30"
+    }
+  },
+  {
+    "trade_id": "RES-e1da73f8e330",
+    "prediction_id": "PRED-RES-e1da73f8",
+    "signal_id": "SIG-RES-e1da73f8",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625400CE",
+    "instrument_token": "64462",
+    "index": "NIFTY",
+    "strike": 25400.0,
+    "option_type": "CE",
+    "entry_time": "2026-11-19 06:31:57.352537",
+    "entry_premium": 134.87,
+    "exit_time": "2026-11-19 06:38:26.872613",
+    "exit_premium": 119.19,
+    "outcome": "STOP_LOSS_HIT",
+    "gross_pnl": -1019.2,
+    "net_pnl": -1059.2,
+    "total_costs": 40.0,
+    "net_roi_pct": -12.08,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.145,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      13.5,
+      110.0,
+      0.001,
+      45.0,
+      62.0,
+      0.0,
+      1.1,
+      15.0,
+      1.05
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MORNING_CHOPPY",
+    "smc_ict_setup": "60-Point Confluence Hurdle Test",
+    "confluence_score": 62.0,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -4.5
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -8.2
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:10:25.197345+05:30"
+    }
+  },
+  {
+    "trade_id": "RES-f242b42a3beb",
+    "prediction_id": "PRED-RES-f242b42a",
+    "signal_id": "SIG-RES-f242b42a",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "NIFTY23NOV2625500CE",
+    "instrument_token": "64473",
+    "index": "NIFTY",
+    "strike": 25500.0,
+    "option_type": "CE",
+    "entry_time": "2026-11-19 08:53:28.265225",
+    "entry_premium": 127.86,
+    "exit_time": "2026-11-19 09:55:07.891285",
+    "exit_premium": 143.43,
+    "outcome": "TIME_BASED_EXIT",
+    "gross_pnl": 1012.05,
+    "net_pnl": 972.05,
+    "total_costs": 40.0,
+    "net_roi_pct": 11.7,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.145,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      13.5,
+      110.0,
+      0.001,
+      45.0,
+      62.0,
+      0.0,
+      1.1,
+      15.0,
+      1.05
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MORNING_CHOPPY",
+    "smc_ict_setup": "60-Point Confluence Hurdle Test",
+    "confluence_score": 62.0,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": 3.2
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": 7.5
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": 12.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": 12.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:10:25.197345+05:30"
+    }
+  },
+  {
+    "trade_id": "RES-0ff2b4318d20",
+    "prediction_id": "PRED-RES-0ff2b431",
+    "signal_id": "SIG-RES-0ff2b431",
+    "trading_date": "2026-11-19",
+    "contract_symbol": "BANKNIFTY23NOV2663000CE",
+    "instrument_token": "62523",
+    "index": "BANKNIFTY",
+    "strike": 63000.0,
+    "option_type": "CE",
+    "entry_time": "2026-11-19 08:56:37.796648",
+    "entry_premium": 388.74,
+    "exit_time": "2026-11-19 09:10:27.868917",
+    "exit_premium": 351.07,
+    "outcome": "STOP_LOSS_HIT",
+    "gross_pnl": -1130.1,
+    "net_pnl": -1170.1,
+    "total_costs": 40.0,
+    "net_roi_pct": -10.03,
+    "mfe_pts": 0.0,
+    "mae_pts": 0.0,
+    "features": [
+      0.145,
+      0.5,
+      -12.0,
+      0.002,
+      1.2,
+      13.5,
+      110.0,
+      0.001,
+      45.0,
+      62.0,
+      0.0,
+      1.1,
+      15.0,
+      1.05
+    ],
+    "feature_names": [
+      "iv",
+      "delta",
+      "theta",
+      "gamma",
+      "spread",
+      "vix",
+      "atr",
+      "vwap_dist_pct",
+      "dealing_pos_pct",
+      "mtf_score",
+      "is_sweep_reclaim",
+      "bos_disp_ratio",
+      "fvg_gap_pts",
+      "pcr_oi"
+    ],
+    "regime": "MORNING_CHOPPY",
+    "smc_ict_setup": "60-Point Confluence Hurdle Test",
+    "confluence_score": 62.0,
+    "forward_horizons": {
+      "5": {
+        "horizon_minutes": 5,
+        "status": "RESOLVED",
+        "premium_return_pct": -4.5
+      },
+      "15": {
+        "horizon_minutes": 15,
+        "status": "RESOLVED",
+        "premium_return_pct": -8.2
+      },
+      "30": {
+        "horizon_minutes": 30,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      },
+      "60": {
+        "horizon_minutes": 60,
+        "status": "RESOLVED",
+        "premium_return_pct": -12.0
+      }
+    },
+    "data_classification": "BACKEND_ACCEPTED_GENUINE_PAPER_TRADE",
+    "anti_leakage_verified": true,
+    "provenance": {
+      "recorded_by": "AIVOLVE_POST_MARKET_PIPELINE_V3",
+      "recorded_at": "2026-11-19T17:10:25.197345+05:30"
+    }
+  }
+]

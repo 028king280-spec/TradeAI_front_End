@@ -7,14 +7,15 @@ import { OptionsMarketSentiment } from '@/types/options';
 import { MarketSentimentPanel } from '@/components/trading/MarketSentimentPanel';
 import { MarketSentimentRadar } from '@/components/trading/GodsEyeObserver';
 import { StockSentimentCalculator } from '@/components/trading/StockSentimentCalculator';
-import { RefreshCw, ShieldCheck, Activity, Layers, Sparkles } from 'lucide-react';
+import { Top10NewsScanner } from '@/components/trading/Top10NewsScanner';
+import { RefreshCw, ShieldCheck, Activity, Layers, Sparkles, Flame } from 'lucide-react';
 
 export default function MarketSentimentPage() {
   const [symbol, setSymbol] = useState<string>('NIFTY 50');
   const [sentiment, setSentiment] = useState<OptionsMarketSentiment | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
-  const [viewMode, setViewMode] = useState<'stock-calculator' | 'all' | 'indicators' | 'index-deep-dive'>('stock-calculator');
+  const [viewMode, setViewMode] = useState<'top-scanner' | 'stock-calculator' | 'all' | 'indicators' | 'index-deep-dive'>('top-scanner');
 
   const indices = ['NIFTY 50', 'SENSEX', 'BANK NIFTY'];
 
@@ -39,6 +40,17 @@ export default function MarketSentimentPage() {
       {/* Top Header & View Filter */}
       <PageHeading title="Market sentiment" description="The forces shaping market conviction, at a glance." actions={<><div className="flex items-center gap-2 flex-wrap">
           <div className="inline-flex rounded-lg bg-[var(--bg-surface-elevated)] p-0.5 border border-[var(--border-subtle)] text-xs flex-wrap">
+            <button
+              onClick={() => setViewMode('top-scanner')}
+              className={`px-3 py-1.5 rounded-md transition-all font-semibold flex items-center gap-1.5 ${
+                viewMode === 'top-scanner'
+                  ? 'bg-[var(--accent-blue)] text-[var(--accent-on)] shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-400" />
+              <span>Top 10 News Scanner</span>
+            </button>
             <button
               onClick={() => setViewMode('stock-calculator')}
               className={`px-3 py-1.5 rounded-md transition-all font-semibold flex items-center gap-1.5 ${
@@ -90,6 +102,13 @@ export default function MarketSentimentPage() {
             <RefreshCw className="w-4 h-4" />
           </button>
         </div></>}/>
+
+      {/* SECTION -1: TOP 10 INTRADAY STOCK OPPORTUNITY NEWS SCANNER */}
+      {(viewMode === 'top-scanner' || viewMode === 'all') && (
+        <div className="space-y-4">
+          <Top10NewsScanner />
+        </div>
+      )}
 
       {/* SECTION 0: ON-DEMAND STOCK SENTIMENT CALCULATOR */}
       {(viewMode === 'stock-calculator' || viewMode === 'all') && (

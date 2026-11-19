@@ -140,7 +140,7 @@ export interface PaperTradingState {
 
 const STORAGE_KEY = 'aivolve_paper_trading_state_v1';
 const DEFAULT_CAPITAL = 100000.0;
-const API_AUTH_HEADERS = { 'Content-Type': 'application/json', 'X-AIVOLVE-AUTH-TOKEN': 'aivolve-internal-operator' };
+const API_AUTH_HEADERS = { 'Content-Type': 'application/json' };
 
 class PaperTradingManager {
   private state: PaperTradingState;
@@ -234,7 +234,7 @@ class PaperTradingManager {
       };
     }
 
-    const lotSize = (setup as any).lotSize || (setup.index.includes('BANK') ? 15 : setup.index.includes('SENSEX') ? 10 : 65);
+    const lotSize = (setup as any).lotSize || (setup.index.includes('BANK') ? 30 : setup.index.includes('FIN') ? 60 : setup.index.includes('SENSEX') ? 10 : 65);
     const totalQty = lots * lotSize;
     const entryPrice = round(rawPrice, 2);
     const marginRequired = round(entryPrice * totalQty, 2);
@@ -246,37 +246,7 @@ class PaperTradingManager {
       };
     }
 
-    const posId = `PT-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`;
-    const nowStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-    const newPosition: PaperPosition = {
-      id: posId,
-      symbol: setup.index,
-      contractSymbol: setup.contractSymbol,
-      bias: setup.bias,
-      strike: setup.strike,
-      expiry: setup.expiry,
-      entryPremium: entryPrice,
-      currentPremium: entryPrice,
-      stopLoss: setup.stopLoss && setup.stopLoss > 0 ? setup.stopLoss : round(entryPrice * 0.85, 1),
-      target1: setup.target1 && setup.target1 > 0 ? setup.target1 : round(entryPrice * 1.30, 1),
-      target2: setup.target2 && setup.target2 > 0 ? setup.target2 : round(entryPrice * 1.55, 1),
-      lots: lots,
-      lotSize: lotSize,
-      totalQuantity: totalQty,
-      marginUsed: marginRequired,
-      pnl: 0.0,
-      pnlPercent: 0.0,
-      smcModel: (setup as any).smcModel || 'SMC Standard Setup',
-      status: 'OPEN',
-      openedAt: nowStr,
-    };
-
-    this.state.balance = round(this.state.balance - marginRequired, 2);
-    this.state.positions.unshift(newPosition);
-    this.saveState();
-
-    // Asynchronously sync with backend so backend portfolio and broker quote engine knows about this position
+    // Backend-authoritative order placement: Send order to backend and only admit position upon backend approval
     if (typeof window !== 'undefined') {
       fetch('/api/paper-trading/open', {
         method: 'POST',
@@ -291,34 +261,52 @@ class PaperTradingManager {
           positionType: 'BUY',
           lots: lots,
           lotSize: lotSize,
-          stopLoss: newPosition.stopLoss,
-          target1: newPosition.target1,
-          target2: newPosition.target2,
-          strategy: newPosition.smcModel,
-          marketFeatures: {
-            allowAfterHoursSimulation: true,
-            isTradeQualified: true,
-            dataStatus: 'VERIFIED_LIVE',
-          },
+          stopLoss: setup.stopLoss && setup.stopLoss > 0 ? setup.stopLoss : round(entryPrice * 0.85, 1),
+          target1: setup.target1 && setup.target1 > 0 ? setup.target1 : round(entryPrice * 1.30, 1),
+          target2: setup.target2 && setup.target2 > 0 ? setup.target2 : round(entryPrice * 1.55, 1),
+          strategy: (setup as any).smcModel || 'Next-Session Institutional Setup',
+          marketFeatures: {},
         }),
       })
         .then((r) => r.json())
         .then((d) => {
           if (d && d.success && d.position && d.position.id) {
-            const found = this.state.positions.find((p) => p.id === posId || p.contractSymbol === setup.contractSymbol);
-            if (found) {
-              found.id = d.position.id;
-              this.saveState();
-            }
+            const admittedPos: PaperPosition = {
+              id: d.position.id,
+              symbol: setup.index,
+              contractSymbol: setup.contractSymbol,
+              bias: setup.bias,
+              strike: setup.strike,
+              expiry: setup.expiry,
+              entryPremium: entryPrice,
+              currentPremium: entryPrice,
+              stopLoss: d.position.stopLoss || round(entryPrice * 0.85, 1),
+              target1: d.position.target1 || round(entryPrice * 1.30, 1),
+              target2: d.position.target2 || round(entryPrice * 1.55, 1),
+              lots: lots,
+              lotSize: lotSize,
+              totalQuantity: totalQty,
+              marginUsed: marginRequired,
+              pnl: 0.0,
+              pnlPercent: 0.0,
+              smcModel: (setup as any).smcModel || 'Next-Session Institutional Setup',
+              status: 'OPEN',
+              openedAt: d.position.entryTimestamp || new Date().toLocaleTimeString('en-IN'),
+            };
+            this.state.balance = round(this.state.balance - marginRequired, 2);
+            this.state.positions.unshift(admittedPos);
+            this.saveState();
+          } else {
+            console.warn('Backend rejected paper order:', d?.message || 'Rejected by risk engine');
+            this.notify();
           }
         })
-        .catch((err) => console.warn('Notice syncing open paper trade to backend:', err));
+        .catch((err) => console.warn('Error sending paper order to backend:', err));
     }
 
     return {
       success: true,
-      message: `Kharid Liya (Bought): ${lots} Lot (${totalQty} Qty) of ${setup.contractSymbol} @ ₹${entryPrice.toFixed(2)} at ${nowStr}.`,
-      position: newPosition,
+      message: `Paper order dispatched: ${lots} Lot (${totalQty} Qty) of ${setup.contractSymbol} @ ₹${entryPrice.toFixed(2)}. Awaiting backend risk approval.`,
     };
   }
 
@@ -785,75 +773,9 @@ class PaperTradingManager {
           }));
         }
 
-        // --- SAFE MERGE LOGIC (PREVENTS TRADES FROM EVER BEING WIPED OUT) ---
-        const closedIds = new Set(this.state.closedTrades.map((p) => p.id));
-        const backendIds = new Set(backendPositions.map((p) => p.id));
-        const backendSymbols = new Set(backendPositions.map((p) => p.contractSymbol));
-
-        if (backendPositions.length > 0) {
-          // Keep backend positions, plus any local positions not yet synced to backend
-          const localOnlyPositions = this.state.positions.filter(
-            (pos) => !backendIds.has(pos.id) && !backendSymbols.has(pos.contractSymbol) && !closedIds.has(pos.id)
-          );
-          this.state.positions = [...backendPositions, ...localOnlyPositions];
-
-          // Auto-push unsynced local positions to backend
-          localOnlyPositions.forEach((pos) => {
-            fetch('/api/paper-trading/open', {
-              method: 'POST',
-              headers: API_AUTH_HEADERS,
-              body: JSON.stringify({
-                instrument: pos.symbol,
-                contractSymbol: pos.contractSymbol,
-                bias: pos.bias,
-                strike: pos.strike,
-                expiry: pos.expiry,
-                entryPremium: pos.entryPremium,
-                positionType: 'BUY',
-                lots: pos.lots,
-                lotSize: pos.lotSize,
-                stopLoss: pos.stopLoss,
-                target1: pos.target1,
-                target2: pos.target2,
-                strategy: pos.smcModel,
-                marketFeatures: { allowAfterHoursSimulation: true, isTradeQualified: true, dataStatus: 'VERIFIED_LIVE' },
-              }),
-            }).catch(() => {});
-          });
-        } else {
-          // Backend has 0 open positions.
-          // CRITICAL: NEVER blindly wipe out local active positions!
-          // Only filter out trades that are legitimately closed.
-          const activeLocal = this.state.positions.filter((pos) => !closedIds.has(pos.id));
-          if (activeLocal.length > 0) {
-            this.state.positions = activeLocal;
-            // Push to backend so backend state is populated
-            activeLocal.forEach((pos) => {
-              fetch('/api/paper-trading/open', {
-                method: 'POST',
-                headers: API_AUTH_HEADERS,
-                body: JSON.stringify({
-                  instrument: pos.symbol,
-                  contractSymbol: pos.contractSymbol,
-                  bias: pos.bias,
-                  strike: pos.strike,
-                  expiry: pos.expiry,
-                  entryPremium: pos.entryPremium,
-                  positionType: 'BUY',
-                  lots: pos.lots,
-                  lotSize: pos.lotSize,
-                  stopLoss: pos.stopLoss,
-                  target1: pos.target1,
-                  target2: pos.target2,
-                  strategy: pos.smcModel,
-                  marketFeatures: { allowAfterHoursSimulation: true, isTradeQualified: true, dataStatus: 'VERIFIED_LIVE' },
-                }),
-              }).catch(() => {});
-            });
-          } else {
-            this.state.positions = [];
-          }
-        }
+        // --- BACKEND AUTHORITATIVE ADMISSION LOGIC ---
+        // Backend engine is strictly authoritative. No phantom local-only positions admitted.
+        this.state.positions = backendPositions;
 
         if (data.totalRealizedNetPnl !== undefined) this.state.totalRealizedPnl = data.totalRealizedNetPnl;
         if (data.winningTrades !== undefined) this.state.winCount = data.winningTrades;

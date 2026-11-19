@@ -8,9 +8,13 @@ from app.schemas.news import (
     NewsStatusSchema,
     MarketNewsSentimentSchema,
     StockSentimentAnalysisSchema,
+    IntradayStockOpportunitySchema,
+    IntradayTopStocksResponseSchema,
+    IntradayScannerStatusSchema,
 )
 from app.data.financial_news_provider import get_financial_news_provider
 from app.services.stock_sentiment_service import StockSentimentCalculatorService
+from app.services.news_scanner_service import get_intraday_news_scanner
 from app.core.logging import logger
 
 router = APIRouter(prefix="/news", tags=["Market News"])
@@ -167,3 +171,95 @@ async def get_news_provider_status():
         dataStatus="LIVE",
         dataTimestamp=datetime.now(timezone.utc).isoformat(),
     )
+
+
+# =====================================================================
+# INTRADAY STOCK NEWS OPPORTUNITY SCANNER & TOP 10 RANKINGS (READ-ONLY)
+# =====================================================================
+
+@router.get("/intraday/top-stocks", response_model=ApiResponse[IntradayTopStocksResponseSchema])
+async def get_intraday_top_stocks(
+    direction: str = Query("all", description="Direction filter: 'all' | 'bullish' | 'bearish'"),
+    limit: int = Query(10, ge=1, le=25, description="Max stocks to return (up to 10)")
+):
+    """
+    Returns ranked intraday stock opportunities based on verified company-specific news.
+    Supports Top 10 Overall, Top 10 Bullish, and Top 10 Bearish.
+    Fails closed if fewer qualify: does not force artificial placeholders.
+    READ-ONLY research intelligence.
+    """
+    try:
+        scanner = get_intraday_news_scanner()
+        res = await scanner.get_top_stocks(direction=direction, limit=limit)
+        return ApiResponse(
+            success=True,
+            data=res,
+            dataStatus=res.get("dataStatus", "LIVE"),
+            dataTimestamp=res.get("generatedAt", datetime.now(timezone.utc).isoformat()),
+        )
+    except Exception as e:
+        logger.error(f"Error serving /api/news/intraday/top-stocks: {e}")
+        return ApiResponse(
+            success=False,
+            error={"code": "INTRADAY_SCANNER_ERROR", "message": str(e)},
+            data=None,
+            dataStatus="ERROR",
+        )
+
+
+@router.get("/intraday/stock/{symbol}", response_model=ApiResponse[Optional[IntradayStockOpportunitySchema]])
+async def get_intraday_stock_opportunity(
+    symbol: str = Path(..., description="NSE Stock Symbol e.g. TATAMOTORS, RELIANCE, INFY")
+):
+    """
+    Returns full detailed intraday opportunity breakdown for a specific equity.
+    """
+    try:
+        scanner = get_intraday_news_scanner()
+        stock = await scanner.get_stock_opportunity(symbol)
+        if stock:
+            return ApiResponse(
+                success=True,
+                data=stock,
+                dataStatus=stock.get("dataStatus", "LIVE"),
+                dataTimestamp=datetime.now(timezone.utc).isoformat(),
+            )
+        return ApiResponse(
+            success=True,
+            data=None,
+            dataStatus="NOT_FOUND",
+            dataTimestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as e:
+        logger.error(f"Error serving /api/news/intraday/stock/{symbol}: {e}")
+        return ApiResponse(
+            success=False,
+            error={"code": "STOCK_OPPORTUNITY_ERROR", "message": str(e)},
+            data=None,
+            dataStatus="ERROR",
+        )
+
+
+@router.get("/intraday/status", response_model=ApiResponse[IntradayScannerStatusSchema])
+async def get_intraday_scanner_status():
+    """
+    Returns diagnostic and permission status for the intraday news scanner.
+    """
+    try:
+        scanner = get_intraday_news_scanner()
+        status_data = scanner.get_status()
+        return ApiResponse(
+            success=True,
+            data=status_data,
+            dataStatus="LIVE",
+            dataTimestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    except Exception as e:
+        logger.error(f"Error serving /api/news/intraday/status: {e}")
+        return ApiResponse(
+            success=False,
+            error={"code": "SCANNER_STATUS_ERROR", "message": str(e)},
+            data=None,
+            dataStatus="ERROR",
+        )
+

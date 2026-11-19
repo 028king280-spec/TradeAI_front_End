@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 import math
 from datetime import datetime, timezone
 from app.data.market_calendar import MarketCalendar
-from app.options.greeks import calculate_black_scholes
+from app.options.greeks import calculate_black_scholes, norm_cdf
 from app.options.opening_outlook import calculate_next_session_opening_outlook
 from app.data.instrument_master import get_instrument_master
 
@@ -56,12 +56,12 @@ def evaluate_next_session_recommendation(
         und_key = "BANKNIFTY"
         step = 100.0
         atm_strike = round(underlying_ltp / 100.0) * 100.0 if valid_spot else 0.0
-        lot_size = 15
+        lot_size = 30
     elif "FIN" in clean_sym:
         und_key = "FINNIFTY"
         step = 50.0
         atm_strike = round(underlying_ltp / 50.0) * 50.0 if valid_spot else 0.0
-        lot_size = 25
+        lot_size = 60
     elif "SENSEX" in clean_sym:
         und_key = "SENSEX"
         step = 100.0
@@ -71,11 +71,15 @@ def evaluate_next_session_recommendation(
         und_key = clean_sym
         step = 50.0
         atm_strike = round(underlying_ltp / 50.0) * 50.0 if valid_spot else 0.0
-        lot_size = 25
+        lot_size = 65
 
-    # 1. Determine Current Stage
-    stage = MarketCalendar.get_session_stage()
-    is_live_stage = (stage == "STAGE_2_LIVE_CONFIRMED")
+    # 1. Determine Current Stage for the Target Session
+    # Stage 2 (Live Confirmation) is ONLY valid if the target trading session is TODAY and market hours are currently open!
+    # For future upcoming sessions, it is strictly STAGE 1 (Pre-Market Outlook).
+    next_session_date = MarketCalendar.get_next_trading_session()
+    now_ist_dt = MarketCalendar.now_ist()
+    is_live_stage = (now_ist_dt.date() == next_session_date and MarketCalendar.is_market_open(now_ist_dt))
+    stage = "STAGE_2_LIVE_CONFIRMED" if is_live_stage else "STAGE_1_PRE_MARKET"
     stage_label = "STAGE 2 — AFTER MARKET OPEN (LIVE CONFIRMATION)" if is_live_stage else "STAGE 1 — BEFORE MARKET OPEN (PRE-MARKET OUTLOOK)"
 
     # 2. Compute Opening Outlook
@@ -234,20 +238,17 @@ def evaluate_next_session_recommendation(
         iv=contract_iv / 100.0,
         option_type=target_type
     )
-    delta = abs(greeks["delta"]) if (greeks and "delta" in greeks and greeks["delta"] is not None) else 0.5
+    raw_delta = greeks["delta"] if (greeks and "delta" in greeks and greeks["delta"] is not None) else (0.5 if target_type == "CE" else -0.5)
+    # Strictly signed Delta: Positive for CE (0.0 to 1.0), Negative for PE (-1.0 to 0.0)
+    delta = abs(raw_delta) if target_type == "CE" else -abs(raw_delta)
+    abs_delta = abs(delta)
     theta_day = greeks["theta"] if (greeks and "theta" in greeks and greeks["theta"] is not None) else -10.0
 
-    # Fallback to theoretical Black-Scholes estimate if broker quote LTP is missing
+    # Fail closed: Disallow trade execution if actual market quote LTP is missing or zero
     is_theoretical = False
     premium_source = "LIVE_MARKET"
     if last_verified_premium <= 0.0:
-        if greeks and greeks.get("price", 0) > 0:
-            last_verified_premium = float(greeks["price"])
-            is_theoretical = True
-            premium_source = "THEORETICAL"
-            data_status = "THEORETICAL"
-        else:
-            no_trade_reasons.append("Target option contract lacks live market quotes and theoretical valuation failed.")
+        no_trade_reasons.append("Target option contract lacks verified live broker quotes. Fabricated or theoretical fallback is strictly rejected.")
 
     # Fallback realistic bid/ask if missing or zero
     if bid <= 0.0 and last_verified_premium > 0:
@@ -256,16 +257,16 @@ def evaluate_next_session_recommendation(
         ask = round(last_verified_premium * 1.005, 2)
     spread = float(opt_info.get("spread") or max(0.05, round(ask - bid, 2)))
 
-    # Live stage gate: Disqualify execution if premium is purely theoretical
-    if is_live_stage and is_theoretical:
-        no_trade_reasons.append("Target option contract lacks live market quotes. Live execution prohibited with theoretical valuation.")
+    # Live stage gate: Disqualify execution if premium is unverified
+    if is_live_stage and last_verified_premium <= 0.0:
+        no_trade_reasons.append("Target option contract lacks live market quotes. Live execution prohibited.")
 
     # 4 SEPARATE PRICE CONCEPTS:
     # A. Last Observed Option Premium
     last_observed_ltp = round(last_verified_premium, 2)
 
     # Risk model: delta * underlying risk, capped at 25% of premium
-    premium_stop_pts = max(12.0, round(atr_14 * 0.40 * delta * 0.85, 1))
+    premium_stop_pts = max(12.0, round(atr_14 * 0.40 * abs_delta * 0.85, 1))
     if last_verified_premium > 0:
         premium_stop_pts = min(premium_stop_pts, round(last_verified_premium * 0.25, 1))
 
@@ -291,9 +292,10 @@ def evaluate_next_session_recommendation(
     t2_pct = round((t2_gain / last_verified_premium) * 100.0, 1) if last_verified_premium > 0 else 55.0
     t3_pct = round((t3_gain / last_verified_premium) * 100.0, 1) if last_verified_premium > 0 else 85.0
 
-    t1_prob = 80
-    t2_prob = 52
-    t3_prob = 25
+    # Calibrated statistical target hit probabilities based on Delta, ATR, and target distance
+    t1_prob = int(round(max(25.0, min(85.0, 100.0 * norm_cdf(abs_delta * 1.5 - (t1_pct / 100.0))))))
+    t2_prob = int(round(max(15.0, min(65.0, 100.0 * norm_cdf(abs_delta * 1.0 - (t2_pct / 80.0))))))
+    t3_prob = int(round(max(5.0, min(35.0, 100.0 * norm_cdf(abs_delta * 0.6 - (t3_pct / 60.0))))))
 
     target_probabilities = {
         "target1": {

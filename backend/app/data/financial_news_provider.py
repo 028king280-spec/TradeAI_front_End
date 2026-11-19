@@ -120,7 +120,8 @@ def extract_symbols_and_sector(headline: str) -> Tuple[List[str], str]:
             detected_sector = sector
             break
 
-    symbols_list = list(found_symbols) if found_symbols else ["NIFTY 50", "SENSEX"]
+    # Only return symbols actually detected in headline; do not fabricate NIFTY/SENSEX fallbacks
+    symbols_list = list(found_symbols)
     return symbols_list, detected_sector
 
 

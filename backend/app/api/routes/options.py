@@ -1244,7 +1244,7 @@ async def run_ict_backtest(
     algorithm_type = payload.get("algorithmType", "COMBINED_ICT_SMC")
     slippage_pts = float(payload.get("slippagePts", 2.0))
     brokerage = float(payload.get("brokeragePerTrade", 40.0))
-    lot_size = int(payload.get("lotSize", 65 if "NIFTY" in clean else 15))
+    lot_size = int(payload.get("lotSize", 30 if "BANK" in clean else (60 if "FIN" in clean else 65)))
 
     df = await provider.get_intraday_candles(clean, timeframe)
     df_attrs = df.attrs if (df is not None and hasattr(df, "attrs")) else {}

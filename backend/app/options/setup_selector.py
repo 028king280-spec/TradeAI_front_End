@@ -54,12 +54,12 @@ def evaluate_options_trade_setups(
         und_key = "BANKNIFTY"
         step = 100.0
         atm_strike = round(underlying_ltp / 100.0) * 100.0
-        lot_size = 15
+        lot_size = 30
     elif "FIN" in clean_sym:
         und_key = "FINNIFTY"
         step = 50.0
         atm_strike = round(underlying_ltp / 50.0) * 50.0
-        lot_size = 25
+        lot_size = 60
     elif "SENSEX" in clean_sym:
         und_key = "SENSEX"
         step = 100.0
@@ -69,7 +69,7 @@ def evaluate_options_trade_setups(
         und_key = clean_sym
         step = 50.0
         atm_strike = round(underlying_ltp / 50.0) * 50.0
-        lot_size = 25
+        lot_size = 65
 
     # SENSEX Governance Lock Invariant
     if "SENSEX" in clean_sym or "BSE" in clean_sym:
@@ -219,7 +219,9 @@ def evaluate_options_trade_setups(
             iv=opt_iv if opt_iv > 0.05 else 0.14,
             option_type=opt_type
         )
-        delta = abs(greeks["delta"])
+        raw_delta = greeks["delta"]
+        signed_delta = abs(raw_delta) if opt_type == "CE" else -abs(raw_delta)
+        delta = abs(raw_delta)
         theta = greeks["theta"]
         gamma = greeks["gamma"]
         vega = greeks["vega"]
@@ -433,7 +435,7 @@ def evaluate_options_trade_setups(
             "dataStatus": data_status,
             "marketTimestamp": market_ts,
             "greeks": {
-                "delta": round(delta, 3),
+                "delta": round(signed_delta, 3),
                 "gamma": round(gamma, 5),
                 "thetaPerDay": round(theta, 2),
                 "vega": round(vega, 2),

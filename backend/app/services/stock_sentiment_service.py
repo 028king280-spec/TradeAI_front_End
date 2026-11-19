@@ -92,31 +92,6 @@ STOCK_NAME_MAP = {
 }
 
 
-# Verified NSE Stock Base Prices (Ensures 100% price availability)
-STOCK_FALLBACK_PRICES = {
-    "RELIANCE": {"name": "Reliance Industries Limited", "price": 1468.45, "change": 11.80, "changePercent": 0.81},
-    "TCS": {"name": "Tata Consultancy Services Limited", "price": 4269.38, "change": 33.90, "changePercent": 0.80},
-    "INFY": {"name": "Infosys Limited", "price": 1830.44, "change": -14.70, "changePercent": -0.80},
-    "SBIN": {"name": "State Bank of India", "price": 821.92, "change": 6.55, "changePercent": 0.80},
-    "LT": {"name": "Larsen & Toubro Limited", "price": 3620.00, "change": 42.50, "changePercent": 1.19},
-    "HDFCBANK": {"name": "HDFC Bank Limited", "price": 1642.30, "change": 14.80, "changePercent": 0.91},
-    "ICICIBANK": {"name": "ICICI Bank Limited", "price": 1218.60, "change": 12.40, "changePercent": 1.03},
-    "AXISBANK": {"name": "Axis Bank Limited", "price": 1175.40, "change": 3.20, "changePercent": 0.27},
-    "TATAMOTORS": {"name": "Tata Motors Limited", "price": 985.40, "change": 12.20, "changePercent": 1.25},
-    "MARUTI": {"name": "Maruti Suzuki India Limited", "price": 12150.00, "change": -145.00, "changePercent": -1.18},
-    "ITC": {"name": "ITC Limited", "price": 502.10, "change": 2.25, "changePercent": 0.45},
-    "SUNPHARMA": {"name": "Sun Pharmaceutical Industries Limited", "price": 1820.75, "change": -16.20, "changePercent": -0.88},
-    "BHARTIARTL": {"name": "Bharti Airtel Limited", "price": 1548.00, "change": 18.50, "changePercent": 1.21},
-    "ADANIENT": {"name": "Adani Enterprises Limited", "price": 2980.50, "change": 15.00, "changePercent": 0.51},
-    "M&M": {"name": "Mahindra & Mahindra Limited", "price": 2780.00, "change": 49.70, "changePercent": 1.82},
-    "KOTAKBANK": {"name": "Kotak Mahindra Bank Limited", "price": 1785.60, "change": 4.10, "changePercent": 0.23},
-    "ZOMATO": {"name": "Zomato Limited", "price": 258.40, "change": 5.60, "changePercent": 2.21},
-    "TATASTEEL": {"name": "Tata Steel Limited", "price": 148.50, "change": 1.80, "changePercent": 1.23},
-    "WIPRO": {"name": "Wipro Limited", "price": 562.30, "change": 4.20, "changePercent": 0.75},
-    "YESBANK": {"name": "Yes Bank Limited", "price": 15.38, "change": -0.19, "changePercent": -1.22},
-}
-
-
 def resolve_stock_symbol_and_name(raw_input: str) -> tuple[str, str]:
     """
     Normalizes user input to standard NSE symbol and company search title.
@@ -206,33 +181,20 @@ class StockSentimentCalculatorService:
 
         # Disambiguate index price vs equity price (e.g. HDFC Bank equity is ~1642, not 51800)
         if symbol == "HDFCBANK" and current_price > 5000:
-            current_price = 1642.30
-            change = 14.80
-            change_pct = 0.91
-            day_high = 1655.00
-            day_low = 1636.00
-            company_name = "HDFC Bank Limited"
+            current_price = 0.0
 
-        # Check fallback directory if price is missing or zero
-        if current_price <= 0 and symbol in STOCK_FALLBACK_PRICES:
-            fb = STOCK_FALLBACK_PRICES[symbol]
-            current_price = fb["price"]
-            change = fb["change"]
-            change_pct = fb["changePercent"]
-            day_high = round(current_price * 1.015, 2)
-            day_low = round(current_price * 0.988, 2)
-            company_name = fb["name"]
+        is_verified_live = current_price > 0 and quote.get("dataStatus") in ("VERIFIED_LIVE", "VERIFIED_EOD")
 
         quote_data = {
             "symbol": symbol,
             "companyName": company_name,
-            "currentPrice": current_price,
-            "change": change,
-            "changePercent": change_pct,
-            "dayHigh": day_high,
-            "dayLow": day_low,
+            "currentPrice": current_price if is_verified_live else 0.0,
+            "change": change if is_verified_live else 0.0,
+            "changePercent": change_pct if is_verified_live else 0.0,
+            "dayHigh": day_high if is_verified_live else 0.0,
+            "dayLow": day_low if is_verified_live else 0.0,
             "exchange": "NSE",
-            "isLive": True,
+            "isLive": is_verified_live,
         }
 
         # 3. Check NSE F&O Derivatives Flow via InstrumentMaster
@@ -249,19 +211,16 @@ class StockSentimentCalculatorService:
                     step = 20.0 if current_price > 1000 else (5.0 if current_price > 200 else 1.0)
                     atm_strike = round(current_price / step) * step if current_price > 0 else 0.0
 
-                pcr_est = round(1.18 if change_pct >= 0.5 else (0.82 if change_pct <= -0.5 else 1.02), 2)
-                fno_bias = "BULLISH (Call Accumulation)" if change_pct >= 0 else "BEARISH (Put Writing Resistance)"
-
                 options_metrics = {
                     "isFnO": True,
                     "nearestExpiry": nearest_exp,
                     "atmStrike": atm_strike,
-                    "estimatedPcr": pcr_est,
-                    "derivativesBias": fno_bias,
+                    "estimatedPcr": None,
+                    "derivativesBias": "Awaiting Live F&O OI Feed",
                     "activeExpiriesCount": len(expiries),
                     "fnoSegment": "NSE Equity Derivatives (F&O)",
-                    "smcModel": "Model A (Bullish Reclaim)" if change_pct >= 0 else "Model B (Bearish Rejection)",
-                    "smcDealingRange": "DISCOUNT" if current_price < (day_high + day_low)/2 else "PREMIUM",
+                    "smcModel": "Awaiting Live Market Confirmation",
+                    "smcDealingRange": "DISCOUNT" if current_price > 0 and current_price < (day_high + day_low)/2 else "PREMIUM" if current_price > 0 else "UNKNOWN",
                 }
         except Exception as e:
             logger.warning(f"Error checking derivatives flow for {symbol}: {e}")
