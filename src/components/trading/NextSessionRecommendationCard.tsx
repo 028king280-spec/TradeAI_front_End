@@ -301,7 +301,11 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
               {/* Target 1 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 1 (1.2R)</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                  Target 1 {rec.stopLossPremium && rec.lastVerifiedPremium && rec.target1Premium && (rec.lastVerifiedPremium - rec.stopLossPremium) > 0
+                    ? `(${((rec.target1Premium - rec.lastVerifiedPremium) / (rec.lastVerifiedPremium - rec.stopLossPremium)).toFixed(1)}R)`
+                    : '(+30%)'}
+                </span>
                 <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target1Premium?.toFixed(1)}
                 </span>
@@ -310,7 +314,11 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
               {/* Target 2 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 2 (1.85R)</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                  Target 2 {rec.stopLossPremium && rec.lastVerifiedPremium && rec.target2Premium && (rec.lastVerifiedPremium - rec.stopLossPremium) > 0
+                    ? `(${((rec.target2Premium - rec.lastVerifiedPremium) / (rec.lastVerifiedPremium - rec.stopLossPremium)).toFixed(1)}R)`
+                    : '(+55%)'}
+                </span>
                 <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target2Premium?.toFixed(1)}
                 </span>
@@ -319,7 +327,11 @@ export const NextSessionRecommendationCard: React.FC<NextSessionRecommendationCa
 
               {/* Target 3 */}
               <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/10">
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Target 3 (2.5R)</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                  Target 3 {rec.stopLossPremium && rec.lastVerifiedPremium && rec.target3Premium && (rec.lastVerifiedPremium - rec.stopLossPremium) > 0
+                    ? `(${((rec.target3Premium - rec.lastVerifiedPremium) / (rec.lastVerifiedPremium - rec.stopLossPremium)).toFixed(1)}R)`
+                    : '(+85%)'}
+                </span>
                 <span className="text-base font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   ₹{rec.target3Premium?.toFixed(1)}
                 </span>
