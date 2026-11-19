@@ -265,7 +265,7 @@ class NewsService {
     return null;
   }
 
-  async getIntradayTopStocks(direction: 'all' | 'bullish' | 'bearish' = 'all', limit: number = 10): Promise<IntradayTopStocksResponse | null> {
+  async getIntradayTopStocks(direction: 'all' | 'bullish' | 'bearish' = 'all', limit: number = 20): Promise<IntradayTopStocksResponse | null> {
     const res = await this.fetchJson<NewsApiResponse<IntradayTopStocksResponse>>(`/api/news/intraday/top-stocks?direction=${direction}&limit=${limit}`);
     if (res && res.success && res.data) {
       return res.data;

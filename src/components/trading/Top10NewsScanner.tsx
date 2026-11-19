@@ -50,7 +50,7 @@ export const Top10NewsScanner: React.FC = () => {
       setError(null);
       try {
         const direction = activeTab === 'bullish' ? 'bullish' : activeTab === 'bearish' ? 'bearish' : 'all';
-        const res = await newsService.getIntradayTopStocks(direction, 10);
+        const res = await newsService.getIntradayTopStocks(direction, 20);
         if (!isCancelled) {
           if (res && Array.isArray(res.stocks)) {
             setStocks(res.stocks);
@@ -292,7 +292,7 @@ export const Top10NewsScanner: React.FC = () => {
         <div className="p-12 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col items-center justify-center space-y-3">
           <div className="w-8 h-8 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
           <p className="text-xs text-[var(--text-secondary)]">
-            Scanning 9 Tier-1 Indian financial news feeds and matching NSE equity scrips...
+            Scanning 14 Indian financial news feeds and matching NSE equity scrips...
           </p>
         </div>
       )}

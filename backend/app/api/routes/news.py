@@ -180,7 +180,7 @@ async def get_news_provider_status():
 @router.get("/intraday/top-stocks", response_model=ApiResponse[IntradayTopStocksResponseSchema])
 async def get_intraday_top_stocks(
     direction: str = Query("all", description="Direction filter: 'all' | 'bullish' | 'bearish'"),
-    limit: int = Query(10, ge=1, le=25, description="Max stocks to return (up to 10)")
+    limit: int = Query(20, ge=1, le=25, description="Max stocks to return (up to 20)")
 ):
     """
     Returns ranked intraday stock opportunities based on verified company-specific news.
