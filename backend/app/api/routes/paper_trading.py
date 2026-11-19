@@ -9,13 +9,14 @@ Provides endpoints for:
 
 import math
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Body, Query, HTTPException, status
+from fastapi import APIRouter, Body, Depends, Query, HTTPException, status
 from app.options.paper_trading.paper_engine import paper_engine
 from app.options.paper_trading.cost_calculator import IndianDerivativesCostCalculator
 from app.options.paper_trading.trade_evaluator import AITradeEvaluator
 from app.options.paper_trading.ml_feedback_engine import MLFeedbackEngine
 from app.data.market_calendar import MarketCalendar
 from app.core.logging import logger
+from app.core.auth import verify_operator_authorization
 
 router = APIRouter(prefix="/api/paper-trading", tags=["Paper Trading & Self-Learning"])
 
@@ -86,7 +87,10 @@ async def refresh_paper_quotes():
 
 
 @router.post("/open")
-async def open_simulated_trade(payload: Dict[str, Any] = Body(...)):
+async def open_simulated_trade(
+    payload: Dict[str, Any] = Body(...),
+    auth: str = Depends(verify_operator_authorization),
+):
     """
     Fills and opens an active simulated paper trade position.
     """
@@ -143,7 +147,10 @@ async def open_simulated_trade(payload: Dict[str, Any] = Body(...)):
 
 
 @router.post("/close")
-async def close_simulated_trade(payload: Dict[str, Any] = Body(...)):
+async def close_simulated_trade(
+    payload: Dict[str, Any] = Body(...),
+    auth: str = Depends(verify_operator_authorization),
+):
     """
     Closes an open position completely, calculates net P&L after statutory fees,
     triggers AI 9-factor review and ML retraining.
@@ -164,7 +171,10 @@ async def close_simulated_trade(payload: Dict[str, Any] = Body(...)):
 
 
 @router.post("/partial-exit")
-async def partial_exit_simulated_trade(payload: Dict[str, Any] = Body(...)):
+async def partial_exit_simulated_trade(
+    payload: Dict[str, Any] = Body(...),
+    auth: str = Depends(verify_operator_authorization),
+):
     """
     Closes a partial batch of lots (e.g. 50% at Target 1) while trailing stop loss to cost for runner.
     """
@@ -186,7 +196,10 @@ async def partial_exit_simulated_trade(payload: Dict[str, Any] = Body(...)):
 
 
 @router.post("/update-live")
-async def update_live_quote(payload: Dict[str, Any] = Body(...)):
+async def update_live_quote(
+    payload: Dict[str, Any] = Body(...),
+    auth: str = Depends(verify_operator_authorization),
+):
     """
     Ingests live option ticks, updates MFE/MAE excursions, and triggers SL or Target auto-exits.
     """
@@ -255,7 +268,7 @@ async def calculate_costs_endpoint(payload: Dict[str, Any] = Body(...)):
 
 
 @router.post("/reset")
-async def reset_paper_portfolio():
+async def reset_paper_portfolio(auth: str = Depends(verify_operator_authorization)):
     """
     Resets the simulated portfolio back to default capital (₹1,00,000).
     """

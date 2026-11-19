@@ -23,8 +23,11 @@ class ModelTrainer:
         model_type: str = "random_forest",
         n_splits: int = 4
     ) -> Dict[str, Any]:
-        if len(X) < 50:
-            return {"status": "FAILED", "error": "Insufficient dataset length (< 50 samples)"}
+        if len(X) < 500:
+            return {
+                "status": "FAILED",
+                "error": "GOVERNANCE_BLOCKED: Insufficient dataset length (< 500 verified samples required for production trading model training).",
+            }
 
         tscv = TimeSeriesSplit(n_splits=n_splits)
         fold_scores = []

@@ -140,6 +140,7 @@ export interface PaperTradingState {
 
 const STORAGE_KEY = 'aivolve_paper_trading_state_v1';
 const DEFAULT_CAPITAL = 100000.0;
+const API_AUTH_HEADERS = { 'Content-Type': 'application/json', 'X-AIVOLVE-AUTH-TOKEN': 'aivolve-internal-operator' };
 
 class PaperTradingManager {
   private state: PaperTradingState;
@@ -217,10 +218,25 @@ class PaperTradingManager {
    * 1-Click Execution from an OptionTradeSetup.
    */
   public openPosition(setup: OptionTradeSetup, lots: number = 1): { success: boolean; message: string; position?: PaperPosition } {
+    // SENSEX Governance Lock Invariant
+    if (setup.index && (setup.index.includes('SENSEX') || setup.index.includes('BSE'))) {
+      return {
+        success: false,
+        message: 'SENSEX trading rejected: Under strict GOVERNANCE_LOCK. Unconfigured institutional parameters. Only NIFTY, BANKNIFTY, and FINNIFTY permitted.',
+      };
+    }
+
+    const rawPrice = setup.currentPremium || (setup as any).lastObservedLtp;
+    if (!rawPrice || typeof rawPrice !== 'number' || rawPrice <= 0) {
+      return {
+        success: false,
+        message: 'Paper trade rejected: Market price is unavailable or unverified. Simulated execution blocked on unverified feeds.',
+      };
+    }
+
     const lotSize = (setup as any).lotSize || (setup.index.includes('BANK') ? 15 : setup.index.includes('SENSEX') ? 10 : 65);
     const totalQty = lots * lotSize;
-    const rawPrice = setup.currentPremium || (setup as any).lastObservedLtp;
-    const entryPrice = Math.max(1.0, typeof rawPrice === 'number' && rawPrice > 0 ? rawPrice : 120.0);
+    const entryPrice = round(rawPrice, 2);
     const marginRequired = round(entryPrice * totalQty, 2);
 
     if (marginRequired > this.state.balance) {
@@ -264,7 +280,7 @@ class PaperTradingManager {
     if (typeof window !== 'undefined') {
       fetch('/api/paper-trading/open', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           instrument: setup.index,
           contractSymbol: setup.contractSymbol,
@@ -352,7 +368,7 @@ class PaperTradingManager {
     if (typeof window !== 'undefined') {
       fetch('/api/paper-trading/close', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           positionId: pos.id,
           exitPrice: exitPrice,
@@ -390,15 +406,38 @@ class PaperTradingManager {
       target2: number;
       entryRangeMin?: number;
       entryRangeMax?: number;
+      signalState?: string;
     },
     options?: { customEntryPrice?: number; lots?: number }
   ): { success: boolean; message: string; position?: PaperPosition } {
+    // SENSEX Governance Lock Invariant
     const idxSym = (signal.index || '').toUpperCase();
-    const lotSize = idxSym.includes('BANK') ? 15 : idxSym.includes('SENSEX') ? 10 : 50;
+    if (idxSym.includes('SENSEX') || idxSym.includes('BSE')) {
+      return {
+        success: false,
+        message: 'SENSEX trading rejected: Under strict GOVERNANCE_LOCK. Unconfigured institutional parameters. Only NIFTY, BANKNIFTY, and FINNIFTY permitted.',
+      };
+    }
+
+    if (signal.signalState === 'NO_TRADE' || signal.bias === 'NONE') {
+      return {
+        success: false,
+        message: 'Paper trade rejected: No qualified setup exists (Signal state: NO_TRADE / CAPITAL_DEFENSE).',
+      };
+    }
+
+    const rawEntry = options?.customEntryPrice !== undefined ? options.customEntryPrice : signal.lastObservedLtp;
+    if (!rawEntry || typeof rawEntry !== 'number' || rawEntry <= 0) {
+      return {
+        success: false,
+        message: 'Paper trade rejected: Option premium is unavailable or zero. Execution blocked to prevent fabricated entries.',
+      };
+    }
+
+    const lotSize = idxSym.includes('BANK') ? 15 : idxSym.includes('SENSEX') ? 10 : 65;
     const lots = options?.lots || 1;
     const totalQty = lots * lotSize;
-    const rawEntry = options?.customEntryPrice !== undefined ? options.customEntryPrice : signal.lastObservedLtp;
-    const entryPrice = Math.max(1.0, round(rawEntry || 120.0, 2));
+    const entryPrice = round(rawEntry, 2);
     const marginRequired = round(entryPrice * totalQty, 2);
 
     if (marginRequired > this.state.balance) {
@@ -446,7 +485,7 @@ class PaperTradingManager {
     if (typeof window !== 'undefined') {
       fetch('/api/paper-trading/open', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           instrument: signal.index,
           contractSymbol: signal.contractSymbol,
@@ -523,7 +562,7 @@ class PaperTradingManager {
     try {
       fetch('/api/options/trade-feedback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           contractSymbol: pos.contractSymbol,
           outcome: pos.status,
@@ -620,7 +659,7 @@ class PaperTradingManager {
                   // Also report tick to backend paper trading engine
                   fetch('/api/paper-trading/update-live', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: API_AUTH_HEADERS,
                     body: JSON.stringify({
                       contractSymbol: pos.contractSymbol,
                       currentLtp: ltp,
@@ -762,7 +801,7 @@ class PaperTradingManager {
           localOnlyPositions.forEach((pos) => {
             fetch('/api/paper-trading/open', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: API_AUTH_HEADERS,
               body: JSON.stringify({
                 instrument: pos.symbol,
                 contractSymbol: pos.contractSymbol,
@@ -792,7 +831,7 @@ class PaperTradingManager {
             activeLocal.forEach((pos) => {
               fetch('/api/paper-trading/open', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: API_AUTH_HEADERS,
                 body: JSON.stringify({
                   instrument: pos.symbol,
                   contractSymbol: pos.contractSymbol,
@@ -851,7 +890,7 @@ class PaperTradingManager {
     try {
       const res = await fetch('/api/paper-trading/open', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify(params),
       });
       const data = await res.json();
@@ -889,7 +928,7 @@ class PaperTradingManager {
       const actualExit = exitPrice !== undefined ? exitPrice : (pos?.currentPremium || 0.0);
       const res = await fetch('/api/paper-trading/close', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           positionId: positionId,
           exitPrice: actualExit,
@@ -921,7 +960,7 @@ class PaperTradingManager {
       const actualExit = exitPrice !== undefined ? exitPrice : (pos?.currentPremium || 0.0);
       const res = await fetch('/api/paper-trading/partial-exit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           positionId: positionId,
           exitLots: exitLots,
@@ -986,7 +1025,7 @@ class PaperTradingManager {
     try {
       const res = await fetch('/api/paper-trading/calculate-costs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_AUTH_HEADERS,
         body: JSON.stringify({
           entryPrice: entryPrice,
           exitPrice: exitPrice,

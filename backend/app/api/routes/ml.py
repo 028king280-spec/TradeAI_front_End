@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.schemas.market import ApiResponse
+from app.core.auth import verify_ml_governance_authorization
 from app.schemas.ml import (
     MLTrainRequest,
     MLTrainResponse,
@@ -24,7 +25,8 @@ router = APIRouter(prefix="/ml", tags=["ML Model Lab"])
 @router.post("/train", response_model=ApiResponse[MLTrainResponse])
 async def trigger_training_job(
     req: MLTrainRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    auth: str = Depends(verify_ml_governance_authorization),
 ):
     job = await MLTrainingPipeline.start_training_job(
         session=db,
@@ -117,7 +119,11 @@ async def get_model_details(version: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/models/{version}/promote", response_model=ApiResponse[dict])
-async def promote_model_to_production(version: str, db: AsyncSession = Depends(get_db)):
+async def promote_model_to_production(
+    version: str,
+    db: AsyncSession = Depends(get_db),
+    auth: str = Depends(verify_ml_governance_authorization),
+):
     res = await ModelRegistryService.promote_model(db, version)
     if not res["success"]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res["message"])

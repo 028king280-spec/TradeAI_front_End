@@ -226,37 +226,52 @@ def test_create_pending_order_rejects_non_buy(clean_engine):
 
 def test_http_api_route_open_rejects_non_buy(mock_app):
     """
-    Verifies that HTTP POST /api/paper-trading/open raises 422 for non-BUY.
+    Verifies that HTTP POST /api/paper-trading/open raises 401 without auth,
+    and raises 422 NAKED_OPTIONS_WRITING_PROHIBITED for non-BUY when authorized.
     """
     client = TestClient(mock_app)
+    auth_headers = {"X-AIVOLVE-AUTH-TOKEN": "aivolve-internal-operator"}
 
-    # Test 1: positionType == "SELL"
-    resp1 = client.post("/api/paper-trading/open", json={
-        "instrument": "NIFTY 50",
-        "contractSymbol": "NIFTY26NOV24000CE",
-        "bias": "CE",
-        "strike": 24000.0,
-        "expiry": "26NOV2026",
-        "entryPremium": 100.0,
-        "positionType": "SELL",
-        "lots": 1,
-        "stopLoss": 80.0,
-    })
+    # Test 0: Unauthorized request fails closed with 401
+    resp_unauth = client.post("/api/paper-trading/open", json={"positionType": "BUY"})
+    assert resp_unauth.status_code == 401
+    assert resp_unauth.json()["detail"]["status"] == "UNAUTHORIZED"
+
+    # Test 1: Authorized positionType == "SELL" -> 422
+    resp1 = client.post(
+        "/api/paper-trading/open",
+        headers=auth_headers,
+        json={
+            "instrument": "NIFTY 50",
+            "contractSymbol": "NIFTY26NOV24000CE",
+            "bias": "CE",
+            "strike": 24000.0,
+            "expiry": "26NOV2026",
+            "entryPremium": 100.0,
+            "positionType": "SELL",
+            "lots": 1,
+            "stopLoss": 80.0,
+        },
+    )
     assert resp1.status_code == 422
     assert resp1.json()["detail"]["status"] == "NAKED_OPTIONS_WRITING_PROHIBITED"
 
-    # Test 2: positionType == "SHORT"
-    resp2 = client.post("/api/paper-trading/open", json={
-        "instrument": "NIFTY 50",
-        "contractSymbol": "NIFTY26NOV24000PE",
-        "bias": "PE",
-        "strike": 24000.0,
-        "expiry": "26NOV2026",
-        "entryPremium": 100.0,
-        "positionType": "SHORT",
-        "lots": 1,
-        "stopLoss": 80.0,
-    })
+    # Test 2: Authorized positionType == "SHORT" -> 422
+    resp2 = client.post(
+        "/api/paper-trading/open",
+        headers=auth_headers,
+        json={
+            "instrument": "NIFTY 50",
+            "contractSymbol": "NIFTY26NOV24000PE",
+            "bias": "PE",
+            "strike": 24000.0,
+            "expiry": "26NOV2026",
+            "entryPremium": 100.0,
+            "positionType": "SHORT",
+            "lots": 1,
+            "stopLoss": 80.0,
+        },
+    )
     assert resp2.status_code == 422
     assert resp2.json()["detail"]["status"] == "NAKED_OPTIONS_WRITING_PROHIBITED"
 

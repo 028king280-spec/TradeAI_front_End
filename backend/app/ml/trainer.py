@@ -87,8 +87,12 @@ class MLTrainingPipeline:
 
                 # Feature engineering & labels
                 X, y = FeatureEngineering.create_labels(combined_df, target)
-                if len(X) < 40:
-                    raise RuntimeError(f"Insufficient samples ({len(X)}) for time-series training")
+                MIN_GOVERNED_TRAINING_SAMPLES = 500
+                if len(X) < MIN_GOVERNED_TRAINING_SAMPLES:
+                    raise RuntimeError(
+                        f"GOVERNANCE_BLOCKED: Insufficient verified production samples ({len(X)} < {MIN_GOVERNED_TRAINING_SAMPLES}). "
+                        "AIVOLVE production trading model governance mandates at least 500 verified genuine records and exclusion of synthetic datasets."
+                    )
 
                 # Time-series split (No shuffling!)
                 X_tr, X_val, X_te, y_tr, y_val, y_te = TimeSeriesSplitter.train_val_test_split(X, y)

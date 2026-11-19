@@ -129,52 +129,34 @@ export default function OptionsDashboardPage() {
 
     if (!chosenSetup || isSideways || chosenSetup.target1 === 0) {
       const displaySetup = chosenSetup || setups[0];
-      const fallbackLtp = displaySetup?.currentPremium && displaySetup.currentPremium > 0
+      const verifiedLtp = displaySetup?.currentPremium && displaySetup.currentPremium > 0
         ? displaySetup.currentPremium
-        : (selectedIndex.includes('BANK') ? 220.0 : 125.0);
-      const entryMin = (displaySetup as any)?.suggestedEntryMin && (displaySetup as any).suggestedEntryMin > 0
-        ? (displaySetup as any).suggestedEntryMin
-        : Math.round(fallbackLtp * 0.98 * 10) / 10;
-      const entryMax = (displaySetup as any)?.suggestedEntryMax && (displaySetup as any).suggestedEntryMax > 0
-        ? (displaySetup as any).suggestedEntryMax
-        : Math.round(fallbackLtp * 1.02 * 10) / 10;
-      const sl = displaySetup?.stopLoss && displaySetup.stopLoss > 0
-        ? displaySetup.stopLoss
-        : Math.round(fallbackLtp * 0.75 * 10) / 10;
-      const t1 = displaySetup?.target1 && displaySetup.target1 > 0
-        ? displaySetup.target1
-        : Math.round(fallbackLtp * 1.30 * 10) / 10;
-      const t2 = displaySetup?.target2 && displaySetup.target2 > 0
-        ? displaySetup.target2
-        : Math.round(fallbackLtp * 1.60 * 10) / 10;
-      const t3 = (displaySetup as any)?.target3 && (displaySetup as any).target3 > 0
-        ? (displaySetup as any).target3
-        : Math.round(fallbackLtp * 2.00 * 10) / 10;
+        : 0;
 
       return {
         index: selectedIndex,
         signalState: 'NO_TRADE',
         bias: 'NONE',
-        contractSymbol: displaySetup?.contractSymbol || `${selectedIndex} ${Math.round(currentPrice / 50) * 50} CE`,
-        strike: displaySetup?.strike || Math.round(currentPrice / 50) * 50,
-        expiry: displaySetup?.expiry || 'Current Expiry',
-        lastObservedLtp: fallbackLtp,
-        entryRangeMin: entryMin,
-        entryRangeMax: entryMax,
-        stopLoss: sl,
-        target1: t1,
-        target2: t2,
-        target3: t3,
-        riskRewardRatio: '1:2.0 (Estimated)',
+        contractSymbol: displaySetup?.contractSymbol || 'NO_QUALIFIED_CONTRACT',
+        strike: displaySetup?.strike || 0,
+        expiry: displaySetup?.expiry || 'N/A',
+        lastObservedLtp: verifiedLtp,
+        entryRangeMin: 0,
+        entryRangeMax: 0,
+        stopLoss: 0,
+        target1: 0,
+        target2: 0,
+        target3: 0,
+        riskRewardRatio: 'N/A (Capital Protected / No Trade)',
         entryCondition: displaySetup?.underlyingTrigger || marketState?.keyLevels?.bullishActivationTrigger || 'Awaiting 5M breakout confirmation outside chop zone',
-        invalidationCondition: 'Choppy sideways price action; directional targets disabled to prevent theta loss.',
+        invalidationCondition: 'Choppy sideways market regime: Directional option entries & targets disabled to prevent capital erosion.',
         supportingReasons: displaySetup?.supportingReasons || [
           'Sideways market regime: Directional option buying targets disabled.',
           'Theta decay rapidly burns capital in non-trending markets.',
           'Wait for confirmed 5-minute candle breakout before targets arm.'
         ],
         dataTimestamp: analysis.dataTimestamp,
-        dataStatus: analysis.dataStatus,
+        dataStatus: verifiedLtp > 0 ? analysis.dataStatus : 'UNAVAILABLE',
       };
     }
 
