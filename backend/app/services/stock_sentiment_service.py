@@ -13,6 +13,7 @@ from typing import Dict, Any, List, Optional, Set
 
 from app.core.cache import CacheService
 from app.core.logging import logger
+from app.data.market_calendar import MarketCalendar
 from app.data.financial_news_provider import get_financial_news_provider
 from app.data.providers.factory import get_market_data_provider
 from app.data.instrument_master import get_instrument_master
@@ -179,22 +180,34 @@ class StockSentimentCalculatorService:
             if quote.get("companyName"):
                 company_name = quote["companyName"]
 
-        # Disambiguate index price vs equity price (e.g. HDFC Bank equity is ~1642, not 51800)
+        # Disambiguate index price vs equity price (e.g. HDFC Bank equity is ~800-1800, not 51800)
         if symbol == "HDFCBANK" and current_price > 5000:
             current_price = 0.0
 
-        is_verified_live = current_price > 0 and quote.get("dataStatus") in ("VERIFIED_LIVE", "VERIFIED_EOD")
+        raw_status = str((quote.get("dataStatus") if quote else "") or "").upper()
+        raw_feed = str((quote.get("feedStatus") if quote else "") or "").upper()
+        is_live = raw_status in ("LIVE", "VERIFIED_LIVE") or raw_feed in ("LIVE", "VERIFIED_LIVE")
+        is_eod = raw_status in ("MARKET_CLOSED", "VERIFIED_EOD", "EOD") or raw_feed in ("MARKET_CLOSED", "VERIFIED_EOD", "EOD")
+        is_verified = current_price > 0 and (is_live or is_eod)
 
         quote_data = {
             "symbol": symbol,
             "companyName": company_name,
-            "currentPrice": current_price if is_verified_live else 0.0,
-            "change": change if is_verified_live else 0.0,
-            "changePercent": change_pct if is_verified_live else 0.0,
-            "dayHigh": day_high if is_verified_live else 0.0,
-            "dayLow": day_low if is_verified_live else 0.0,
+            "currentPrice": current_price if is_verified else 0.0,
+            "change": change if is_verified else 0.0,
+            "changePercent": change_pct if is_verified else 0.0,
+            "dayHigh": day_high if is_verified else 0.0,
+            "dayLow": day_low if is_verified else 0.0,
             "exchange": "NSE",
-            "isLive": is_verified_live,
+            "isLive": is_live,
+            "isEod": is_eod,
+            "dataStatus": "LIVE" if is_live else ("MARKET_CLOSED" if is_eod else "UNAVAILABLE"),
+            "priceLabel": "Live CMP" if is_live else ("Last Verified Close" if is_eod else "Price Unavailable"),
+            "originalQuoteTimestamp": (quote.get("originalQuoteTimestamp") or quote.get("timestamp")) if (quote and is_verified) else None,
+            "tradingSessionDate": quote.get("tradingSessionDate") if (quote and is_verified) else None,
+            "retrievalTimestamp": quote.get("retrievalTimestamp") if (quote and is_verified) else None,
+            "quoteSource": quote.get("quoteSource") or ("Angel One SmartAPI (NSE)" if is_verified else None),
+            "apiGeneratedAt": MarketCalendar.format_ist_timestamp(),
         }
 
         # 3. Check NSE F&O Derivatives Flow via InstrumentMaster

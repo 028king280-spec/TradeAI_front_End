@@ -41,8 +41,8 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # Market Data Provider ("upstox" | "dhan" | "mock")
-    MARKET_DATA_PROVIDER: str = "upstox"
+    # Market Data Provider ("angelone" | "upstox" | "dhan" | "mock")
+    MARKET_DATA_PROVIDER: str = "angelone"
     MARKET_API_KEY: str = ""
     MARKET_API_SECRET: str = ""
     MARKET_API_BASE_URL: str = "https://api.kite.trade"

@@ -244,17 +244,25 @@ class IntradayNewsScannerService:
             day_low = float(quote.get("dayLow") or quote.get("low") or 0.0)
             volume = int(quote.get("volume") or 0)
             vwap = float(quote.get("vwap") or ((day_high + day_low + curr_price) / 3.0 if curr_price > 0 else 0.0))
-            quote_status = quote.get("dataStatus") or ("VERIFIED_LIVE" if curr_price > 0 else "DATA_OFFLINE")
+            quote_status = str(quote.get("dataStatus") or ("VERIFIED_LIVE" if curr_price > 0 else "DATA_OFFLINE")).upper()
+            quote_feed = str(quote.get("feedStatus") or "").upper()
             quote_ts = quote.get("timestamp") or quote.get("lastTickTime")
 
             # Invariant: Strictly Zero Fabricated Prices
-            has_real_quote = curr_price > 0 and quote_status in ("VERIFIED_LIVE", "VERIFIED_EOD")
+            is_live = quote_status in ("LIVE", "VERIFIED_LIVE") or quote_feed in ("LIVE", "VERIFIED_LIVE")
+            is_eod = quote_status in ("MARKET_CLOSED", "VERIFIED_EOD", "EOD") or quote_feed in ("MARKET_CLOSED", "VERIFIED_EOD", "EOD")
+            has_real_quote = curr_price > 0 and (is_live or is_eod)
 
             if not has_real_quote:
                 price_conf = "PRICE_UNVERIFIED"
                 intraday_bias = "NEUTRAL" if sentiment_label == "NEUTRAL" else ("BULLISH" if avg_polarity > 0 else "BEARISH")
                 research_status = "PRICE_UNVERIFIED"
                 market_conf_points = 20.0
+            elif is_eod:
+                price_conf = "EOD_VERIFIED_CLOSE"
+                intraday_bias = "NEUTRAL" if sentiment_label == "NEUTRAL" else ("BULLISH" if avg_polarity > 0 else "BEARISH")
+                research_status = "RESEARCH_WATCHLIST_ACTIVE"
+                market_conf_points = 70.0
             else:
                 # Authentic Market Alignment Check
                 if avg_polarity >= 20 and chg_pct >= 0.2:
@@ -334,7 +342,10 @@ class IntradayNewsScannerService:
                 "volume": volume if has_real_quote else None,
                 "vwap": vwap if has_real_quote else None,
                 "quoteTimestamp": quote_ts,
-                "dataStatus": quote_status if has_real_quote else "DATA_OFFLINE",
+                "dataStatus": ("VERIFIED_LIVE" if is_live else "VERIFIED_EOD") if has_real_quote else "DATA_OFFLINE",
+                "feedStatus": ("VERIFIED_LIVE" if is_live else "VERIFIED_EOD") if has_real_quote else "DATA_OFFLINE",
+                "isLive": is_live,
+                "isEod": is_eod,
                 "priceConfirmation": price_conf,
                 "intradayBias": intraday_bias,
                 "researchStatus": research_status,

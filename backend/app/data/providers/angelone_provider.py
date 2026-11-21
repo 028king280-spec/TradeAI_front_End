@@ -242,14 +242,21 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         if isinstance(cached, dict) and cached.get("currentPrice", 0) > 0 and not cached.get("is_mock"):
             cached["dataStatus"] = "MARKET_CLOSED"
             cached["feedStatus"] = "VERIFIED_EOD"
+            cached["isTradeQualified"] = False
             cached["is_mock"] = False
             cached["is_synthetic"] = False
+            cached["retrievalTimestamp"] = MarketCalendar.format_ist_timestamp()
+            if not cached.get("timestamp") or not cached.get("originalQuoteTimestamp"):
+                cached["timestamp"] = cached.get("originalQuoteTimestamp") or cached.get("timestamp") or MarketCalendar.format_ist_timestamp()
             return cached
 
         last_verified = await CacheService.get(f"last_verified_quote:{symbol}")
         if isinstance(last_verified, dict) and last_verified.get("currentPrice", 0) > 0 and not last_verified.get("is_mock"):
             close_p = float(last_verified.get("close") or last_verified.get("previousClose") or last_verified.get("currentPrice") or 0.0)
             if close_p > 0:
+                original_ts = last_verified.get("originalQuoteTimestamp") or last_verified.get("timestamp")
+                session_date = last_verified.get("tradingSessionDate") or MarketCalendar.now_ist().strftime("%Y-%m-%d")
+                exchange_str = last_verified.get("exchange", "NSE")
                 eod_quote = {
                     **last_verified,
                     "symbol": symbol,
@@ -257,12 +264,17 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                     "currentPrice": close_p,
                     "dataStatus": "MARKET_CLOSED",
                     "feedStatus": "VERIFIED_EOD",
-                    "isTradeQualified": True,
+                    "isTradeQualified": False,
                     "is_mock": False,
                     "is_synthetic": False,
                     "marketCalendar": "CLOSED",
+                    "priceLabel": "Last Verified Close",
                     "provider": "angelone_eod",
-                    "timestamp": MarketCalendar.format_ist_timestamp(),
+                    "quoteSource": last_verified.get("quoteSource") or f"Angel One SmartAPI ({exchange_str})",
+                    "tradingSessionDate": session_date,
+                    "originalQuoteTimestamp": original_ts,
+                    "retrievalTimestamp": MarketCalendar.format_ist_timestamp(),
+                    "timestamp": original_ts or MarketCalendar.format_ist_timestamp(),
                 }
                 await CacheService.set(f"eod_quote:{symbol}", eod_quote, ttl_seconds=3600)
                 return eod_quote
@@ -287,6 +299,7 @@ class AngelOneMarketDataProvider(MarketDataProvider):
             "is_synthetic": False,
             "marketCalendar": "CLOSED",
             "provider": "angelone",
+            "timestamp": MarketCalendar.format_ist_timestamp(),
             "degradedReason": f"Verified EOD settlement quote unavailable for {symbol}; mock fallback disabled.",
             "message": f"Verified EOD settlement quote unavailable for {symbol}; synthetic fallback disabled.",
         }
@@ -360,6 +373,11 @@ class AngelOneMarketDataProvider(MarketDataProvider):
         from app.data.market_calendar import MarketCalendar
 
         if not await self._ensure_authenticated():
+            if not MarketCalendar.is_market_open():
+                eod_res = await self._get_eod_snapshot(clean_sym, token_info)
+                if eod_res.get("dataStatus") == "MARKET_CLOSED":
+                    return eod_res
+
             reason = "Angel One session unauthenticated or feed offline."
             self.last_error = reason
             self._diagnostics[f"quote:{clean_sym}"] = {"status": "DATA_OFFLINE", "reason": reason, "retry_attempts": 0}
@@ -382,6 +400,7 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                 "is_mock": False,
                 "is_synthetic": False,
                 "provider": "angelone",
+                "timestamp": MarketCalendar.format_ist_timestamp(),
                 "degradedReason": reason,
                 "message": "Angel One session unauthenticated or feed offline. Live execution disabled.",
             }
@@ -500,15 +519,45 @@ class AngelOneMarketDataProvider(MarketDataProvider):
                         normalized["dayHigh"] = high
                         normalized["dayLow"] = low
                         normalized["previousClose"] = close
-                        normalized["dataStatus"] = "LIVE"
+                        is_mkt_open = MarketCalendar.is_market_open()
+                        retrieval_ts = MarketCalendar.format_ist_timestamp()
+                        exch_trade_time = quote_raw.get("exchTradeTime")
+                        exch_trade_iso = None
+                        session_date = None
+                        if exch_trade_time:
+                            try:
+                                dt = datetime.strptime(str(exch_trade_time).strip(), "%d-%b-%Y %H:%M:%S")
+                                exch_trade_iso = dt.strftime("%Y-%m-%dT%H:%M:%S+05:30")
+                                session_date = dt.strftime("%Y-%m-%d")
+                            except Exception:
+                                exch_trade_iso = str(exch_trade_time)
+                                session_date = MarketCalendar.now_ist().strftime("%Y-%m-%d")
+                        else:
+                            session_date = MarketCalendar.now_ist().strftime("%Y-%m-%d")
+
+                        original_ts = exch_trade_iso or (retrieval_ts if is_mkt_open else None)
+
+                        normalized["dataStatus"] = "LIVE" if is_mkt_open else "MARKET_CLOSED"
+                        normalized["feedStatus"] = "VERIFIED_LIVE" if is_mkt_open else "VERIFIED_EOD"
+                        normalized["isTradeQualified"] = is_mkt_open
+                        normalized["marketCalendar"] = "OPEN" if is_mkt_open else "CLOSED"
+                        normalized["priceLabel"] = "Live CMP" if is_mkt_open else "Last Verified Close"
                         normalized["provider"] = "angelone"
                         normalized["tradingSymbol"] = trading_symbol
                         normalized["is_mock"] = False
                         normalized["is_synthetic"] = False
+                        normalized["originalQuoteTimestamp"] = original_ts
+                        normalized["tradingSessionDate"] = session_date
+                        normalized["retrievalTimestamp"] = retrieval_ts
+                        normalized["quoteSource"] = f"Angel One SmartAPI ({exchange})"
+                        if not is_mkt_open and original_ts:
+                            normalized["timestamp"] = original_ts
 
-                        await CacheService.set(f"live_quote:{clean_sym}", normalized, ttl_seconds=5)
+                        await CacheService.set(f"live_quote:{clean_sym}", normalized, ttl_seconds=10 if is_mkt_open else 120)
                         await CacheService.set(f"last_verified_quote:{clean_sym}", normalized, ttl_seconds=86400)
-                        await CacheService.set(f"live_ltp:{clean_sym}", ltp, ttl_seconds=5)
+                        if not is_mkt_open:
+                            await CacheService.set(f"eod_quote:{clean_sym}", normalized, ttl_seconds=3600)
+                        await CacheService.set(f"live_ltp:{clean_sym}", ltp, ttl_seconds=10 if is_mkt_open else 120)
                         return normalized
 
                     last_reason = api_msg or f"Angel One quote returned empty/false payload for {clean_sym}."
@@ -555,6 +604,7 @@ class AngelOneMarketDataProvider(MarketDataProvider):
             "is_mock": False,
             "is_synthetic": False,
             "provider": "angelone",
+            "timestamp": MarketCalendar.format_ist_timestamp(),
             "degradedReason": last_reason,
             "errorCode": last_error_code,
             "httpStatus": last_status_code,

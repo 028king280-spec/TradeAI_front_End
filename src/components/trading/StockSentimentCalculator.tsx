@@ -272,6 +272,9 @@ export const StockSentimentCalculator: React.FC = () => {
                       <span className={`text-xs font-semibold ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {sentimentData.priceMetrics.change >= 0 ? '+' : ''}{sentimentData.priceMetrics.changePercent.toFixed(2)}%
                       </span>
+                      <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1 px-1.5 py-0.5 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                        {sentimentData.priceMetrics.isLive ? 'LIVE' : 'EOD'}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -281,14 +284,26 @@ export const StockSentimentCalculator: React.FC = () => {
                   {sentimentData.priceMetrics && (
                     <>
                       <div>
-                        <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
-                          Stock Price (LTP)
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase block">
+                            {sentimentData.priceMetrics.isLive ? 'Live Stock Price (CMP)' : 'Last Verified Close (EOD)'}
+                          </span>
+                          {!sentimentData.priceMetrics.isLive && sentimentData.priceMetrics.tradingSessionDate && (
+                            <span className="text-[10px] font-medium text-[var(--text-muted)] bg-[var(--bg-surface)] px-1.5 py-0.2 rounded border border-[var(--border-subtle)]">
+                              Session: {sentimentData.priceMetrics.tradingSessionDate}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)]">
                           ₹{sentimentData.priceMetrics.currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </span>
                         <span className={`text-xs font-semibold block mt-0.5 ${sentimentData.priceMetrics.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                           {sentimentData.priceMetrics.change >= 0 ? '+' : ''}{sentimentData.priceMetrics.change.toFixed(2)} ({sentimentData.priceMetrics.changePercent >= 0 ? '+' : ''}{sentimentData.priceMetrics.changePercent.toFixed(2)}%)
+                          {!sentimentData.priceMetrics.isLive && sentimentData.priceMetrics.quoteSource && (
+                            <span className="text-[10px] font-normal text-[var(--text-muted)] ml-2">
+                              • Source: {sentimentData.priceMetrics.quoteSource}
+                            </span>
+                          )}
                         </span>
                       </div>
 

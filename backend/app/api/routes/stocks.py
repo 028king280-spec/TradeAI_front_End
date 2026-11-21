@@ -21,10 +21,14 @@ async def search_stocks(
 
 
 def _normalize_api_data_status(raw_status: Any, is_mock: bool = False) -> str:
-    status_str = str(raw_status or "")
+    status_str = str(raw_status or "").upper()
     if is_mock or status_str == "MOCK":
         return "MOCK"
-    if status_str in ("LIVE", "STALE", "UNAVAILABLE"):
+    if status_str in ("LIVE", "VERIFIED_LIVE"):
+        return "LIVE"
+    if status_str in ("MARKET_CLOSED", "VERIFIED_EOD", "EOD"):
+        return "MARKET_CLOSED"
+    if status_str in ("STALE", "DATA_OFFLINE", "UNAVAILABLE"):
         return status_str
     return "UNAVAILABLE"
 
@@ -37,6 +41,11 @@ async def get_stock_quote(symbol: str):
     try:
         quote = await provider.get_quote(clean_sym)
         data_status = _normalize_api_data_status(quote.get("dataStatus"), bool(quote.get("is_mock")))
+        if isinstance(quote, dict):
+            quote["dataStatus"] = data_status
+            if not quote.get("timestamp"):
+                from app.data.market_calendar import MarketCalendar
+                quote["timestamp"] = MarketCalendar.format_ist_timestamp()
         return ApiResponse(success=True, data=quote, dataStatus=data_status)
     except Exception as e:
         raise HTTPException(

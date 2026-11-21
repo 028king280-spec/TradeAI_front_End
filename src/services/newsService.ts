@@ -40,6 +40,14 @@ export interface StockPriceMetrics {
   dayLow: number;
   exchange: string;
   isLive: boolean;
+  isEod?: boolean;
+  dataStatus?: string;
+  priceLabel?: string;
+  originalQuoteTimestamp?: string;
+  tradingSessionDate?: string;
+  retrievalTimestamp?: string;
+  quoteSource?: string;
+  apiGeneratedAt?: string;
 }
 
 export interface StockSentimentData {
@@ -202,6 +210,7 @@ class NewsService {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(12000),
       });
       if (!res.ok) {
         console.warn(`News API error ${res.status} on ${endpoint}`);

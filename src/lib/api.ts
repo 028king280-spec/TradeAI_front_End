@@ -390,8 +390,8 @@ async function fetchFromBackend<T>(endpoint: string, options?: RequestInit): Pro
         'Content-Type': 'application/json',
         ...(options?.headers || {}),
       },
-      // Short timeout to fallback gracefully if backend is offline
-      signal: AbortSignal.timeout(6000),
+      // Resilient timeout for live broker authentication and quote queries
+      signal: AbortSignal.timeout(12000),
     });
 
     if (!res.ok) {
@@ -405,7 +405,7 @@ async function fetchFromBackend<T>(endpoint: string, options?: RequestInit): Pro
     }
     return null;
   } catch (err) {
-    // Graceful fallback during offline development
+    console.warn(`Backend fetch failed for ${endpoint}:`, err);
     return null;
   }
 }

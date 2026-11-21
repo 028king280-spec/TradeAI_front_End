@@ -76,6 +76,14 @@ class StockPriceMetricsSchema(BaseModel):
     dayLow: float
     exchange: str = "NSE"
     isLive: bool = True
+    isEod: Optional[bool] = False
+    dataStatus: Optional[str] = "LIVE"
+    priceLabel: Optional[str] = "Live CMP"
+    originalQuoteTimestamp: Optional[str] = None
+    tradingSessionDate: Optional[str] = None
+    retrievalTimestamp: Optional[str] = None
+    quoteSource: Optional[str] = None
+    apiGeneratedAt: Optional[str] = None
 
 
 class StockSentimentAnalysisSchema(BaseModel):

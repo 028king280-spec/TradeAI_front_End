@@ -38,7 +38,7 @@ async def test_market_live_endpoint():
         assert data["success"] is True
         assert "indices" in data["data"]
         assert "sentiment" in data["data"]
-        assert data["dataStatus"] in ["LIVE", "MOCK", "STALE", "UNAVAILABLE"]
+        assert data["dataStatus"] in ["LIVE", "MOCK", "STALE", "UNAVAILABLE", "MARKET_CLOSED"]
 
 
 @pytest.mark.asyncio
@@ -62,7 +62,7 @@ async def test_stock_quote_endpoint():
         data = res.json()
         assert data["success"] is True
         assert data["data"]["symbol"] == "RELIANCE"
-        assert data["dataStatus"] in ["LIVE", "MOCK", "STALE", "UNAVAILABLE"]
+        assert data["dataStatus"] in ["LIVE", "MOCK", "STALE", "UNAVAILABLE", "MARKET_CLOSED"]
 
 
 @pytest.mark.asyncio
