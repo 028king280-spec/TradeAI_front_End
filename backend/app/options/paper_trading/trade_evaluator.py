@@ -34,51 +34,59 @@ class AITradeEvaluator:
         features = trade.get("marketFeaturesAtEntry", {})
         exit_reason = trade.get("exitReason", "Manually Closed")
 
-        mfe = trade.get("mfePts", 0.0)
-        mae = trade.get("maePts", 0.0)
+        mfe = float(trade.get("mfePts", 0.0) or 0.0)
+        mae = float(trade.get("maePts", 0.0) or 0.0)
 
-        # 1. Market Direction Correct?
-        if is_win:
+        # 1. Market Direction Correct? (Evidence-based on MFE/MAE excursion, NOT outcome)
+        if mfe >= 10.0 or (mfe > 0 and mfe > mae * 1.5):
             q1_pass = True
-            q1_text = f"Yes. Directional momentum favored {bias} contract; price expanded by +{mfe:.1f} pts MFE."
-        else:
+            q1_text = f"Yes. Directional expansion favored {bias} contract; price expanded by +{mfe:.1f} pts MFE."
+        elif mfe == 0.0 and mae > 0.0:
             q1_pass = False
-            q1_text = f"No / Counter-trend. Market moved against {bias} position with {mae:.1f} pts MAE excursion."
+            q1_text = f"No / Counter-trend. Market moved immediately against {bias} position with {mae:.1f} pts MAE (0.0 MFE)."
+        else:
+            # Minor excursion or ambiguous drift
+            q1_pass = is_win and mfe > 0
+            q1_text = f"Mixed/Stagnant. MFE: +{mfe:.1f} pts, MAE: -{mae:.1f} pts. Excursion showed minimal directional thrust."
 
-        # 2. Entry Correct?
-        dealing_regime = features.get("dealingRangeRegime", "DISCOUNT" if bias == "CE" else "PREMIUM")
-        if (bias == "CE" and dealing_regime == "DISCOUNT") or (bias == "PE" and dealing_regime == "PREMIUM"):
-            q2_pass = True
-            q2_text = f"Optimal. Filled at ₹{entry_p:.2f} within favorable institutional {dealing_regime} zone."
+        # 2. Entry Correct? (Strictly relies on recorded dealingRangeRegime)
+        if "dealingRangeRegime" in features:
+            dealing_regime = features.get("dealingRangeRegime")
+            if (bias == "CE" and dealing_regime == "DISCOUNT") or (bias == "PE" and dealing_regime == "PREMIUM"):
+                q2_pass = True
+                q2_text = f"Optimal. Filled at ₹{entry_p:.2f} within favorable institutional {dealing_regime} zone."
+            else:
+                q2_pass = False
+                q2_text = f"Sub-optimal. Entry taken in {dealing_regime} zone, incurring unfavorable premium pricing."
         else:
             q2_pass = False
-            q2_text = f"Sub-optimal. Entry taken in {dealing_regime} zone, incurring unfavorable premium pricing."
+            q2_text = "Unrecorded / Unknown: Dealing range regime was not captured in marketFeaturesAtEntry."
 
-        # 3. ICT/SMC Confirmation Present?
-        has_bos_choch = "CHoCH" in ict_setup or "BOS" in ict_setup or features.get("bosConfirmed", True)
+        # 3. ICT/SMC Confirmation Present? (Strictly verifies recorded confirmation flags)
+        has_bos_choch = bool(features.get("bosConfirmed") or features.get("chochConfirmed") or features.get("mssConfirmed"))
         q3_pass = has_bos_choch
         q3_text = (
-            "Confirmed. Valid Market Structure Shift (MSS) and candle-close BOS were documented prior to entry."
+            "Confirmed. Valid Market Structure Shift (MSS) and candle-close BOS were documented in entry features."
             if has_bos_choch else
-            "Unconfirmed / Early entry. Failed to await decisive 5-minute candle body closure."
+            "Unconfirmed / Early entry. No confirmed BOS/CHoCH/MSS flag recorded in entry features."
         )
 
-        # 4. Liquidity Correctly Identified?
-        has_sweep = "Sweep" in ict_setup or features.get("sweepReclaim", True)
+        # 4. Liquidity Correctly Identified? (Strictly verifies recorded liquidity flags)
+        has_sweep = bool(features.get("sweepReclaim") or features.get("liquiditySweep"))
         q4_pass = has_sweep
         q4_text = (
-            "Verified. Opposing liquidity pool was cleanly swept with reclaim before the impulse."
+            "Verified. Opposing liquidity pool was cleanly swept with reclaim documented in entry features."
             if has_sweep else
-            "Ambiguous liquidity pool. Setup did not clearly tap resting institutional stop clusters."
+            "Ambiguous liquidity pool. No sweepReclaim or liquiditySweep flag verified in entry features."
         )
 
-        # 5. FVG Valid?
-        has_fvg = "FVG" in ict_setup or features.get("fvgRetest", True)
+        # 5. FVG Valid? (Strictly verifies recorded FVG flags)
+        has_fvg = bool(features.get("fvgRetest") or features.get("fvgConsequentEncroachment"))
         q5_pass = has_fvg
         q5_text = (
-            "Valid. Imbalance respected 50% Consequent Encroachment (CE) without invalidation close."
+            "Valid. Imbalance respected 50% Consequent Encroachment (CE) confirmed in entry features."
             if has_fvg else
-            "Gap quality questionable or partially unmitigated during initial impulse."
+            "Unverified. No fvgRetest or FVG Consequent Encroachment confirmed in entry features."
         )
 
         # 6. Stop Loss Reasonable?
@@ -101,14 +109,18 @@ class AITradeEvaluator:
             f"Under-calibrated. R:R of 1:{rr} below institutional 1:1.5 minimum expectation."
         )
 
-        # 8. Market Condition Suitable?
-        market_cond = features.get("marketCondition", "TRENDING" if is_win else "SIDEWAYS_CHOP")
-        if market_cond == "SIDEWAYS_CHOP":
-            q8_pass = False
-            q8_text = "Unsuitable. Range-bound chop regime accelerates premium theta erosion."
+        # 8. Market Condition Suitable? (Strictly relies on recorded marketCondition)
+        if "marketCondition" in features:
+            market_cond = features.get("marketCondition")
+            if market_cond in ("SIDEWAYS_CHOP", "EQUILIBRIUM", "CHOPPY"):
+                q8_pass = False
+                q8_text = f"Unsuitable. Range-bound chop regime '{market_cond}' accelerates premium theta erosion."
+            else:
+                q8_pass = True
+                q8_text = f"Suitable. Active in verified '{market_cond}' regime with adequate directional momentum."
         else:
-            q8_pass = True
-            q8_text = f"Suitable. Active in {market_cond} regime with adequate directional momentum."
+            q8_pass = False
+            q8_text = "Unrecorded / Unknown: Market regime condition was not captured in marketFeaturesAtEntry."
 
         # 9. Theta, IV & Spread Impact?
         costs = trade.get("totalCosts", 0.0)

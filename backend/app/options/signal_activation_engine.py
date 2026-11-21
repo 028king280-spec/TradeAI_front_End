@@ -181,10 +181,15 @@ def evaluate_setup_qualification(
         disqualifications.append(f"Market state is {state}. Option setups require active data feed.")
         return SignalState.NO_TRADE, disqualifications, {}
 
-    # Check 2: Minimum Strategy Score
-    strat_score = int(candidate_contract.get("analysis_score") or candidate_contract.get("strategyScore") or 70)
-    if strat_score < min_strategy_score:
-        disqualifications.append(f"Strategy quantitative score ({strat_score}) is below minimum threshold ({min_strategy_score}).")
+    # Check 2: Minimum Strategy Score (Strictly verifies quantitative score without silent default)
+    raw_score = candidate_contract.get("analysis_score") if candidate_contract.get("analysis_score") is not None else candidate_contract.get("strategyScore")
+    if raw_score is None:
+        disqualifications.append("Strategy quantitative analysis score is missing from candidate contract.")
+        strat_score = 0
+    else:
+        strat_score = int(raw_score)
+        if strat_score < min_strategy_score:
+            disqualifications.append(f"Strategy quantitative score ({strat_score}) is below minimum threshold ({min_strategy_score}).")
 
     # Check 3: Option Contract Validity & Live Quotes
     premium = float(candidate_contract.get("signal_premium") or candidate_contract.get("ltp") or candidate_contract.get("currentPremium") or 0.0)

@@ -653,7 +653,9 @@ class PaperTradingEngine:
                     # Auto Exit Checks
                     if pos_type == "BUY":
                         if ltp <= sl and sl > 0:
-                            positions_to_close.append((matched["id"], sl, "Stop Loss Hit"))
+                            # Realistic fill price accounting for gap down slippage below SL
+                            actual_sl_fill = round(min(ltp, low_val, sl), 2)
+                            positions_to_close.append((matched["id"], actual_sl_fill, "Stop Loss Hit"))
                             continue
                         t2 = matched.get("target2", 0.0)
                         if (ltp >= t2 or high_val >= t2) and t2 > 0:

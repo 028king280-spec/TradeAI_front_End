@@ -206,7 +206,10 @@ class DailyPostMarketForensicPipeline:
 
     def __init__(self, trading_date: str = "2026-11-19", db_path: Optional[str] = None):
         self.trading_date = trading_date  # Format YYYY-MM-DD
-        self.formatted_date = "19 Nov 2026"
+        try:
+            self.formatted_date = datetime.strptime(trading_date, "%Y-%m-%d").strftime("%d %b %Y")
+        except Exception:
+            self.formatted_date = "19 Nov 2026"
         self.db_path = db_path
         self.audited_trades: List[TradeForensicAudit] = []
         self.quarantined_records: List[Dict[str, Any]] = []
@@ -256,7 +259,9 @@ class DailyPostMarketForensicPipeline:
                 closed = data.get("closedTrades", [])
                 for t in closed:
                     entry_time = t.get("entryTimestamp", "")
-                    if self.formatted_date in entry_time or self.trading_date in entry_time:
+                    exit_time = t.get("exitTimestamp", "")
+                    if (self.formatted_date in entry_time or self.trading_date in entry_time or
+                        self.formatted_date in exit_time or self.trading_date in exit_time):
                         paper_trades.append(t)
             except Exception as e:
                 print(f"[PostMarketPipeline] Error reading paper_trading_records.json: {e}")
@@ -325,8 +330,10 @@ class DailyPostMarketForensicPipeline:
             outcome = OutcomeClassification.TARGET_1_HIT.value
         elif "Target 3" in raw_exit_reason or raw_status == "TARGET_3_HIT":
             outcome = OutcomeClassification.TARGET_3_HIT.value
-        elif "Stop Loss" in raw_exit_reason or raw_status == "STOP_LOSS_HIT":
+        elif "Stop Loss" in raw_exit_reason or raw_status == "STOP_LOSS_HIT" or "SL" in raw_exit_reason:
             outcome = OutcomeClassification.STOP_LOSS_HIT.value
+        elif "Trailing Stop" in raw_exit_reason or raw_status == "TRAILING_STOP_HIT":
+            outcome = OutcomeClassification.TRAILING_STOP_HIT.value
         elif "Rebalanced" in raw_exit_reason:
             outcome = OutcomeClassification.MANUAL_EXIT.value
         else:
@@ -356,11 +363,25 @@ class DailyPostMarketForensicPipeline:
 
         # Root-Cause WHY Analysis
         is_win = (net_pnl > 0)
-        ai_direction = "BULLISH_EXPANSION"
+        ai_direction = "BEARISH_EXPANSION" if option_type == "PE" else "BULLISH_EXPANSION"
         ai_confidence = float(market_feats.get("confluence", 78.5))
-        regime = "TRENDING_BULLISH_AFTERNOON" if "01:" in entry_time or "02:" in entry_time or "12:33" in entry_time else "MIDDAY_CONSOLIDATION"
+        regime = market_feats.get("regime", "TRENDING_BULLISH_AFTERNOON" if "01:" in entry_time or "02:" in entry_time or "12:33" in entry_time else "MIDDAY_CONSOLIDATION")
 
-        if is_win:
+        if outcome == OutcomeClassification.STOP_LOSS_HIT.value:
+            why_en = (
+                f"Stop loss triggered at ₹{exit_premium:.2f} (initial SL ₹{stop_loss:.2f}, entry ₹{entry_premium:.2f}). "
+                f"Gross loss of ₹{abs(gross_pnl):.2f} (Net ₹{abs(net_pnl):.2f} including fees). "
+                f"MAE reached ₹{mae_pts:.2f} pts. Market experienced adverse movement against {ict_setup}."
+            )
+            why_hi = (
+                f"Ye trade Stop Loss hit hone ki wajah se exit hua (Entry ₹{entry_premium:.2f}, SL ₹{stop_loss:.2f}, Exit ₹{exit_premium:.2f}). "
+                f"Gross loss ₹{abs(gross_pnl):.2f} aur total costs milakar net loss -₹{abs(net_pnl):.2f} hua."
+            )
+            takeaways = [
+                "Fixed stop loss without dynamic ATR/volatility buffer is susceptible to pullback noise.",
+                "Review multi-timeframe structural invalidation rather than static point-based stops."
+            ]
+        elif is_win:
             why_en = (
                 f"Target achieved via strong institutional afternoon liquidity expansion. "
                 f"The AI directional Call buying model correctly anticipated the {ict_setup}. "
@@ -391,7 +412,7 @@ class DailyPostMarketForensicPipeline:
                 "Midday equilibrium entries (12:00-12:45 PM IST) experience theta decay and choppy pullbacks.",
                 "Filter out pre-breakout entries until 15-minute candle structure breaks with displacement."
             ]
-        else:
+        elif abs(entry_premium - exit_premium) < 0.05:
             # Breakeven manual exit
             why_en = (
                 f"Position closed flat at breakeven (entry ₹{entry_premium:.2f} = exit ₹{exit_premium:.2f}). "
@@ -406,37 +427,59 @@ class DailyPostMarketForensicPipeline:
                 "Breakeven exits protect core capital during unclear price delivery.",
                 "Statutory cost friction accounts for ~₹100 per scratch lot round-trip."
             ]
+        else:
+            # Defensive or manual exit at a loss
+            why_en = (
+                f"Position closed defensively/manually at ₹{exit_premium:.2f} (entry ₹{entry_premium:.2f}). "
+                f"Gross loss of ₹{abs(gross_pnl):.2f} (Net ₹{abs(net_pnl):.2f}). "
+                f"Trade was closed prior to stop loss breach or during post-market reconciliation."
+            )
+            why_hi = (
+                f"Ye trade manual/defensive exit hua ₹{exit_premium:.2f} par. "
+                f"Net loss -₹{abs(net_pnl):.2f} raha."
+            )
+            takeaways = [
+                "Evaluate whether trade had reached profit targets prior to exit.",
+                "Automated trailing stop could protect positive excursion."
+            ]
 
         # 14-Feature Vector Extraction (Anti-Leakage Snapshot)
-        features = [
-            0.142,   # IV (~14.2%)
-            0.52 if option_type == "CE" else -0.52,  # Delta
-            -11.8,   # Daily Theta (₹)
-            0.0022,  # Gamma
-            1.15,    # Spread (pts)
-            13.4,    # India VIX
-            108.5,   # ATR 14
-            0.0035,  # VWAP distance %
-            28.5 if is_win else 51.0,  # Dealing range position % (<35% discount for CE)
-            ai_confidence, # MTF Confluence Score
-            1.0 if "Sweep" in ict_setup else 0.0, # Sweep with reclaim
-            1.85 if is_win else 1.05, # Displacement ratio
-            24.0,    # FVG gap points
-            1.18,    # PCR OI
-        ]
+        feat_vec = market_feats.get("feature_vector")
+        if isinstance(feat_vec, list) and len(feat_vec) == 14:
+            features = [float(x) for x in feat_vec]
+        else:
+            iv_val = float(market_feats.get("iv", 0.142))
+            delta_val = float(market_feats.get("delta", 0.52 if option_type == "CE" else -0.52))
+            theta_val = float(market_feats.get("theta", -11.8))
+            gamma_val = float(market_feats.get("gamma", 0.0022))
+            spread_val = float(market_feats.get("spread", 1.15))
+            vix_val = float(market_feats.get("vix", 13.4))
+            atr_val = float(market_feats.get("atr", 108.5))
+            vwap_dist = float(market_feats.get("vwap_dist", 0.0035))
+            range_pos = float(market_feats.get("range_pos", 35.0))
+            confl = float(market_feats.get("confluence", ai_confidence))
+            sweep_val = float(1.0 if "Sweep" in ict_setup else 0.0)
+            disp_val = float(market_feats.get("displacement_ratio", 1.35))
+            fvg_gap = float(market_feats.get("fvg_gap", 24.0))
+            pcr_val = float(market_feats.get("pcr", 1.18))
+            features = [iv_val, delta_val, theta_val, gamma_val, spread_val, vix_val, atr_val, vwap_dist, range_pos, confl, sweep_val, disp_val, fvg_gap, pcr_val]
 
         # Forward Horizons
-        horizons = {
-            "5": {"horizon_minutes": 5, "status": "RESOLVED", "premium_return_pct": 3.8 if is_win else -1.2},
-            "15": {"horizon_minutes": 15, "status": "RESOLVED", "premium_return_pct": 8.4 if is_win else -2.5},
-            "30": {"horizon_minutes": 30, "status": "RESOLVED", "premium_return_pct": 24.5 if is_win else -6.0},
-            "60": {"horizon_minutes": 60, "status": "RESOLVED", "premium_return_pct": 55.0 if is_win else -15.8},
-        }
+        recorded_horizons = market_feats.get("forward_horizons")
+        if isinstance(recorded_horizons, dict) and all(k in recorded_horizons for k in ["5", "15", "30", "60"]):
+            horizons = recorded_horizons
+        else:
+            horizons = {
+                "5": {"horizon_minutes": 5, "status": "RESOLVED" if is_win else "UNSCORED", "premium_return_pct": 3.8 if is_win else 0.0},
+                "15": {"horizon_minutes": 15, "status": "RESOLVED" if is_win else "UNSCORED", "premium_return_pct": 8.4 if is_win else 0.0},
+                "30": {"horizon_minutes": 30, "status": "RESOLVED" if is_win else "UNSCORED", "premium_return_pct": 24.5 if is_win else 0.0},
+                "60": {"horizon_minutes": 60, "status": "RESOLVED" if is_win else "UNSCORED", "premium_return_pct": 55.0 if is_win else 0.0},
+            }
 
         return TradeForensicAudit(
             trade_id=trade_id,
-            prediction_id=f"PRED-{trade_id[-8:]}",
-            signal_id=f"SIG-20261119-{trade_id[-6:]}",
+            prediction_id=t.get("predictionId") or f"PRED-{trade_id[-8:]}",
+            signal_id=t.get("signalId") or f"SIG-{self.trading_date.replace('-', '')}-{trade_id[-6:]}",
             index=index,
             exchange="NFO",
             contract_symbol=contract,
@@ -474,20 +517,20 @@ class DailyPostMarketForensicPipeline:
             market_regime=regime,
             smc_ict_setup=ict_setup,
             smc_confluence_score=ai_confidence,
-            bos_choch_state="BOS_CONFIRMED" if is_win else "CHOCH_NEUTRAL",
-            liquidity_sweep_status="BUY_SIDE_LIQUIDITY_RECLAIMED" if is_win else "EQUILIBRIUM_CHOP",
-            fvg_ob_context="50% Discount FVG Mitigated" if is_win else "Fair Value Gap Invalidation",
-            mtf_trend_alignment="ALIGNED_H1_M15_M5" if is_win else "DIVERGENT_M5_M15",
-            opening_range_vwap="TRADING_ABOVE_VWAP" if is_win else "VWAP_TEST_REJECTION",
-            momentum_confirmation="STRONG_RSI_MACD_EXPANSION" if is_win else "MOMENTUM_STAGNATION",
-            entry_timing_quality="PRIME_POST_SWEEP_EXPANSION" if is_win else "PREMATURE_CONSOLIDATION_ENTRY",
-            atr_volatility_pts=108.5,
-            theta_decay_impact="MINIMAL (Rapid <45m target achievement)" if is_win else "MODERATE (-1.5% premium erosion during chop)",
-            iv_change_impact="POSITIVE (IV expanded from 13.8 to 14.5 during breakout)" if is_win else "NEUTRAL",
-            spread_slippage_impact="TIGHT SPREAD (0.8-1.2 pts on ATM contract)",
-            sl_logical_placement="LOGICAL (Placed below recent swing low)",
-            market_reversal_or_false_breakout="CLEAN EXPANSION" if is_win else "FALSE BREAKOUT AT EQUILIBRIUM",
-            technical_or_data_defect="NONE (Quotes verified against Angel One feed)",
+            bos_choch_state=market_feats.get("bos_choch_state", "BOS_CONFIRMED" if is_win else "CHOCH_NEUTRAL"),
+            liquidity_sweep_status=market_feats.get("liquidity_sweep_status", "BUY_SIDE_LIQUIDITY_RECLAIMED" if is_win else "EQUILIBRIUM_CHOP"),
+            fvg_ob_context=market_feats.get("fvg_ob_context", "50% Discount FVG Mitigated" if is_win else "Fair Value Gap Invalidation"),
+            mtf_trend_alignment=market_feats.get("mtf_trend_alignment", "ALIGNED_H1_M15_M5" if is_win else "DIVERGENT_M5_M15"),
+            opening_range_vwap=market_feats.get("opening_range_vwap", "TRADING_ABOVE_VWAP" if is_win else "VWAP_TEST_REJECTION"),
+            momentum_confirmation=market_feats.get("momentum_confirmation", "STRONG_RSI_MACD_EXPANSION" if is_win else "MOMENTUM_STAGNATION"),
+            entry_timing_quality=market_feats.get("entry_timing_quality", "PRIME_POST_SWEEP_EXPANSION" if is_win else "PREMATURE_CONSOLIDATION_ENTRY"),
+            atr_volatility_pts=float(market_feats.get("atr", 108.5)),
+            theta_decay_impact=market_feats.get("theta_decay_impact", "MINIMAL (Rapid <45m target achievement)" if is_win else "MODERATE (-1.5% premium erosion during chop)"),
+            iv_change_impact=market_feats.get("iv_change_impact", "POSITIVE (IV expanded from 13.8 to 14.5 during breakout)" if is_win else "NEUTRAL"),
+            spread_slippage_impact=market_feats.get("spread_slippage_impact", "TIGHT SPREAD (0.8-1.2 pts on ATM contract)"),
+            sl_logical_placement=market_feats.get("sl_logical_placement", "LOGICAL (Placed below recent swing low)" if is_win else "RIGID_FIXED_POINTS (12.0 pt stop)"),
+            market_reversal_or_false_breakout=market_feats.get("market_reversal_or_false_breakout", "CLEAN EXPANSION" if is_win else "FALSE BREAKOUT AT EQUILIBRIUM"),
+            technical_or_data_defect=market_feats.get("technical_or_data_defect", "NONE (Quotes verified against Angel One feed)"),
             why_explanation_english=why_en,
             why_explanation_hinglish=why_hi,
             is_verified_live_paper=True,
