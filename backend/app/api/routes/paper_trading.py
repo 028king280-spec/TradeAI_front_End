@@ -8,6 +8,7 @@ Provides endpoints for:
 """
 
 import math
+import uuid
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Body, Depends, Query, HTTPException, status
 from app.options.paper_trading.paper_engine import paper_engine
@@ -126,6 +127,32 @@ async def open_simulated_trade(
     target_3 = float(payload.get("target3", 220.0))
     strategy = payload.get("strategy", "Model A (Liquidity Sweep & Retest)")
     ict_setup = payload.get("ictSetup", "Bullish SSL Sweep + FVG 50% CE")
+    instrument_token = payload.get("instrumentToken") or payload.get("instrument_token")
+    exchange = payload.get("exchange", "NFO")
+    signal_id = payload.get("signalId") or payload.get("signal_id")
+    request_id = payload.get("requestId") or payload.get("request_id")
+    
+    # Server-Authorized Hedging Permissions (P1 STEP 1):
+    # Client-supplied allow_hedging flags must NEVER unilaterally bypass directional risk checks.
+    # Hedging is strictly authorized only if the strategy matches server-authorized institutional multi-leg policies.
+    from app.options.paper_trading.paper_engine import SERVER_AUTHORIZED_MULTI_LEG_STRATEGIES
+    raw_allow_hedging = bool(payload.get("allowHedging") or payload.get("allow_hedging", False))
+    raw_multi_leg = payload.get("multiLegStrategy") or payload.get("multi_leg_strategy")
+    clean_multi_leg = str(raw_multi_leg or "").strip().upper() if raw_multi_leg else None
+
+    if raw_allow_hedging and (not clean_multi_leg or clean_multi_leg not in SERVER_AUTHORIZED_MULTI_LEG_STRATEGIES):
+        logger.warning(
+            f"[SecurityAudit] Client-supplied allow_hedging flag rejected. "
+            f"Strategy '{clean_multi_leg}' is not an authorized institutional multi-leg policy. Bypassing risk checks prohibited."
+        )
+        allow_hedging = False
+        multi_leg_strategy = None
+    elif clean_multi_leg and clean_multi_leg in SERVER_AUTHORIZED_MULTI_LEG_STRATEGIES:
+        allow_hedging = True
+        multi_leg_strategy = clean_multi_leg
+    else:
+        allow_hedging = False
+        multi_leg_strategy = None
     
     # Sanitize client marketFeatures: Strip client-forged live/replay override flags
     raw_market_features = payload.get("marketFeatures", {}) or {}
@@ -152,8 +179,67 @@ async def open_simulated_trade(
         strategy=strategy,
         ict_setup=ict_setup,
         market_features=market_features,
+        instrument_token=instrument_token,
+        exchange=exchange,
+        signal_id=signal_id,
+        request_id=request_id,
+        allow_hedging=allow_hedging,
+        multi_leg_strategy=multi_leg_strategy,
     )
     return result
+
+
+@router.get("/cooldowns")
+async def get_paper_cooldowns(
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    Returns active post-exit cooldowns and policy status (TASK 3).
+    """
+    return {
+        "status": "SUCCESS",
+        "timestamp": MarketCalendar.format_ist_timestamp(),
+        **paper_engine.get_active_cooldowns(),
+    }
+
+
+@router.get("/session-cutoff")
+async def get_session_cutoff():
+    """
+    Returns current session entry cutoff configuration and admissibility status.
+    """
+    return {
+        "status": "SUCCESS",
+        "timestamp": MarketCalendar.format_ist_timestamp(),
+        **paper_engine.get_session_cutoff_status(),
+    }
+
+
+@router.post("/session-cutoff/configure")
+async def configure_session_cutoff(
+    payload: Dict[str, Any] = Body(...),
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    Configures session cutoff and EOD square-off parameters.
+    """
+    enabled = payload.get("enabled")
+    min_window = payload.get("min_holding_window_minutes")
+    sq_time = payload.get("eod_square_off_time")
+    enforce_sq = payload.get("enforce_eod_squareoff")
+
+    updated = paper_engine.configure_session_cutoff(
+        enabled=enabled,
+        min_holding_window_minutes=min_window,
+        eod_square_off_time=sq_time,
+        enforce_eod_squareoff=enforce_sq,
+    )
+    return {
+        "status": "SUCCESS",
+        "timestamp": MarketCalendar.format_ist_timestamp(),
+        "config": updated,
+        "statusDetails": paper_engine.get_session_cutoff_status(),
+    }
 
 
 @router.post("/close")
@@ -322,4 +408,148 @@ async def configure_circuit_breaker_budget():
         status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
         detail="HTTP configuration of circuit breaker budget is permanently disabled for security. Daily risk budgets must be configured solely via authorized server-side governance mechanisms.",
     )
+
+
+@router.get("/profit-protection/research")
+async def get_profit_protection_research(
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    Returns isolated profit protection and trailing stop research analytics (P1 Research).
+    Observation-only sandbox comparing Policies A through G across historical calibration
+    and untouched out-of-sample evaluation datasets.
+    """
+    from app.options.paper_trading.profit_protection_research import ProfitProtectionResearchEngine
+    return ProfitProtectionResearchEngine.get_read_only_dashboard_state()
+
+
+@router.get("/profit-protection/simulated-position/{position_id}")
+async def get_position_profit_protection_simulation(
+    position_id: str,
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    Returns real-time read-only counterfactual simulation of an active paper position
+    under proposed Hybrid Profit Protection (Policy G).
+    Does NOT modify live production stop-loss or execute broker orders.
+    """
+    from app.options.paper_trading.profit_protection_research import ProfitProtectionResearchEngine
+    open_pos = paper_engine.state.get("openPositions", [])
+    matched = next((p for p in open_pos if p["id"] == position_id), None)
+    if not matched:
+        closed_trades = paper_engine.state.get("closedTrades", [])
+        matched = next((p for p in closed_trades if p["id"] == position_id), None)
+    if not matched:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Position '{position_id}' not found in active or closed records.",
+        )
+    return ProfitProtectionResearchEngine.get_read_only_dashboard_state(position=matched)
+
+
+@router.get("/profit-protection/shadow-monitoring")
+async def get_profit_protection_shadow_monitoring(
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    TASK 5: Read-only shadow monitoring endpoint for Policy G (Multi-Tier Hybrid Trailing Stop).
+    Continuously audits active paper positions against hypothetical Policy G execution
+    in real time without modifying active orders or risk governance.
+    """
+    return paper_engine.get_shadow_monitoring_state()
+
+
+@router.get("/profit-protection/shadow-forward-status")
+async def get_shadow_forward_status(
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    TASK 7: Read-only forward shadow monitoring status and analytics dashboard.
+    Distinguishes genuine forward shadow observations from realized paper P&L.
+    """
+    from app.options.paper_trading.shadow_forward_pipeline import shadow_pipeline
+    return shadow_pipeline.get_shadow_dashboard_state()
+
+
+@router.get("/profit-protection/shadow-forward-journal")
+async def get_shadow_forward_journal(
+    limit: int = 50,
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    Returns the persistent forward shadow observation journal records.
+    """
+    from app.options.paper_trading.shadow_forward_pipeline import shadow_pipeline
+    return {
+        "status": "SUCCESS",
+        "totalCompleted": len(shadow_pipeline.completed_journal),
+        "totalActive": len(shadow_pipeline.active_opportunities),
+        "totalRejected": len(shadow_pipeline.rejected_records),
+        "journal": shadow_pipeline.completed_journal[-limit:],
+        "activeOpportunities": list(shadow_pipeline.active_opportunities.values()),
+        "rejectedRecords": shadow_pipeline.rejected_records[-limit:],
+    }
+
+
+@router.post("/profit-protection/shadow-opportunity/admit")
+async def admit_shadow_forward_opportunity(
+    payload: Dict[str, Any],
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    TASK 1: Admits an eligible research signal into the read-only forward shadow pipeline
+    without opening any paper trades or modifying risk budgets.
+    """
+    from app.options.paper_trading.shadow_forward_pipeline import shadow_pipeline
+    return shadow_pipeline.admit_shadow_opportunity(
+        signal_id=payload.get("signal_id") or payload.get("signalId") or f"SIG-{uuid.uuid4().hex[:6].upper()}",
+        index=payload.get("index", "NIFTY"),
+        contract_symbol=payload.get("contract_symbol") or payload.get("contractSymbol"),
+        expiry=payload.get("expiry", "CURRENT_EXPIRY"),
+        strike=float(payload.get("strike", 0.0)),
+        option_type=payload.get("option_type") or payload.get("optionType", "CE"),
+        entry_premium=float(payload.get("entry_premium") or payload.get("entryPremium", 100.0)),
+        lot_size=int(payload.get("lot_size") or payload.get("lotSize", 65)),
+        lots=int(payload.get("lots", 1)),
+        stop_loss=payload.get("stop_loss") or payload.get("stopLoss"),
+        target_1=payload.get("target_1") or payload.get("target1"),
+        target_2=payload.get("target_2") or payload.get("target2"),
+        target_3=payload.get("target_3") or payload.get("target3"),
+        signal_quality=payload.get("signal_quality") or payload.get("signalQuality", "HIGH_CONFLUENCE"),
+        market_regime=payload.get("market_regime") or payload.get("marketRegime", "TRENDING_EXPANSION"),
+        technical_features=payload.get("technical_features") or payload.get("technicalFeatures"),
+        sentiment_inputs=payload.get("sentiment_inputs") or payload.get("sentimentInputs"),
+        data_quality_status=payload.get("data_quality_status") or payload.get("dataQualityStatus", "VERIFIED_LIVE"),
+        instrument_token=payload.get("instrument_token") or payload.get("instrumentToken"),
+        underlying_spot=payload.get("underlying_spot") or payload.get("underlyingSpot"),
+        bid=payload.get("bid"),
+        ask=payload.get("ask"),
+        force_admit=payload.get("force_admit", False),
+    )
+
+
+@router.post("/profit-protection/shadow-opportunity/tick")
+async def process_shadow_forward_tick(
+    payload: Dict[str, Any],
+    auth: str = Depends(verify_operator_authorization),
+):
+    """
+    TASK 3 & 4: Ingests a market quote tick into active shadow opportunities.
+    Evaluates Policy A and Policy G without lookahead bias.
+    """
+    from app.options.paper_trading.shadow_forward_pipeline import shadow_pipeline
+    return shadow_pipeline.process_market_tick(
+        contract_symbol=payload.get("contract_symbol") or payload.get("contractSymbol"),
+        ltp=float(payload.get("ltp") or payload.get("lastPrice", 0.0)),
+        bar_high=payload.get("bar_high") or payload.get("high"),
+        bar_low=payload.get("bar_low") or payload.get("low"),
+        bid=payload.get("bid"),
+        ask=payload.get("ask"),
+        underlying_spot=payload.get("underlying_spot") or payload.get("spot"),
+        quote_timestamp=payload.get("quote_timestamp") or payload.get("timestamp"),
+        feed_status=payload.get("feed_status") or payload.get("feedStatus", "VERIFIED_LIVE"),
+        atr=payload.get("atr"),
+    )
+
+
 

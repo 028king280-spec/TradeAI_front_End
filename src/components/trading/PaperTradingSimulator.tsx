@@ -474,14 +474,26 @@ export const PaperTradingSimulator: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-[9px] px-1.5 py-0.5 rounded font-semibold ${
-                                isWin
+                                trade.status === 'EOD_SQUARE_OFF' || trade.exitReason?.toLowerCase().includes('eod')
+                                  ? 'bg-amber-500/15 text-amber-500 border border-amber-500/30'
+                                  : trade.status === 'TIME_DECAY_EXIT' || trade.exitReason?.toLowerCase().includes('theta')
+                                  ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                                  : isWin
                                   ? 'bg-emerald-500/15 text-emerald-500'
                                   : isLoss
                                   ? 'bg-rose-500/15 text-rose-500'
                                   : 'bg-[var(--bg-surface-elevated)] text-[var(--text-secondary)]'
                               }`}
                             >
-                              {isWin ? 'PROFIT' : isLoss ? 'LOSS' : 'BREAK-EVEN'}
+                              {trade.status === 'EOD_SQUARE_OFF' || trade.exitReason?.toLowerCase().includes('eod')
+                                ? 'EOD SQUARE-OFF'
+                                : trade.status === 'TIME_DECAY_EXIT' || trade.exitReason?.toLowerCase().includes('theta')
+                                ? 'THETA EXIT'
+                                : isWin
+                                ? 'PROFIT'
+                                : isLoss
+                                ? 'LOSS'
+                                : 'BREAK-EVEN'}
                             </span>
                             <span className="font-semibold text-[var(--text-primary)]">{trade.contractSymbol}</span>
                             <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border border-[var(--accent-blue)]/25 font-semibold flex items-center gap-1">

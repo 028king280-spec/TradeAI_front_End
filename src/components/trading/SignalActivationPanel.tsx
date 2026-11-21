@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldAlert, Zap, Target, TrendingUp, TrendingDown, CheckCircle2, AlertCircle, Bell, BellRing, Eye, Crosshair, Shield, CircleDot, ShoppingCart, Sparkles, Brain } from 'lucide-react';
 import { paperTradingManager, PaperPosition, PaperTradingState } from '@/services/paperTradingService';
 
@@ -84,6 +84,13 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
 
   const totalClosed = paperState.winCount + paperState.lossCount;
   const currentWinRate = totalClosed > 0 ? Math.round((paperState.winCount / totalClosed) * 100) : 78;
+
+  // Session entry cutoff evaluation (14:50 IST cutoff before 15:10 IST EOD Square-off)
+  const isPastCutoff = useMemo(() => {
+    const now = new Date();
+    const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+    return istMinutes >= 890 && istMinutes < 930;
+  }, []);
 
   // Handlers for Paper Trading Buy & Sell at Target
   const handleBuyMarket = () => {
@@ -392,12 +399,26 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
                   </div>
                 )}
 
+                {isPastCutoff && !activePosition && (
+                  <div className="flex items-center gap-2 text-xs tabular-nums text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3.5 py-2 rounded-lg border border-amber-500/25 w-full mb-1">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-amber-500" />
+                    <span>
+                      <strong>SESSION ENTRY CUTOFF ACTIVE (14:50 IST):</strong> New paper entries are blocked to prevent premature automatic EOD square-off (15:10 IST). Minimum 20-minute holding window enforced.
+                    </span>
+                  </div>
+                )}
+
                 {!activePosition ? (
                   <>
                     <button
                       onClick={handleBuyMarket}
-                      className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-md active:scale-95"
-                      title="Buy 1 Lot at Current Market Premium"
+                      disabled={isPastCutoff}
+                      className={`px-4 py-2.5 rounded-lg text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-md active:scale-95 ${
+                        isPastCutoff
+                          ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed opacity-60'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      }`}
+                      title={isPastCutoff ? "Entry blocked: Session cutoff active (14:50 IST)" : "Buy 1 Lot at Current Market Premium"}
                     >
                       <Zap className="w-3.5 h-3.5 text-amber-300" />
                       <span>Kharido / Buy 1 Lot @ Live CMP (₹{data!.lastObservedLtp.toFixed(2)})</span>
@@ -405,7 +426,13 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
 
                     <button
                       onClick={handleBuyEntry}
-                      className="px-3.5 py-2.5 rounded-lg bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)] text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                      disabled={isPastCutoff}
+                      className={`px-3.5 py-2.5 rounded-lg text-xs font-semibold tabular-nums flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${
+                        isPastCutoff
+                          ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed opacity-60'
+                          : 'bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-[var(--accent-on)]'
+                      }`}
+                      title={isPastCutoff ? "Entry blocked: Session cutoff active (14:50 IST)" : "Buy @ Entry Zone"}
                     >
                       <Crosshair className="w-3.5 h-3.5" />
                       <span>Buy @ Entry Zone (₹{data!.entryRangeMin.toFixed(1)})</span>
@@ -473,7 +500,12 @@ export const SignalActivationPanel: React.FC<SignalActivationPanelProps> = ({
                   !isSideways ? (
                     <button
                       onClick={handleBuyEntry}
-                      className="w-full py-1 px-1.5 rounded bg-[var(--accent-blue)]/15 hover:bg-[var(--accent-blue)]/25 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] text-[10px] font-semibold border border-[var(--accent-blue)]/30 transition-all flex items-center justify-center gap-1"
+                      disabled={isPastCutoff}
+                      className={`w-full py-1 px-1.5 rounded text-[10px] font-semibold border transition-all flex items-center justify-center gap-1 ${
+                        isPastCutoff
+                          ? 'bg-slate-700/30 text-slate-400 border-slate-700/40 cursor-not-allowed opacity-60'
+                          : 'bg-[var(--accent-blue)]/15 hover:bg-[var(--accent-blue)]/25 text-[var(--accent-blue)] dark:text-[var(--accent-blue)] border-[var(--accent-blue)]/30'
+                      }`}
                     >
                       <ShoppingCart className="w-2.5 h-2.5" /> Buy @ Entry
                     </button>

@@ -111,7 +111,7 @@ export interface PaperPosition {
   netPnl?: number;
   statutoryCosts?: number;
   smcModel?: string;
-  status: 'OPEN' | 'TARGET1_HIT' | 'TARGET2_HIT' | 'STOPPED_OUT' | 'CLOSED_MANUALLY' | 'PARTIALLY_CLOSED';
+  status: 'OPEN' | 'TARGET1_HIT' | 'TARGET2_HIT' | 'STOPPED_OUT' | 'CLOSED_MANUALLY' | 'PARTIALLY_CLOSED' | 'EOD_SQUARE_OFF' | 'TIME_DECAY_EXIT' | 'EXPIRED';
   openedAt: string;
   closedAt?: string;
   exitPremium?: number;
@@ -145,6 +145,7 @@ const API_AUTH_HEADERS = { 'Content-Type': 'application/json' };
 class PaperTradingManager {
   private state: PaperTradingState;
   private listeners: Set<(state: PaperTradingState) => void> = new Set();
+  private inFlightContracts: Set<string> = new Set();
 
   constructor() {
     this.state = this.loadState();
@@ -226,8 +227,26 @@ class PaperTradingManager {
       };
     }
 
+    // P0 Duplicate Prevention: Reject if position on same contract is already open
+    if (this.state.positions.some((p) => p.contractSymbol === setup.contractSymbol && p.status === 'OPEN')) {
+      return {
+        success: false,
+        message: `Paper trade rejected: DUPLICATE_ACTIVE_CONTRACT. An active position for '${setup.contractSymbol}' is already open.`,
+      };
+    }
+
+    // In-flight mutex to block rapid multi-clicks
+    if (this.inFlightContracts.has(setup.contractSymbol)) {
+      return {
+        success: false,
+        message: `Paper trade rejected: Order for '${setup.contractSymbol}' is already in flight. Please wait.`,
+      };
+    }
+    this.inFlightContracts.add(setup.contractSymbol);
+
     const rawPrice = setup.currentPremium || (setup as any).lastObservedLtp;
     if (!rawPrice || typeof rawPrice !== 'number' || rawPrice <= 0) {
+      this.inFlightContracts.delete(setup.contractSymbol);
       return {
         success: false,
         message: 'Paper trade rejected: Market price is unavailable or unverified. Simulated execution blocked on unverified feeds.',
@@ -240,11 +259,16 @@ class PaperTradingManager {
     const marginRequired = round(entryPrice * totalQty, 2);
 
     if (marginRequired > this.state.balance) {
+      this.inFlightContracts.delete(setup.contractSymbol);
       return {
         success: false,
         message: `Insufficient virtual funds. Required ₹${marginRequired.toLocaleString('en-IN')}, available ₹${this.state.balance.toLocaleString('en-IN')}.`,
       };
     }
+
+    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `REQ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const signalId = (setup as any).signalId || (setup as any).id || undefined;
+    const instrumentToken = (setup as any).instrumentToken || (setup as any).token || undefined;
 
     // Backend-authoritative order placement: Send order to backend and only admit position upon backend approval
     if (typeof window !== 'undefined') {
@@ -266,6 +290,9 @@ class PaperTradingManager {
           target2: setup.target2 && setup.target2 > 0 ? setup.target2 : round(entryPrice * 1.55, 1),
           strategy: (setup as any).smcModel || 'Next-Session Institutional Setup',
           marketFeatures: {},
+          requestId: requestId,
+          signalId: signalId,
+          instrumentToken: instrumentToken,
         }),
       })
         .then((r) => r.json())
@@ -301,7 +328,12 @@ class PaperTradingManager {
             this.notify();
           }
         })
-        .catch((err) => console.warn('Error sending paper order to backend:', err));
+        .catch((err) => console.warn('Error sending paper order to backend:', err))
+        .finally(() => {
+          this.inFlightContracts.delete(setup.contractSymbol);
+        });
+    } else {
+      this.inFlightContracts.delete(setup.contractSymbol);
     }
 
     return {
@@ -395,9 +427,13 @@ class PaperTradingManager {
       entryRangeMin?: number;
       entryRangeMax?: number;
       signalState?: string;
+      signalId?: string;
+      id?: string;
+      instrumentToken?: number;
+      token?: number;
     },
-    options?: { customEntryPrice?: number; lots?: number }
-  ): { success: boolean; message: string; position?: PaperPosition } {
+    options?: { customEntryPrice?: number; lots?: number; isReplay?: boolean }
+  ): { success: boolean; message: string; position?: PaperPosition; code?: string } {
     // SENSEX Governance Lock Invariant
     const idxSym = (signal.index || '').toUpperCase();
     if (idxSym.includes('SENSEX') || idxSym.includes('BSE')) {
@@ -407,7 +443,42 @@ class PaperTradingManager {
       };
     }
 
+    // Late-Session Entry Cutoff Gate: Insufficient holding time before mandatory EOD square-off (15:10 IST)
+    if (!options?.isReplay) {
+      const now = new Date();
+      const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+      // Cutoff: 14:50 IST (890 mins). Market close: 15:30 IST (930 mins).
+      if (istMinutes >= 890 && istMinutes < 930) {
+        return {
+          success: false,
+          code: 'INSUFFICIENT_HOLDING_TIME_BEFORE_EOD_SQUAREOFF',
+          message: 'Paper trade rejected: Insufficient holding time before mandatory EOD square-off (15:10 IST). New entries blocked after 14:50 IST to protect against rapid auto-exit.',
+        };
+      }
+    }
+
+    // P0 Duplicate Guard: Reject if active position in same contract already exists
+    const activeContract = this.state.positions.find(
+      (p) => p.contractSymbol === signal.contractSymbol && p.status === 'OPEN'
+    );
+    if (activeContract) {
+      return {
+        success: false,
+        message: `DUPLICATE_ACTIVE_CONTRACT: An active position for '${signal.contractSymbol}' is already open (ID: ${activeContract.id}). Duplicate admission blocked.`,
+      };
+    }
+
+    // P0 In-Flight Guard: Prevent concurrent submissions for same contract
+    if (this.inFlightContracts.has(signal.contractSymbol)) {
+      return {
+        success: false,
+        message: `Paper trade rejected: Order for '${signal.contractSymbol}' is already in flight. Please wait.`,
+      };
+    }
+    this.inFlightContracts.add(signal.contractSymbol);
+
     if (signal.signalState === 'NO_TRADE' || signal.bias === 'NONE') {
+      this.inFlightContracts.delete(signal.contractSymbol);
       return {
         success: false,
         message: 'Paper trade rejected: No qualified setup exists (Signal state: NO_TRADE / CAPITAL_DEFENSE).',
@@ -416,6 +487,7 @@ class PaperTradingManager {
 
     const rawEntry = options?.customEntryPrice !== undefined ? options.customEntryPrice : signal.lastObservedLtp;
     if (!rawEntry || typeof rawEntry !== 'number' || rawEntry <= 0) {
+      this.inFlightContracts.delete(signal.contractSymbol);
       return {
         success: false,
         message: 'Paper trade rejected: Option premium is unavailable or zero. Execution blocked to prevent fabricated entries.',
@@ -429,11 +501,16 @@ class PaperTradingManager {
     const marginRequired = round(entryPrice * totalQty, 2);
 
     if (marginRequired > this.state.balance) {
+      this.inFlightContracts.delete(signal.contractSymbol);
       return {
         success: false,
         message: `Insufficient virtual funds. Required ₹${marginRequired.toLocaleString('en-IN')}, available ₹${this.state.balance.toLocaleString('en-IN')}.`,
       };
     }
+
+    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `REQ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const signalId = signal.signalId || signal.id || undefined;
+    const instrumentToken = signal.instrumentToken || signal.token || undefined;
 
     const posId = `PT-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`;
     const nowStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -488,6 +565,9 @@ class PaperTradingManager {
           target1: newPosition.target1,
           target2: newPosition.target2,
           strategy: newPosition.smcModel,
+          requestId: requestId,
+          signalId: signalId,
+          instrumentToken: instrumentToken,
           marketFeatures: {
             allowAfterHoursSimulation: true,
             isTradeQualified: true,
@@ -503,9 +583,23 @@ class PaperTradingManager {
               found.id = d.position.id;
               this.saveState();
             }
+          } else if (d && !d.success) {
+            console.warn('Backend rejected paper order:', d.message);
+            // Revert state if backend rejected with a hard error
+            const idx = this.state.positions.findIndex((p) => p.id === posId);
+            if (idx !== -1) {
+              this.state.positions.splice(idx, 1);
+              this.state.balance = round(this.state.balance + marginRequired, 2);
+              this.saveState();
+            }
           }
         })
-        .catch((err) => console.warn('Notice syncing signal paper trade to backend:', err));
+        .catch((err) => console.warn('Notice syncing signal paper trade to backend:', err))
+        .finally(() => {
+          this.inFlightContracts.delete(signal.contractSymbol);
+        });
+    } else {
+      this.inFlightContracts.delete(signal.contractSymbol);
     }
 
     return {

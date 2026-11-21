@@ -2,6 +2,7 @@
 import { ResearchPaperAccountPanel } from '@/components/trading/ResearchPaperAccountPanel';
 import { WorkspaceTabs } from '@/components/shared/WorkspaceTabs';
 import { PageHeading } from "@/components/shared/PageHeading";
+import { ProfitProtectionShadowMonitor } from '@/components/trading/ProfitProtectionShadowMonitor';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -276,7 +277,7 @@ export default function PaperTradingCockpitPage() {
         </div>
       </div>
 <ResearchPaperAccountPanel />
-<WorkspaceTabs tabs={['Account & positions', 'Signals & execution', 'Daily AI Trade Review', 'System health']} value={view} onChange={setView} label="Paper trading views">
+<WorkspaceTabs tabs={['Account & positions', 'Signals & execution', 'Daily AI Trade Review', 'Profit Protection Shadow Monitor', 'System health']} value={view} onChange={setView} label="Paper trading views">
 {view === 'Account & positions' && <div className="space-y-6"><div className="p-5 rounded-2xl bg-[var(--bg-surface)] dark:bg-[var(--bg-surface)] border border-[var(--border-subtle)] dark:border-[var(--border-subtle)] shadow-sm space-y-4 tabular-nums">
         <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] dark:border-[var(--border-subtle)]">
           <div className="flex items-center gap-2">
@@ -584,6 +585,7 @@ export default function PaperTradingCockpitPage() {
         </div>
       </div></div>}
 {view === 'Daily AI Trade Review' && <DailyAiTradeReview initialDate="2026-11-19" />}
+{view === 'Profit Protection Shadow Monitor' && <ProfitProtectionShadowMonitor />}
 {view === 'System health' && <SystemEfficiencyPanel />}
 </WorkspaceTabs></div>
   );
